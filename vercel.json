@@ -2,45 +2,45 @@
   "version": 2,
   "build": {
     "src": "package.json",
-    "use": "@now/static-build",
+    "use": "@vercel/static-build",
     "env": {
       "REACT_APP_NETWORK_URL": "https://mainnet.infura.io/v3/a9bca4ddb8784b349f6ec65f04aadfea",
       "REACT_APP_PORTIS_ID": "64731eda-0ddb-4a02-a69a-32264802fac3",
       "REACT_APP_FORTMATIC_KEY": "pk_live_85AE47FD4F283564"
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "^/favicon.ico",
-      "dest": "/favicon.ico"
+      "source": "^/favicon.ico",
+      "destination": "/favicon.ico"
     },
     {
-      "src": "^/manifest.json",
-      "dest": "/manifest.json"
+      "source": "^/manifest.json",
+      "destination": "/manifest.json"
     },
     {
-      "src": "^/service-worker.json",
-      "dest": "/service-worker.json"
+      "source": "^/service-worker.json",
+      "destination": "/service-worker.json"
     },
     {
-      "src": "^/asset-manifest.json",
-      "dest": "/asset-manifest.json"
+      "source": "^/asset-manifest.json",
+      "destination": "/asset-manifest.json"
     },
     {
-      "src": "^/asset-manifest.json",
-      "dest": "/asset-manifest.json"
+      "source": "^/asset-manifest.json",
+      "destination": "/asset-manifest.json"
     },
     {
-      "src": "^/static/(.*)",
-      "dest": "/static/$1"
+      "source": "^/static/(.*)",
+      "destination": "/static/$1"
     },
     {
-      "src": "^/locales/(.*)",
-      "dest": "/locales/$1"
+      "source": "^/locales/(.*)",
+      "destination": "/locales/$1"
     },
     {
-      "src": "^/(.*)",
-      "dest": "/index.html"
+      "source": "^/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
