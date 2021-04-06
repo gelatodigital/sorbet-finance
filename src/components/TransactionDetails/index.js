@@ -119,7 +119,7 @@ const FancyButton = styled.button`
     border: 1px solid ${({ theme }) => theme.chaliceGray};
   }
   :focus {
-    border: 1px solid ${({ theme }) => theme.royalGreen};
+    border: 1px solid ${({ theme }) => theme.royalPurple};
   }
 `
 
@@ -134,31 +134,31 @@ const Option = styled(FancyButton)`
   ${({ active, theme }) =>
     active &&
     css`
-      background-color: ${({ theme }) => theme.royalGreen};
+      background-color: ${({ theme }) => theme.royalPurple};
       color: ${({ theme }) => theme.white};
       border: none;
 
       :hover {
         border: none;
         box-shadow: none;
-        background-color: ${({ theme }) => darken(0.05, theme.royalGreen)};
+        background-color: ${({ theme }) => darken(0.05, theme.royalPurple)};
       }
 
       :focus {
         border: none;
         box-shadow: none;
-        background-color: ${({ theme }) => lighten(0.05, theme.royalGreen)};
+        background-color: ${({ theme }) => lighten(0.05, theme.royalPurple)};
       }
 
       :active {
-        background-color: ${({ theme }) => darken(0.05, theme.royalGreen)};
+        background-color: ${({ theme }) => darken(0.05, theme.royalPurple)};
       }
 
       :hover:focus {
-        background-color: ${({ theme }) => theme.royalGreen};
+        background-color: ${({ theme }) => theme.royalPurple};
       }
       :hover:focus:active {
-        background-color: ${({ theme }) => darken(0.05, theme.royalGreen)};
+        background-color: ${({ theme }) => darken(0.05, theme.royalPurple)};
       }
     `}
 `
@@ -230,9 +230,9 @@ const OptionCustom = styled(FancyButton)`
   ${({ active }) =>
     active &&
     css`
-      border: 1px solid ${({ theme }) => theme.royalGreen};
+      border: 1px solid ${({ theme }) => theme.royalPurple};
       :hover {
-        border: 1px solid ${({ theme }) => darken(0.1, theme.royalGreen)};
+        border: 1px solid ${({ theme }) => darken(0.1, theme.royalPurple)};
       }
     `}
 

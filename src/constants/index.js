@@ -7,40 +7,29 @@ import { injected, fortmatic, portis } from '../connectors'
 export const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
 export const ORDER_GRAPH = {
-  1: 'https://api.thegraph.com/subgraphs/name/pine-finance/pine_orders',
-  4: 'https://api.thegraph.com/subgraphs/name/pine-finance/pine_orders_rinkeby'
+  1: 'https://api.thegraph.com/subgraphs/name/gelatodigital/limit-orders',
 }
 
 export const FACTORY_ADDRESSES = {
   1: '0xc0a47dFe034B400B47bDaD5FecDa2621de6c4d95',
-  3: '0x9c83dCE8CA20E9aAF9D3efc003b2ea62aBC08351',
-  4: '0xf5D915570BC477f9B8D6C0E980aA81757A3AaC36',
-  42: '0xD3E51Ef092B2845f10401a0159B2B96e8B6c3D30'
 }
 
 export const MULTICALL_ADDRESS = {
   1: '0xeefba1e63905ef1d7acba5a8513c70307c1ce441',
-  4: '0x751c5b6c24ee8687c0d5f1c26813c4a09406c904'
 }
 
 export const UNISWAPEX_ADDRESSES = {
-  [ChainId.MAINNET]: '0xD412054ccA18A61278ceD6F674A526A6940eBd84',
-  [ChainId.ROPSTEN]: '',
-  [ChainId.RINKEBY]: '0xD412054ccA18A61278ceD6F674A526A6940eBd84'
+  [ChainId.MAINNET]: '0x36049D479A97CdE1fC6E2a5D2caE30B666Ebf92B',
 }
 
 export const LIMIT_ORDER_MODULE_ADDRESSES = {
   [ChainId.MAINNET]: '0x037fc8e71445910e1E0bBb2a0896d5e9A7485318',
-  [ChainId.RINKEBY]: '0x037fc8e71445910e1E0bBb2a0896d5e9A7485318'
 }
 
 export const UNISWAPV2_ADDRESSES = {
   1: {
     FACTORY: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
   },
-  3: {
-    FACTORY: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
-  }
 }
 
 export const GENERIC_GAS_LIMIT_ORDER_EXECUTE = ethers.utils.bigNumberify(400000)

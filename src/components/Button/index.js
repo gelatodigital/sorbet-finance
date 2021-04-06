@@ -211,9 +211,9 @@ export const ButtonWhite = styled(Base)`
 `
 
 const ButtonConfirmedStyle = styled(Base)`
-  background-color: ${({ theme }) => lighten(0.5, theme.green1)};
-  color: ${({ theme }) => theme.green1};
-  border: 1px solid ${({ theme }) => theme.green1};
+  background-color: ${({ theme }) => lighten(0.5, theme.purple1)};
+  color: ${({ theme }) => theme.purple1};
+  border: 1px solid ${({ theme }) => theme.purple1};
 
   &:disabled {
     opacity: 50%;

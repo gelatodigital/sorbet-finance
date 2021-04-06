@@ -15,7 +15,7 @@ const SummaryWrapper = styled.div`
 
 const SummaryWrapperContainer = styled.div`
   ${({ theme }) => theme.flexRowNoWrap};
-  color: ${({ theme }) => theme.royalGreen};
+  color: ${({ theme }) => theme.royalPurple};
   text-align: center;
   margin-top: 1rem;
   padding-top: 1rem;
@@ -61,7 +61,7 @@ const ErrorSpan = styled.span`
 const WrappedDropup = ({ isError, highSlippageWarning, ...rest }) => <Dropup {...rest} />
 const ColoredDropup = styled(WrappedDropup)`
   path {
-    stroke: ${({ isError, theme }) => (isError ? theme.salmonRed : theme.royalGreen)};
+    stroke: ${({ isError, theme }) => (isError ? theme.salmonRed : theme.royalPurple)};
 
     ${({ highSlippageWarning, theme }) =>
       highSlippageWarning &&
@@ -74,7 +74,7 @@ const ColoredDropup = styled(WrappedDropup)`
 const WrappedDropdown = ({ isError, highSlippageWarning, ...rest }) => <Dropdown {...rest} />
 const ColoredDropdown = styled(WrappedDropdown)`
   path {
-    stroke: ${({ isError, theme }) => (isError ? theme.salmonRed : theme.royalGreen)};
+    stroke: ${({ isError, theme }) => (isError ? theme.salmonRed : theme.royalPurple)};
 
     ${({ highSlippageWarning, theme }) =>
       highSlippageWarning &&

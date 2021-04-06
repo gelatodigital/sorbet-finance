@@ -42,24 +42,24 @@ const TransactionStatusText = styled.span`
 
 const TransactionState = styled.div`
   background-color: ${({ pending, theme }) =>
-    pending ? transparentize(0.95, theme.royalGreen) : transparentize(0.95, theme.connectedGreen)};
+    pending ? transparentize(0.95, theme.royalPurple) : transparentize(0.95, theme.connectedPurple)};
   border-radius: 1.5rem;
   padding: 0.5rem 0.75rem;
   font-weight: 500;
   font-size: 0.75rem;
   border: 1px solid;
   border-color: ${({ pending, theme }) =>
-    pending ? transparentize(0.75, theme.royalGreen) : transparentize(0.75, theme.connectedGreen)};
+    pending ? transparentize(0.75, theme.royalPurple) : transparentize(0.75, theme.connectedPurple)};
 
   :hover {
     border-color: ${({ pending, theme }) =>
-      pending ? transparentize(0, theme.royalGreen) : transparentize(0, theme.connectedGreen)};
+      pending ? transparentize(0, theme.royalPurple) : transparentize(0, theme.connectedPurple)};
   }
 `
 
 const ButtonWrapper = styled.div`
   a {
-    color: ${({ pending, theme }) => (pending ? theme.royalGreen : theme.connectedGreen)};
+    color: ${({ pending, theme }) => (pending ? theme.royalPurple : theme.connectedPurple)};
   }
 `
 

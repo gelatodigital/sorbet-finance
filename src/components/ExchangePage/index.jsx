@@ -51,7 +51,7 @@ const DownArrowBackground = styled.div`
 
 const WrappedArrowDown = ({ clickable, active, ...rest }) => <ArrowDown {...rest} />
 const DownArrow = styled(WrappedArrowDown)`
-  color: ${({ theme, active }) => (active ? theme.royalGreen : theme.chaliceGray)};
+  color: ${({ theme, active }) => (active ? theme.royalPurple : theme.chaliceGray)};
   width: 0.625rem;
   height: 0.625rem;
   position: relative;
@@ -62,7 +62,7 @@ const DownArrow = styled(WrappedArrowDown)`
 const WrappedRateIcon = ({ RateIconSVG, clickable, active, icon, ...rest }) => <RateIconSVG {...rest} />
 
 const RateIcon = styled(WrappedRateIcon)`
-  stroke: ${({ theme, active }) => (active ? theme.royalGreen : theme.chaliceGray)};
+  stroke: ${({ theme, active }) => (active ? theme.royalPurple : theme.chaliceGray)};
   width: 0.625rem;
   height: 0.625rem;
   position: relative;

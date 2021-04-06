@@ -54,7 +54,7 @@ const Spacer = styled.div`
 const WrappedArrowRight = ({ clickable, active, ...rest }) => <ArrowDown {...rest} transform="rotate(-90)" />
 
 const RightArrow = styled(WrappedArrowRight)`
-  color: ${({ theme }) => theme.royalGreen};
+  color: ${({ theme }) => theme.royalPurple};
   width: 0.625rem;
   height: 0.625rem;
   position: relative;

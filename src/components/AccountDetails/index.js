@@ -168,7 +168,7 @@ const WalletAction = styled.button`
   font-size: 1rem;
   color: #000000;
   height: 2rem;
-  border: 1px solid #01796f;
+  border: 1px solid #c166a9;
   border-radius: 2.5rem;
   background-color: #fff;
   outline: none;
@@ -189,7 +189,7 @@ const ChangeAction = styled.button`
   font-size: 1rem;
   color: #000000;
   height: 2rem;
-  border: 1px solid #01796f;
+  border: 1px solid #c166a9;
   border-radius: 2.5rem;
   background-color: #fff;
   outline: none;
