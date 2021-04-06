@@ -82,6 +82,11 @@ export default function Footer() {
           <Link id="link" rel="noopener noreferrer" target="_blank" href="https://etherscan.io/address/0x36049d479a97cde1fc6e2a5d2cae30b666ebf92b">
             <h1 id="title">Contract</h1>
           </Link>
+          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://discord.gg/58SBYPmP">
+            <DiscordImg>
+              <SVGDiscord />
+            </DiscordImg>
+          </Link>
           <Link id="link" rel="noopener noreferrer" target="_blank" href="https://t.me/therealgelatonetwork">
             <TelegramImg>
               <SVGTelegram />
