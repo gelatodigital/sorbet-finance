@@ -8,10 +8,12 @@ export const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
 export const ORDER_GRAPH = {
   1: 'https://api.thegraph.com/subgraphs/name/gelatodigital/limit-orders',
+  3: 'https://api.thegraph.com/subgraphs/name/gelatodigital/limit-orders-ropsten'
 }
 
 export const FACTORY_ADDRESSES = {
   1: '0xc0a47dFe034B400B47bDaD5FecDa2621de6c4d95',
+  3: '0x9c83dCE8CA20E9aAF9D3efc003b2ea62aBC08351',
 }
 
 export const MULTICALL_ADDRESS = {
@@ -20,16 +22,21 @@ export const MULTICALL_ADDRESS = {
 
 export const UNISWAPEX_ADDRESSES = {
   [ChainId.MAINNET]: '0x36049D479A97CdE1fC6E2a5D2caE30B666Ebf92B',
+  [ChainId.ROPSTEN]: '0xb6c2E1B5AB82d8e555ABAa00BAc4606Ab5EA4668',
 }
 
 export const LIMIT_ORDER_MODULE_ADDRESSES = {
   [ChainId.MAINNET]: '0x037fc8e71445910e1E0bBb2a0896d5e9A7485318',
+  [ChainId.ROPSTEN]: '0x3f3C13b09B601fb6074124fF8D779d2964caBf8B',
 }
 
 export const UNISWAPV2_ADDRESSES = {
   1: {
     FACTORY: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
   },
+  3: {
+    FACTORY: '0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f'
+  }
 }
 
 export const GENERIC_GAS_LIMIT_ORDER_EXECUTE = ethers.utils.bigNumberify(400000)
