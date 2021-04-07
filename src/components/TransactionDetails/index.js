@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { ethers } from 'ethers'
+import { darken, lighten } from 'polished'
+import React, { useEffect, useRef, useState } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
 import styled, { css, keyframes } from 'styled-components'
-import { darken, lighten } from 'polished'
-import { ethers } from 'ethers'
-
-import { isAddress, amountFormatter } from '../../utils'
-import { useDebounce } from '../../hooks'
-
 import question from '../../assets/images/question.svg'
-
 import NewContextualInfo from '../../components/ContextualInfoNew'
+import { useDebounce } from '../../hooks'
+import { amountFormatter, isAddress } from '../../utils'
+
+
+
 
 const EXECUTE_ORDER_GAS_USAGE = '300000' // 300,000 GAS
 

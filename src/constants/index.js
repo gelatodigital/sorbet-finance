@@ -3,13 +3,18 @@ import { ChainId, Token, WETH } from 'uniswap-v2-sdk'
 // @TODO: we should test walletconnect, walletlink before adding
 import { fortmatic, injected, portis } from '../connectors'
 
-
 export const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
 export const UNISWAPEX_ADDRESSES = {
   [ChainId.MAINNET]: '0x36049D479A97CdE1fC6E2a5D2caE30B666Ebf92B',
   [ChainId.ROPSTEN]: '0x0e5096D201Fe2985f5C26432A76f145D6e5D1453',
 }
+
+export const DCA_GRAPH = {
+  [ChainId.MAINNET]: 'https://api.thegraph.com/subgraphs/name/gelatodigital/gelato-dca',
+  [ChainId.ROPSTEN]: 'https://api.thegraph.com/subgraphs/name/gelatodigital/gelato-dca-ropsten'
+}
+
 
 export const LIMIT_ORDER_MODULE_ADDRESSES = {
   [ChainId.MAINNET]: '0x037fc8e71445910e1E0bBb2a0896d5e9A7485318',
@@ -32,6 +37,12 @@ const WETH_ONLY = {
   [ChainId.RINKEBY]: [WETH[ChainId.RINKEBY]],
   [ChainId.GÖRLI]: [WETH[ChainId.GÖRLI]],
   [ChainId.KOVAN]: [WETH[ChainId.KOVAN]]
+}
+
+// Min order size PER trade
+export const DCA_ORDER_THRESHOLD = {
+  [ChainId.MAINNET]: "0.1",
+  [ChainId.ROPSTEN]: "0.00001"
 }
 
 // used to construct intermediary pairs for trading
@@ -119,3 +130,18 @@ export const MULTICALL_NETWORKS = {
   [ChainId.RINKEBY]: '0x42Ad527de7d4e9d9d011aC45B31D8551f8Fe9821',
   [ChainId.GÖRLI]: '0x77dCa2C955b15e9dE4dbBCf1246B4B85b651e50e'
 }
+
+export const GELATO_DCA = {
+  [ChainId.MAINNET]: '0x96A6877Ac1A2E560dF6e50b5bc69B2048F36b059',
+  [ChainId.ROPSTEN]: '0x913D0849DC3aA82Bef8B8B71d9E671A2C7565fC6',
+}
+
+export const PLATFORM_WALLET = {
+  [ChainId.MAINNET]: '0xAabB54394E8dd61Dd70897E9c80be8de7C64A895',
+  [ChainId.ROPSTEN]: '0xAabB54394E8dd61Dd70897E9c80be8de7C64A895',
+  [ChainId.KOVAN]: '0xAabB54394E8dd61Dd70897E9c80be8de7C64A895',
+  [ChainId.RINKEBY]: '0xAabB54394E8dd61Dd70897E9c80be8de7C64A895',
+  [ChainId.GÖRLI]: '0xAabB54394E8dd61Dd70897E9c80be8de7C64A895'
+}
+
+export const ALL_INTERVALS = ["10 minutes", "1 hour", "1 day", "1 week"]

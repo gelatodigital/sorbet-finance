@@ -6,8 +6,8 @@ import Confetti from 'react-confetti'
 import styled from 'styled-components'
 import GelatoMainLogo from '../../assets/svg/GelatoMainLogo.svg'
 import { Button } from '../../theme'
-import Modal from '../Modal'
 import { deviceDown, deviceUp } from '../../theme/components'
+import Modal from '../Modal'
 
 const CustomButton = styled(Button)`
   @media ${deviceDown.laptop} {

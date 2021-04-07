@@ -41,7 +41,7 @@ const Title = styled.div`
 
   #title {
     display: inline;
-    font-size: 1rem;
+    font-size: 1.2rem;
     font-weight: 500;
     color: ${({ theme }) => theme.wisteriaPurple};
     :hover {
@@ -55,7 +55,7 @@ export default function Header() {
       <HeaderElement>
         <Title>
           {/* <Link id="link" href="https://limit-orders-ui.vercel.app/order"> */}
-            <h1 id="title"><span>{'🍧'}</span>Uniswap Limit Orders</h1>
+            <h1 id="title"><span>{'🍧'}</span>Sorbet Finance</h1>
           {/* </Link> */}
         </Title>
       </HeaderElement>

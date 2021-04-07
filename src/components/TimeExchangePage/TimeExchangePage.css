@@ -1,0 +1,75 @@
+.market-delta-info,
+.slippage-warning,
+.fee-error {
+  text-align: center;
+  color: inherit;
+  margin-top: -25px;
+  color: #f96600;
+  font-size: 14px;
+  align-items: center;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.market-delta-info {
+  color: #01796f;
+}
+
+.fee-error {
+  color: #ff6871;
+}
+
+.slippage-warning span {
+  margin-right: 5px;
+}
+
+.orders-title {
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.order p {
+  font-size: 14px;
+  color: #808080;
+  margin: 3px 0;
+  display: flex;
+  align-content: center;
+}
+
+.order p img,
+.order p svg,
+.fee-error svg {
+  margin-left: 3px;
+}
+
+.tokens {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.tokens > span {
+  width: 30px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.order .cta {
+  max-width: 180px;
+  margin: 15px auto 0;
+  width: 35%;
+  padding: 0.7rem 1.7rem 0.7rem 1.7rem;
+}
+
+a {
+  color: #87c122
+}

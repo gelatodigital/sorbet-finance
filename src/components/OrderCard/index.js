@@ -13,7 +13,7 @@ import {
   ACTION_CANCEL_ORDER, ACTION_PLACE_ORDER, useOrderPendingState, useTransactionAdder
 } from '../../contexts/Transactions'
 import { useTradeExactIn } from '../../hooks/trade'
-import { amountFormatter, getEtherscanLink } from '../../utils'
+import { amountFormatter, getEtherscanLink, trackTx } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import { Aligner, CurrencySelect, StyledTokenName } from '../CurrencyInputPanel'
 import TokenLogo from '../TokenLogo'
@@ -89,6 +89,7 @@ export function OrderCard(props) {
     });
 
     if (res.hash) {
+      trackTx(res.hash, chainId)
       addTransaction(res, { action: ACTION_CANCEL_ORDER, order: order })
     }
     

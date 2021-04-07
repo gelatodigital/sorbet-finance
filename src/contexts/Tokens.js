@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
+import GELATO_TOKEN_LIST from "@gelatonetwork/default-token-list"
 import { useWeb3React } from '@web3-react/core'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from 'react'
 import { ChainId } from 'uniswap-v2-sdk'
-
-import { isAddress, getTokenName, getTokenSymbol, getTokenDecimals, safeAccess } from '../utils'
+import { getTokenDecimals, getTokenName, getTokenSymbol, isAddress, safeAccess } from '../utils'
 import { DEFAULT_TOKENS_EXTRA, DISABLED_TOKENS } from './DefaultTokens'
 
 const NAME = 'name'
@@ -73,7 +73,8 @@ export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, EMPTY_LIST)
 
   useEffect(() => {
-    fetch(DEFAULT_TOKEN_LIST_URL)
+    if(window.location.pathname === '/order') {
+      fetch(DEFAULT_TOKEN_LIST_URL)
       .then(res =>
         res.json().then(list => {
           const tokenList = list.tokens
@@ -96,10 +97,33 @@ export default function Provider({ children }) {
               },
               { ...EMPTY_LIST }
             )
-          dispatch({ type: SET_LIST, payload: tokenList })
+            dispatch({ type: SET_LIST, payload: tokenList })
         })
       )
       .catch(e => console.error(e.message))
+    }
+    if(window.location.pathname === '/dca') {
+      const tokenList = GELATO_TOKEN_LIST.tokens
+        .reduce(
+          (tokenMap, token) => {
+            if (tokenMap[token.chainId][token.address] !== undefined) {
+              console.warn('Duplicate tokens.')
+              return tokenMap
+            }
+
+            return {
+              ...tokenMap,
+              [token.chainId]: {
+                ...tokenMap[token.chainId],
+                [token.address]: token
+              }
+            }
+          },
+          { ...EMPTY_LIST }
+        )
+        dispatch({ type: SET_LIST, payload: tokenList })
+    }
+    
   }, [])
 
   const update = useCallback((chainId, tokenAddress, name, symbol, decimals) => {

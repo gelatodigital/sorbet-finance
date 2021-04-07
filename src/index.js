@@ -1,27 +1,27 @@
+import { Web3Provider } from '@ethersproject/providers'
+import { createWeb3ReactRoot, Web3ReactProvider } from '@web3-react/core'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import ReactGA from 'react-ga'
-import { Web3Provider } from '@ethersproject/providers'
 import { Provider } from 'react-redux'
-
-import { createWeb3ReactRoot, Web3ReactProvider } from '@web3-react/core'
-
-import ThemeProvider, { GlobalStyle } from './theme'
-import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from './contexts/LocalStorage'
-import ApplicationContextProvider, { Updater as ApplicationContextUpdater } from './contexts/Application'
-import TransactionContextProvider, { Updater as TransactionContextUpdater } from './contexts/Transactions'
-import TokensContextProvider from './contexts/Tokens'
-import BalancesContextProvider from './contexts/Balances'
-import AllowancesContextProvider from './contexts/Allowances'
-import AllBalancesContextProvider from './contexts/AllBalances'
-import GasPricesContextProvider from './contexts/GasPrice'
-import MulticallUpdater from './state/multicall/updater'
 import { NetworkContextName } from './constants'
-
+import AllBalancesContextProvider from './contexts/AllBalances'
+import AllowancesContextProvider from './contexts/Allowances'
+import ApplicationContextProvider, { Updater as ApplicationContextUpdater } from './contexts/Application'
+import BalancesContextProvider from './contexts/Balances'
+import GasPricesContextProvider from './contexts/GasPrice'
+import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from './contexts/LocalStorage'
+import TokensContextProvider from './contexts/Tokens'
+import TransactionContextProvider, { Updater as TransactionContextUpdater } from './contexts/Transactions'
+import './i18n'
 import App from './pages/App'
 import store from './state'
+import MulticallUpdater from './state/multicall/updater'
+import ThemeProvider, { GlobalStyle } from './theme'
 
-import './i18n'
+
+
+
 
 const Web3ProviderNetwork = createWeb3ReactRoot(NetworkContextName)
 

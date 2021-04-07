@@ -1,4 +1,5 @@
-import { getLimitOrderPayloadWithSecret } from '@gelatonetwork/limit-orders-lib'
+import { AbiCoder } from '@ethersproject/abi'
+import { Zero } from '@ethersproject/constants'
 import { useWeb3React } from '@web3-react/core'
 import { ethers } from 'ethers'
 import * as ls from 'local-storage'
@@ -7,22 +8,26 @@ import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
-import SVGClose from '../../assets/svg/SVGClose'
 import SVGDiv from '../../assets/svg/SVGDiv'
-import { ETH_ADDRESS, GENERIC_GAS_LIMIT_ORDER_EXECUTE, LIMIT_ORDER_MODULE_ADDRESSES } from '../../constants'
+import { DCA_ORDER_THRESHOLD, ETH_ADDRESS, GELATO_DCA, GENERIC_GAS_LIMIT_ORDER_EXECUTE, PLATFORM_WALLET } from '../../constants'
 import { useFetchAllBalances } from '../../contexts/AllBalances'
+import { useAddressAllowance } from '../../contexts/Allowances'
 import { useAddressBalance } from '../../contexts/Balances'
 import { useGasPrice } from '../../contexts/GasPrice'
 import { useTokenDetails, WETH } from '../../contexts/Tokens'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
+import { useGelatoDcaContract } from '../../hooks'
 import { useTradeExactIn } from '../../hooks/trade'
 import { Button } from '../../theme'
 import { amountFormatter, trackTx } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../CurrencyInputPanel'
-import OrderDetailModal from '../OrderDetailModal/OrderDetailModal'
+import CurrencyInputPanelDca from '../CurrencyInputPanelDca'
 import OversizedPanel from '../OversizedPanel'
-import './ExchangePage.css'
+import TimeIntervalInputPancel from '../TimeIntervalInputPancel'
+import './TimeExchangePage.css'
+
+
 
 // Use to detach input from output
 let inputValue
@@ -30,6 +35,8 @@ let inputValue
 const INPUT = 0
 const OUTPUT = 1
 const RATE = 2
+const NUM_TRADES = 3
+const INTERVAL = 4
 
 const ETH_TO_TOKEN = 0
 const TOKEN_TO_ETH = 1
@@ -100,7 +107,7 @@ const Flex = styled.div`
 // ///
 // Local storage
 // ///
-const LS_ORDERS = 'orders_'
+const LS_DCA_ORDERS = 'dca_orders_'
 
 function lsKey(key, account, chainId) {
   return key + account.toString() + chainId
@@ -109,7 +116,7 @@ function lsKey(key, account, chainId) {
 function saveOrder(account, orderData, chainId) {
   if (!account) return
 
-  const key = lsKey(LS_ORDERS, account, chainId)
+  const key = lsKey(LS_DCA_ORDERS, account, chainId)
   const prev = ls.get(key)
 
   if (prev === null) {
@@ -147,7 +154,9 @@ function getInitialSwapState(outputCurrency) {
     inputCurrency: 'ETH',
     outputCurrency: outputCurrency ? outputCurrency : '',
     rateOp: RATE_OP_MULT,
-    inputRateValue: ''
+    inputRateValue: '',
+    numTrades: 3,
+    interval: "10 minutes"
   }
 }
 
@@ -217,9 +226,39 @@ function swapStateReducer(state, action) {
         dependentValue: action.payload === null ? inputValue : action.payload
       }
     }
+    case 'UPDATE_NUM_TRADES': {
+      const {value} = action.payload
+      return {
+        ...state,
+        numTrades: value === '' ? 0 : value
+      }
+    }
+    case 'UPDATE_INTERVAL': {
+      const {value} = action.payload
+      return {
+        ...state,
+        interval: value
+      }
+    }
     default: {
       return getInitialSwapState()
     }
+  }
+}
+
+// export const ALL_INTERVALS = ["10 minutes", "1 hour", "1 day", "1 week"]
+function getIntervalSeconds(interval) {
+  switch(interval) {
+    case("10 minutes"): 
+      return 10 * 60;
+    case("1 hour"): 
+      return 60 * 60;
+    case("1 day"): 
+      return 24 * 60 * 60;
+    case("1 week"): 
+      return 7 * 24 * 60 * 60;
+    default: 
+      throw Error("Smth went wrong in getIntervalSeconds")
   }
 }
 
@@ -284,18 +323,19 @@ function safeParseUnits(number, units) {
   }
 }
 
-export default function ExchangePage({ initialCurrency }) {
+export default function TimeExchangePage({ initialCurrency }) {
   const { t } = useTranslation()
   const { account, library, chainId } = useWeb3React()
+
+  const gelatoDcaAddress = GELATO_DCA[chainId]
 
   // core swap state
   const [swapState, dispatchSwapState] = useReducer(swapStateReducer, initialCurrency, getInitialSwapState)
 
-  const { independentValue, independentField, inputCurrency, outputCurrency, rateOp, inputRateValue } = swapState
+  const { independentValue, independentField, inputCurrency, outputCurrency, rateOp, inputRateValue, numTrades, interval } = swapState
 
+  const gelatoDcaContract = useGelatoDcaContract()
   const [inputError, setInputError] = useState()
-
-  const [confirmationPending, setConfirmationPending] = useState(false)
 
   const addTransaction = useTransactionAdder()
 
@@ -315,6 +355,9 @@ export default function ExchangePage({ initialCurrency }) {
   const outputBalanceFormatted = !!(outputBalance && Number.isInteger(outputDecimals))
     ? amountFormatter(outputBalance, outputDecimals, Math.min(4, outputDecimals))
     : ''
+
+  // get token allowance for gelatoDCA
+  const inputAllowance = useAddressAllowance(account, inputCurrency, gelatoDcaAddress)
 
   // compute useful transforms of the data above
   const independentDecimals = independentField === INPUT || independentField === RATE ? inputDecimals : outputDecimals
@@ -337,7 +380,9 @@ export default function ExchangePage({ initialCurrency }) {
   )
 
   if (bestTradeExactIn) {
-    inputValue = ethers.BigNumber.from(ethers.utils.parseUnits(bestTradeExactIn.inputAmount.toExact(), inputDecimals))
+    inputValue = ethers.BigNumber.from(
+      ethers.utils.parseUnits(bestTradeExactIn.inputAmount.toExact(), inputDecimals)
+    )
   } else if (independentField === INPUT && independentValue) {
     inputValue = ethers.BigNumber.from(ethers.utils.parseUnits(independentValue, inputDecimals))
   }
@@ -398,6 +443,7 @@ export default function ExchangePage({ initialCurrency }) {
   const inverseRateOutputSymbol = rateOp === RATE_OP_DIV ? outputSymbol : inputSymbol
   const inverseRate = flipRate(rateRaw)
 
+
   // load required gas
   const gasPrice = useGasPrice()
   const gasLimit = GENERIC_GAS_LIMIT_ORDER_EXECUTE
@@ -417,49 +463,40 @@ export default function ExchangePage({ initialCurrency }) {
     realInputValue &&
     getExchangeRate(realInputValue, inputDecimals, outputValueParsed, outputDecimals, rateOp === RATE_OP_DIV)
 
-  const limitSlippage = ethers.BigNumber.from(SLIPPAGE_WARNING).mul(
-    ethers.BigNumber.from(10).pow(ethers.BigNumber.from(16))
-  )
+  const limitSlippage = ethers.BigNumber.from(SLIPPAGE_WARNING)
+    .mul(ethers.BigNumber.from("10").pow(ethers.BigNumber.from(16)))
 
-  const limitExecution = ethers.BigNumber.from(EXECUTION_WARNING).mul(
-    ethers.BigNumber.from(10).pow(ethers.BigNumber.from(16))
-  )
+  const limitExecution = ethers.BigNumber.from(EXECUTION_WARNING)
+    .mul(ethers.BigNumber.from("10").pow(ethers.BigNumber.from(16)))
 
   // validate + parse independent value
   const [independentError, setIndependentError] = useState()
 
-  const [activatePlaceModal, setActivatePlaceModal] = useState()
-
   const executionRateDelta = executionRate && exchangeRateDiff(executionRate, rateRaw)
   const executionRateNegative = executionRate?.lt(ethers.constants.Zero)
-  const executionRateWarning = executionRateNegative || executionRateDelta?.abs()?.gt(limitExecution)
+  // const executionRateWarning = executionRateNegative || executionRateDelta?.abs()?.gt(limitExecution)
+  
+
+  // Calc minimum order size
+  const orderThresholdInEth = DCA_ORDER_THRESHOLD[chainId ? chainId : 3]
+  let minOrderSize
+
+  const minOrderSizeTrade =  useTradeExactIn('ETH', orderThresholdInEth, inputCurrency)
+  if(inputCurrency === 'ETH' ) {
+    minOrderSize = ethers.utils.parseEther(orderThresholdInEth.toString())
+  } else {
+    if(outputCurrency && minOrderSizeTrade) {
+      minOrderSize = ethers.utils.parseUnits(minOrderSizeTrade.outputAmount.toExact(), inputDecimals)
+    }
+  }
+  const numTradesBn = ethers.BigNumber.from(numTrades.toString())
+  const numTradesIsZero = numTradesBn.eq(Zero) ? true : false
+  const executionRateWarning = !numTradesIsZero && inputValue && numTradesBn && minOrderSize && inputValue.div(numTradesBn).lt(minOrderSize) ? true : false
+
   const isLOBtwEthAndWeth =
     (inputCurrency === 'ETH' && outputCurrency.toLocaleLowerCase() === WETH[chainId]) ||
     (outputCurrency === 'ETH' && inputCurrency.toLocaleLowerCase() === WETH[chainId])
-
-  const { exchangeAddress: selectedTokenExchangeAddress } = useTokenDetails(inputCurrency)
-
-  function getWadNumber(nb, decimalsNb) {
-    return nb.mul(ethers.utils.parseUnits('1', 18)).div(ethers.utils.parseUnits('1', decimalsNb))
-  }
-
-  let adviceRate = executionRateDelta?.abs()?.gt(limitExecution)
-    ? amountFormatter(
-        ethers.BigNumber.from(getWadNumber(outputValueParsed, dependentDecimals))
-          .mul(ethers.utils.parseUnits('1', 18))
-          .div(
-            executionRate
-              .mul(ethers.utils.parseUnits('1', 18))
-
-              .div(executionRateDelta.mul(ethers.utils.parseUnits('1', 18)).div(limitExecution))
-          )
-          .mul(ethers.utils.parseUnits('11', 17)) // + 10%
-          .div(ethers.utils.parseUnits('1', 18)),
-        18,
-        4,
-        false
-      )
-    : inputValueParsed
+  
 
   useEffect(() => {
     if (independentValue && (independentDecimals || independentDecimals === 0)) {
@@ -483,6 +520,21 @@ export default function ExchangePage({ initialCurrency }) {
     }
   }, [independentValue, independentDecimals, t])
 
+  
+  useEffect(() => {
+    if (inputValue && inputAllowance) {
+      // console.log(`Input Value: ${inputValue.toString()}`)
+      // console.log(`Input Allowance: ${inputAllowance.toString()}`)
+      if (inputAllowance.lt(inputValue)) {
+        // Approval of user insufficient
+        setShowUnlock(true)
+      } else {
+        setInputError(null)
+        setShowUnlock(false)
+      }
+    }
+  }, [inputBalance, inputCurrency, t, inputValueParsed, inputAllowance])
+  
   // validate input balance
   const [showUnlock, setShowUnlock] = useState(false)
   useEffect(() => {
@@ -526,87 +578,126 @@ export default function ExchangePage({ initialCurrency }) {
 
   const highSlippageWarning = rateDelta && rateDelta.lt(ethers.BigNumber.from(0).sub(limitSlippage))
   const rateDeltaFormatted = amountFormatter(rateDelta, 16, 2, true)
-
+  
   const isValid = outputValueParsed && !inputError && !independentError
 
   const estimatedText = `(${t('estimated')})`
   function formatBalance(value) {
-    return `(${t('balance', { balanceInput: value })})`
+    return `Balance: ${value}`
   }
 
-  async function onPlaceComfirmed() {
-    setActivatePlaceModal(false)
-    setConfirmationPending(true)
-    let fromCurrency, toCurrency, inputAmount, minimumReturn
+  async function onPlace() {
+    let fromCurrency, toCurrency, inputAmount, amountPerTrade, value
     ReactGA.event({
-      category: 'place',
+      category: 'placeDCA',
       action: 'place'
     })
 
     inputAmount = inputValueParsed
-    minimumReturn = outputValueParsed
-
+    amountPerTrade = inputAmount.div(numTradesBn)
+    
     if (swapType === ETH_TO_TOKEN) {
       fromCurrency = ETH_ADDRESS
       toCurrency = outputCurrency
+      value = amountPerTrade.mul(numTradesBn)
     } else if (swapType === TOKEN_TO_ETH) {
       fromCurrency = inputCurrency
       toCurrency = ETH_ADDRESS
+      value = 0
     } else if (swapType === TOKEN_TO_TOKEN) {
       fromCurrency = inputCurrency
       toCurrency = outputCurrency
+      value = 0
     }
+
+    const order = {
+      inToken: fromCurrency,
+      outToken: outputCurrency === "ETH" ? ETH_ADDRESS : outputCurrency,
+      amountPerTrade: amountPerTrade.toString(),
+      numTrades: numTradesBn.toString(),
+      minSlippage: 1000,
+      maxSlippage: 9999,
+      delay: getIntervalSeconds(interval),
+      platformWallet: PLATFORM_WALLET[chainId],
+      platformFeeBps: 50
+    }
+
     try {
+      // Prefix Hex for secret message
+      // this secret it's only intended for avoiding relayer front-running
+      // so a decreased entropy it's not an issue
+      const secret = ethers.utils.hexlify(ethers.utils.randomBytes(13)).replace('0x', '')
+      const fullSecret = `2070696e652e66696e616e63652020d83ddc09${secret}`
+      const { privateKey, address } = new ethers.Wallet(fullSecret)
+      const witness = address.toLowerCase()
+
+
+      const abiCoder = new AbiCoder()
+      const funcSig = gelatoDcaContract.interface.getSighash("submit")
+      // console.log(funcSig)
+      let submitData = abiCoder.encode(['tuple(address inToken, address outToken, uint256 amountPerTrade, uint256 numTrades, uint256 minSlippage, uint256 maxSlippage, uint256 delay, address platformWallet, uint256 platformFeeBps)', 'bool submitAndExec', 'address witness'], [order, false, witness]);
+      submitData = "0x" + funcSig.substring(2, funcSig.length) + submitData.substring(2, submitData.length)
+
+
+
+      // const indexOf = submitData.indexOf(witness.substring(2, witness.length))
+      // const witnessCut = submitData.substring(indexOf, indexOf + 64)
+      // console.log(indexOf)
+      // console.log(witnessCut)
+      // console.log(witness === ("0x" + witnessCut))
+      // console.log(witnessHash)
+      
+
       const provider = new ethers.providers.Web3Provider(library.provider)
-
-      const transactionDataWithSecret = await getLimitOrderPayloadWithSecret(
-        chainId,
-        fromCurrency,
-        toCurrency,
-        inputAmount,
-        minimumReturn,
-        account.toLowerCase()
-      )
-
-      const order = {
-        inputAmount: inputAmount.toString(),
-        creationAmount: inputAmount.toString(),
-        inputToken: fromCurrency.toLowerCase(),
-        id: '???',
-        minReturn: minimumReturn.toString(),
-        module: LIMIT_ORDER_MODULE_ADDRESSES[chainId].toLowerCase(),
-        owner: account.toLowerCase(),
-        secret: transactionDataWithSecret.secret,
-        status: 'open',
-        outputToken: toCurrency.toLowerCase(),
-        witness: transactionDataWithSecret.witness.toLowerCase()
-      }
-
-      saveOrder(account, order, chainId)
-
-      const res = await provider.getSigner().sendTransaction({
-        ...transactionDataWithSecret.txData,
-        gasPrice: gasPrice
+      let res = await provider.getSigner().sendTransaction({
+        to: gelatoDcaContract.address,
+        data: submitData,
+        value: value,
+        gasPrice: gasPrice ? gasPrice: undefined
       })
 
-      setConfirmationPending(false)
+      trackTx(res.hash, chainId)
 
-      if (res.hash) {
-        trackTx(res.hash, chainId)
-        addTransaction(res, { action: ACTION_PLACE_ORDER, order: order })
+
+      const submissionDate = (Math.floor(Date.now() / 1000)).toString()
+      const currentId = await gelatoDcaContract.taskId()
+      for(let i = 0; i < numTrades; i++) {
+        const estimatedExecutionDate = ((order.delay * (i + 1)) + Math.floor(Date.now() / 1000)).toString()
+        const nTradesLeft = order.numTrades.sub(ethers.BigNumber.from(i.toString())).toString()
+        const index = (numTrades - i).toString()
+        const witnessHash = witness + i.toString()
+        const localOrder = {
+          id: `${(parseInt(currentId) + 1)}:${i+1}`,
+          user: account.toLowerCase(),
+          status: 'awaitingExec',
+          submissionDate: submissionDate,
+          submissionHash: res.hash.toLowerCase(),
+          estExecutionDate: estimatedExecutionDate,
+          amount: amountPerTrade.toString(),
+          inToken: fromCurrency.toLowerCase(),
+          outToken: toCurrency.toLowerCase(),
+          minSlippage: order.minSlippage.toString(),
+          maxSlippage: order.maxSlippage.toString(),
+          index: index,
+          witness: witnessHash,
+          cycleWrapper: {
+            cycle: {
+              nTradesLeft: nTradesLeft
+            }
+          }
+        }
+
+        saveOrder(account, localOrder, chainId)
+
+        if (res.hash) {
+          addTransaction(res, { action: ACTION_PLACE_ORDER, order: localOrder })
+        }
       }
+
+      
     } catch (e) {
-      setConfirmationPending(false)
       console.log('Error on place order', e.message)
     }
-  }
-
-  async function onPlace() {
-    setActivatePlaceModal(true)
-  }
-
-  async function onDismiss() {
-    setActivatePlaceModal(false)
   }
 
   const [customSlippageError] = useState('')
@@ -615,22 +706,8 @@ export default function ExchangePage({ initialCurrency }) {
 
   return (
     <>
-      <OrderDetailModal
-        isOpen={activatePlaceModal}
-        outputValueFormatted={outputValueFormatted}
-        inputValueFormatted={inputValueFormatted}
-        inputCurrency={inputCurrency}
-        outputCurrency={outputCurrency}
-        executionRate={amountFormatter(executionRate, 18, 4, false)}
-        executionRateNegative={executionRateNegative}
-        rateFormatted={rateFormatted || ''}
-        adviceRate={adviceRate}
-        warning={executionRateWarning}
-        onPlaceComfirmed={onPlaceComfirmed}
-        onDismiss={onDismiss}
-      ></OrderDetailModal>
       <CurrencyInputPanel
-        title={t('input')}
+        title={t('Total Sell Volume')}
         allBalances={allBalances}
         extraText={inputBalanceFormatted && formatBalance(inputBalanceFormatted)}
         extraTextClickHander={() => {
@@ -655,71 +732,43 @@ export default function ExchangePage({ initialCurrency }) {
         selectedTokenAddress={inputCurrency}
         value={inputValueFormatted}
         errorMessage={inputError ? inputError : independentField === INPUT ? independentError : ''}
-        addressToApprove={selectedTokenExchangeAddress}
+        addressToApprove={gelatoDcaAddress}
+        searchDisabled={true}
       />
       <OversizedPanel>
         <DownArrowBackground>
           <RateIcon
-            RateIconSVG={rateOp === RATE_OP_MULT ? SVGClose : SVGDiv}
+            // RateIconSVG={rateOp === RATE_OP_MULT ? SVGClose : SVGDiv}
+            RateIconSVG={ SVGDiv }
             icon={rateOp}
-            onClick={() => {
-              dispatchSwapState({ type: 'FLIP_RATE_OP' })
-            }}
-            clickable
+            // onClick={() => {
+            //   dispatchSwapState({ type: 'FLIP_RATE_OP' })
+            // }}
+            // clickable
             alt="swap"
             active={isValid}
           />
         </DownArrowBackground>
       </OversizedPanel>
-      <CurrencyInputPanel
-        title={t('rate')}
-        showCurrencySelector={false}
-        extraText={
-          inverseRateInputSymbol && inverseRate && inverseRateOutputSymbol
-            ? `1 ${inverseRateInputSymbol} = ${amountFormatter(inverseRate, 18, 4, false)} ${inverseRateOutputSymbol}`
-            : '-'
-        }
-        extraTextClickHander={() => {
-          dispatchSwapState({ type: 'FLIP_RATE_OP' })
+      <TimeIntervalInputPancel
+        title={t('Split into how many orders?')}
+        allBalances={allBalances}
+        description={""}
+        extraText={'Time between orders'}
+        onIntervalSelect={outputInterval => {
+          dispatchSwapState({ type: 'UPDATE_INTERVAL', payload: { value: outputInterval, field: INTERVAL } })
         }}
-        value={rateFormatted || ''}
-        onValueChange={rateValue => {
-          dispatchSwapState({ type: 'UPDATE_INDEPENDENT', payload: { value: rateValue, field: RATE } })
+        onValueChange={newNumTrades => {
+          // Dispatch change in value
+          dispatchSwapState({ type: 'UPDATE_NUM_TRADES', payload: { value: newNumTrades, field: NUM_TRADES } })
         }}
-        addressToApprove={selectedTokenExchangeAddress}
+        selectedTokens={[inputCurrency, outputCurrency]}
+        interval={interval}
+        value={numTrades}
+        errorMessage={independentField === OUTPUT ? independentError : ''}
+        disableUnlock
       />
       <OversizedPanel>
-        <ExchangeRateWrapper
-          onClick={() => {
-            setInverted(inverted => !inverted)
-          }}
-        >
-          <ExchangeRate>
-            {t('executionRate', { gasPrice: gasPrice ? amountFormatter(gasPrice, 9, 0, false) : '...' })}
-            {/* Execution rate at {gasPrice ? amountFormatter(gasPrice, 9, 0, false) : '...'} GWEI */}
-          </ExchangeRate>
-          {executionRateNegative ? (
-            'Never executes'
-          ) : rateOp !== RATE_OP_DIV ? (
-            <span>
-              {executionRate
-                ? `1 ${inputSymbol} = ${amountFormatter(executionRate, 18, 4, false)} ${outputSymbol}`
-                : ' - '}
-            </span>
-          ) : rateOp !== RATE_OP_DIV ? (
-            <span>
-              {executionRate
-                ? `1 ${inputSymbol} = ${amountFormatter(executionRate, 18, 4, false)} ${outputSymbol}`
-                : ' - '}
-            </span>
-          ) : (
-            <span>
-              {executionRate
-                ? `1 ${outputSymbol} = ${amountFormatter(executionRate, 18, 4, false)} ${inputSymbol}`
-                : ' - '}
-            </span>
-          )}
-        </ExchangeRateWrapper>
         <DownArrowBackground>
           <DownArrow
             onClick={() => {
@@ -731,11 +780,11 @@ export default function ExchangePage({ initialCurrency }) {
           />
         </DownArrowBackground>
       </OversizedPanel>
-      <CurrencyInputPanel
-        title={t('output')}
+      <CurrencyInputPanelDca
+        title={t('')}
         allBalances={allBalances}
-        description={estimatedText}
-        extraText={outputBalanceFormatted && formatBalance(outputBalanceFormatted)}
+        description={''}
+        extraText={'Token to buy'}
         onCurrencySelected={outputCurrency => {
           dispatchSwapState({ type: 'SELECT_CURRENCY', payload: { currency: outputCurrency, field: OUTPUT } })
           dispatchSwapState({ type: 'UPDATE_INDEPENDENT', payload: { value: inputValueFormatted, field: INPUT } })
@@ -745,69 +794,36 @@ export default function ExchangePage({ initialCurrency }) {
         }}
         selectedTokens={[inputCurrency, outputCurrency]}
         selectedTokenAddress={outputCurrency}
-        value={outputValueFormatted}
+        // value={outputValueFormatted}
         errorMessage={independentField === OUTPUT ? independentError : ''}
         disableUnlock
-        addressToApprove={selectedTokenExchangeAddress}
+        searchDisabled={true}
       />
       <OversizedPanel hideBottom>
         <ExchangeRateWrapper
-          onClick={() => {
-            setInverted(inverted => !inverted)
-          }}
         >
-          <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
-          {inverted ? (
+          {numTrades && (
             <span>
-              {exchangeRate
-                ? `1 ${inputSymbol} = ${amountFormatter(exchangeRate, 18, 4, false)} ${outputSymbol}`
-                : ' - '}
-            </span>
-          ) : (
-            <span>
-              {exchangeRate
-                ? `1 ${outputSymbol} = ${amountFormatter(exchangeRateInverted, 18, 4, false)} ${inputSymbol}`
-                : ' - '}
-            </span>
+              {`${numTrades} Orders, each swapping ${numTrades ? (inputValueFormatted / numTrades).toFixed(4) : 0} ${inputSymbol} ${outputSymbol ? `to ${outputSymbol}` : ''} every ${interval}`}
+          </span>
           )}
         </ExchangeRateWrapper>
       </OversizedPanel>
       <Flex>
         <Button
-          disabled={
-            !account ||
-            !isValid ||
-            customSlippageError === 'invalid' ||
-            (rateDeltaFormatted && rateDeltaFormatted.startsWith('-')) ||
-            isLOBtwEthAndWeth
-          }
+          disabled={showUnlock || !account || !isValid || customSlippageError === 'invalid' || numTradesIsZero || executionRateWarning || isLOBtwEthAndWeth}
           onClick={onPlace}
           warning={highSlippageWarning || executionRateWarning || customSlippageError === 'warning'}
         >
-          {confirmationPending ? t('pending') : customSlippageError === 'warning' ? t('placeAnyway') : t('place')}
+          {customSlippageError === 'warning' ? t('placeAnyway') : t('place')}
         </Button>
       </Flex>
-      {rateDeltaFormatted && (
-        <div className="market-delta-info">
-          {rateDeltaFormatted.startsWith('-')
-            ? t('placeBelow', { rateDelta: rateDeltaFormatted })
-            : t('placeAbove', { rateDelta: rateDeltaFormatted })}
-        </div>
-      )}
-      {highSlippageWarning && (
-        <div className="slippage-warning">
-          <span role="img" aria-label="warning">
-            ⚠️
-          </span>
-          {t('highSlippageWarning')}
-        </div>
-      )}
       {executionRateWarning && (
         <div className="slippage-warning">
           <span role="img" aria-label="warning">
             ⚠️
           </span>
-          {t('orderWarning')}
+          {`Min. total order size: ${amountFormatter(minOrderSize.mul(numTradesBn), inputDecimals, 4, false)} ${inputSymbol} for ${numTrades} orders`}
         </div>
       )}
       {isLOBtwEthAndWeth && (

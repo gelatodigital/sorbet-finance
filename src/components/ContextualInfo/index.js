@@ -1,9 +1,9 @@
-import React, { Component } from 'react'
 import PropTypes from 'prop-types'
+import React, { Component } from 'react'
 import styled from 'styled-components'
-
-import { ReactComponent as Dropup } from '../../assets/images/dropup-blue.svg'
 import { ReactComponent as Dropdown } from '../../assets/images/dropdown-blue.svg'
+import { ReactComponent as Dropup } from '../../assets/images/dropup-blue.svg'
+
 
 const SummaryWrapper = styled.div`
   color: ${({ error, theme }) => (error ? theme.salmonRed : theme.doveGray)};

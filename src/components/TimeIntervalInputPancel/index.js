@@ -1,30 +1,25 @@
 import Tooltip from '@reach/tooltip'
 import '@reach/tooltip/styles.css'
 import { BigNumber } from '@uniswap/sdk'
-import { useWeb3React } from '@web3-react/core'
 import escapeStringRegex from 'escape-string-regexp'
 import { ethers } from 'ethers'
 import { darken, transparentize } from 'polished'
 import React, { useMemo, useRef, useState } from 'react'
-import { isMobile } from 'react-device-detect'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
-import Circle from '../../assets/images/circle-grey.svg'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
-import SearchIcon from '../../assets/images/magnifying-glass.svg'
 import { ReactComponent as Close } from '../../assets/images/x.svg'
+import { ALL_INTERVALS } from "../../constants"
 import { useUSDPrice } from '../../contexts/Application'
-import { useGasPrice } from '../../contexts/GasPrice'
 import { useAllTokenDetails, useTokenDetails } from '../../contexts/Tokens'
-import { usePendingApproval, useTransactionAdder } from '../../contexts/Transactions'
-import { useTokenContract } from '../../hooks'
+import { useTransactionAdder } from '../../contexts/Transactions'
 import { BorderlessInput, Spinner } from '../../theme'
-import { calculateGasMargin, formatEthBalance, formatTokenBalance, formatToUsd, isAddress, trackTx } from '../../utils'
+import { formatEthBalance, formatTokenBalance, isAddress } from '../../utils'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
 
 
-const GAS_MARGIN = ethers.BigNumber.from(1000)
+const GAS_MARGIN = ethers.BigNumber.from("1000")
 
 const SubCurrencySelect = styled.button`
   ${({ theme }) => theme.flexRowNoWrap}
@@ -38,8 +33,8 @@ const SubCurrencySelect = styled.button`
   cursor: pointer;
   user-select: none;
   background: ${({ theme }) => theme.zumthorBlue};
-  border: 1px solid ${({ theme }) => theme.royalPurple};
-  color: ${({ theme }) => theme.royalPurple};
+  border: 1px solid ${({ theme }) => theme.primary1};
+  color: ${({ theme }) => theme.primary1};
 `
 
 const InputRow = styled.div`
@@ -67,9 +62,9 @@ const StyledBorderlessInput = styled(BorderlessInput)`
 export const CurrencySelect = styled.button`
   align-items: center;
   font-size: 1rem;
-  color: ${({ selected, theme }) => (selected ? theme.textColor : theme.royalPurple)};
+  color: ${({ selected, theme }) => (selected ? theme.textColor : theme.primary1)};
   height: 2rem;
-  border: 1px solid ${({ selected, theme }) => (selected ? theme.mercuryGray : theme.royalPurple)};
+  border: 1px solid ${({ selected, theme }) => (selected ? theme.primary1 : theme.primary1)};
   border-radius: 2.5rem;
   background-color: #fafafa;
   outline: none;
@@ -78,11 +73,11 @@ export const CurrencySelect = styled.button`
 
   :hover {
     border: 1px solid
-      ${({ selected, theme }) => (selected ? darken(0.1, theme.mercuryGray) : darken(0.1, theme.royalPurple))};
+      ${({ selected, theme }) => (selected ? darken(0.1, theme.primary1) : darken(0.1, theme.primary1))};
   }
 
   :focus {
-    border: 1px solid ${({ theme }) => darken(0.1, theme.royalPurple)};
+    border: 1px solid ${({ theme }) => darken(0.1, theme.primary1)};
   }
 `
 
@@ -97,7 +92,7 @@ const StyledDropDown = styled(DropDown)`
   height: 35%;
 
   path {
-    stroke: ${({ selected, theme }) => (selected ? theme.textColor : theme.royalPurple)};
+    stroke: ${({ selected, theme }) => (selected ? theme.textColor : theme.primary1)};
   }
 `
 
@@ -112,24 +107,24 @@ const InputPanel = styled.div`
 
 const Container = styled.div`
   border-radius: 1.25rem;
-  border: 1px solid ${({ error, theme }) => (error ? theme.salmonRed : theme.mercuryGray)};
+  border: 1px solid ${({ error, theme }) => (error ? theme.salmonRed : theme.primary1)};
 
   background-color: ${({ theme }) => theme.inputBackground};
   :focus-within {
-    border: 1px solid ${({ theme }) => theme.malibuPurple};
+    border: 1px solid ${({ theme }) => theme.primary1};
   }
 `
 
 const LabelRow = styled.div`
   ${({ theme }) => theme.flexRowNoWrap}
   align-items: center;
-  color: ${({ theme }) => theme.doveGray};
+  color: ${({ theme }) => theme.primary1};
   font-size: 0.75rem;
   line-height: 1rem;
   padding: 0.75rem 1rem;
   span:hover {
     cursor: pointer;
-    color: ${({ theme }) => darken(0.2, theme.doveGray)};
+    color: ${({ theme }) => darken(0.2, theme.primary1)};
   }
 `
 
@@ -261,11 +256,11 @@ const SpinnerWrapper = styled(Spinner)`
   opacity: 0.6;
 `
 
-export default function CurrencyInputPanel({
+export default function TimeIntervalInputPancel({
   onValueChange = () => {},
   allBalances,
   renderInput,
-  onCurrencySelected = () => {},
+  onIntervalSelect = () => {},
   title,
   description,
   extraText,
@@ -273,60 +268,18 @@ export default function CurrencyInputPanel({
   errorMessage,
   disableUnlock,
   disableTokenSelect,
-  selectedTokenAddress = '',
+  interval,
   showUnlock,
   value,
-  showCurrencySelector = true,
-  addressToApprove,
-  searchDisabled = false
+  showCurrencySelector = true
 }) {
   const { t } = useTranslation()
 
-  const gasPrice = useGasPrice()
-
-  const { chainId } = useWeb3React()
-
   const [modalIsOpen, setModalIsOpen] = useState(false)
-
-  const tokenContract = useTokenContract(selectedTokenAddress)
-
-  const pendingApproval = usePendingApproval(selectedTokenAddress)
 
   const addTransaction = useTransactionAdder()
 
   const allTokens = useAllTokenDetails()
-
-  function renderUnlockButton() {
-    if (disableUnlock || !showUnlock || selectedTokenAddress === 'ETH' || !selectedTokenAddress) {
-      return null
-    } else {
-      if (!pendingApproval) {
-        return (
-          <SubCurrencySelect
-            onClick={async () => {
-              const estimatedGas = await tokenContract.estimateGas.approve(
-                addressToApprove,
-                ethers.constants.MaxUint256
-              )
-              tokenContract
-                .approve(addressToApprove, ethers.constants.MaxUint256, {
-                  gasLimit: calculateGasMargin(estimatedGas, GAS_MARGIN),
-                  gasPrice: gasPrice ? gasPrice : undefined
-                })
-                .then(response => {
-                  trackTx(response.hash, chainId)
-                  addTransaction(response, { approval: selectedTokenAddress })
-                })
-            }}
-          >
-            {t('unlock')}
-          </SubCurrencySelect>
-        )
-      } else {
-        return <SubCurrencySelect>{t('pending')}</SubCurrencySelect>
-      }
-    }
-  }
 
   function _renderInput() {
     if (typeof renderInput === 'function') {
@@ -339,24 +292,23 @@ export default function CurrencyInputPanel({
           type="number"
           min="0"
           error={!!errorMessage}
-          placeholder="0.0"
+          placeholder=""
           step="0.000000000000000001"
           onChange={e => onValueChange(e.target.value)}
           onKeyPress={e => {
             const charCode = e.which ? e.which : e.keyCode
 
             // Prevent 'minus' character
-            if (charCode === 45) {
+            if (charCode === 45 || charCode === 46 || charCode === 44) {
               e.preventDefault()
               e.stopPropagation()
             }
           }}
           value={value}
         />
-        {renderUnlockButton()}
         {showCurrencySelector ? (
           <CurrencySelect
-            selected={!!selectedTokenAddress}
+            // selected={!!selectedTokenAddress}
             onClick={() => {
               if (!disableTokenSelect) {
                 setModalIsOpen(true)
@@ -364,13 +316,14 @@ export default function CurrencyInputPanel({
             }}
           >
             <Aligner>
-              {selectedTokenAddress ? <TokenLogo address={selectedTokenAddress} /> : null}
+              {/* {selectedTokenAddress ? <TokenLogo address={selectedTokenAddress} /> : null} */}
               {
                 <StyledTokenName>
-                  {(allTokens[selectedTokenAddress] && allTokens[selectedTokenAddress].symbol) || t('selectToken')}
+                  {interval}
+                  {/* {(allTokens[selectedTokenAddress] && allTokens[selectedTokenAddress].symbol) || t('selectToken')} */}
                 </StyledTokenName>
               }
-              {!disableTokenSelect && <StyledDropDown selected={!!selectedTokenAddress} />}
+              {/* {!disableTokenSelect && <StyledDropDown selected={!!selectedTokenAddress} />} */}
             </Aligner>
           </CurrencySelect>
         ) : null}
@@ -411,22 +364,21 @@ export default function CurrencyInputPanel({
         {_renderInput()}
       </Container>
       {!disableTokenSelect && (
-        <CurrencySelectModal
+        <TimeSelectModal
           isOpen={modalIsOpen}
           // isOpen={true}
           onDismiss={() => {
             setModalIsOpen(false)
           }}
-          onTokenSelect={onCurrencySelected}
+          onIntervalSelect={onIntervalSelect}
           allBalances={allBalances}
-          searchDisabled={searchDisabled}
         />
       )}
     </InputPanel>
   )
 }
 
-function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, searchDisabled }) {
+function TimeSelectModal({ isOpen, onDismiss, onIntervalSelect, allBalances }) {
   const { t } = useTranslation()
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -532,31 +484,28 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
     })
   }, [tokenList, searchQuery])
 
-  function _onTokenSelect(address) {
+  function _onTokenSelect(interval) {
     setSearchQuery('')
-    onTokenSelect(address)
+    onIntervalSelect(interval)
     onDismiss()
   }
 
-  function renderTokenList() {
-    if (isAddress(searchQuery) && name === undefined) {
-      return <TokenModalInfo>Searching for Exchange...</TokenModalInfo>
-    }
-    if (!filteredTokenList.length) {
+  function renderIntervalList() {
+    if (!ALL_INTERVALS.length) {
       return <TokenModalInfo>{t('noExchange')}</TokenModalInfo>
     }
 
-    return filteredTokenList.map(({ address, symbol, name, balance, usdBalance }) => {
+    return ALL_INTERVALS.map((interval => {
       return (
-        <TokenModalRow key={address} onClick={() => _onTokenSelect(address)}>
+        <TokenModalRow key={interval} onClick={() => _onTokenSelect(interval)}>
           <TokenRowLeft>
-            <TokenLogo address={address} size={'2rem'} />
+            <TokenLogo address={"0x6b175474e89094c44da98b954eedeac495271d0f"} size={'2rem'} />
             <TokenSymbolGroup>
-              <span id="symbol">{symbol}</span>
-              <TokenFullName>{name}</TokenFullName>
+              <span id="symbol">{interval}</span>
+              <TokenFullName>{interval}</TokenFullName>
             </TokenSymbolGroup>
           </TokenRowLeft>
-          <TokenRowRight>
+          {/* <TokenRowRight>
             {balance ? (
               <TokenRowBalance>{balance && (balance > 0 || balance === '<0.0001') ? balance : '-'}</TokenRowBalance>
             ) : (
@@ -565,10 +514,10 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
             <TokenRowUsd>
               {usdBalance ? (usdBalance.lt(0.01) ? '<$0.01' : '$' + formatToUsd(usdBalance)) : ''}
             </TokenRowUsd>
-          </TokenRowRight>
+          </TokenRowRight> */}
         </TokenModalRow>
       )
-    })
+    }))
   }
 
   // manage focus on modal show
@@ -590,26 +539,25 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
       isOpen={isOpen}
       onDismiss={clearInputAndDismiss}
       minHeight={60}
-      initialFocusRef={isMobile ? undefined : inputRef}
+      // initialFocusRef={isMobile ? undefined : inputRef}
     >
       <TokenModal>
         <ModalHeader>
-          <p>Select Token</p>
+          <p>Select Time Interval</p>
           <CloseIcon onClick={clearInputAndDismiss}>
             <CloseColor alt={'close icon'} />
           </CloseIcon>
         </ModalHeader>
         <SearchContainer>
-          <img src={SearchIcon} alt="search" />
+          {/* <img src={SearchIcon} alt="search" />
           <StyledBorderlessInput
             ref={inputRef}
             type="text"
             placeholder={isMobile ? t('searchOrPasteMobile') : t('searchOrPaste')}
             onChange={onInput}
-            disabled={searchDisabled}
-          />
+          /> */}
         </SearchContainer>
-        <TokenList>{renderTokenList()}</TokenList>
+        <TokenList>{renderIntervalList()}</TokenList>
       </TokenModal>
     </Modal>
   )
