@@ -536,7 +536,7 @@ export default function ExchangePage({ initialCurrency }) {
       // this secret it's only intended for avoiding relayer front-running
       // so a decreased entropy it's not an issue
       const secret = ethers.utils.hexlify(ethers.utils.randomBytes(13)).replace('0x', '')
-      const fullSecret = `2070696e652e66696e616e63652020d83ddc09${secret}`
+      const fullSecret = `4200696e652e66696e616e63652020d83ddc09${secret}`
       const { privateKey, address } = new ethers.Wallet(fullSecret)
       const abiCoder = new ethers.utils.AbiCoder()
       data = await (swapType === ETH_TO_TOKEN
