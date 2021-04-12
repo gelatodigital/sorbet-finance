@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { ethers } from 'ethers'
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { useBlockNumber } from './Application'
 
 const GasContext = createContext()
@@ -14,7 +14,7 @@ export default function Provider({ children }) {
   const globalBlockNumber = useBlockNumber()
 
   useEffect(() => {
-    fetch("https://www.gasnow.org/api/v3/gas/price?utm_source=pine").then((res) => {
+    fetch("https://www.gasnow.org/api/v3/gas/price?utm_source=gelato-uniswap").then((res) => {
       res.json().then(gasInfo => {
         try {
           setGasPrice(ethers.utils.bigNumberify(gasInfo.data.fast))

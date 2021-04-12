@@ -1,12 +1,11 @@
-import React, { useCallback } from 'react'
-import { withRouter } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import styled from 'styled-components'
 import { transparentize } from 'polished'
-
-import { Link } from '../../theme'
-import { useBodyKeyDown } from '../../hooks'
+import React, { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
+import { withRouter } from 'react-router-dom'
+import styled from 'styled-components'
 import { useBetaMessageManager } from '../../contexts/LocalStorage'
+import { useBodyKeyDown } from '../../hooks'
+
 
 const tabOrder = [
   {
@@ -80,9 +79,9 @@ function NavigationTabs({ location: { pathname }, history }) {
             💀
           </span>{' '}
           {t('betaWarning')}
-          <Link id="link" href="https://medium.com/@pine_eth/pine-finance-an-amm-orders-engine-525fe1f1b1eb" className="how-it-works">
+          {/* <Link id="link" href="https://medium.com/@pine_eth/pine-finance-an-amm-orders-engine-525fe1f1b1eb" className="how-it-works">
             {t('seeHowItWorks')}
-          </Link>
+          </Link> */}
         </BetaMessage>
       )}
     </>

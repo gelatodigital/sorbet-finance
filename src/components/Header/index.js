@@ -1,9 +1,8 @@
-import React from 'react'
-import styled from 'styled-components'
+import { darken } from 'polished';
+import React from 'react';
+import styled from 'styled-components';
+import Web3Status from '../Web3Status';
 import Gelato from './../../assets/svg/Gelato_Black.svg';
-import { Link } from '../../theme'
-import Web3Status from '../Web3Status'
-import { darken } from 'polished'
 
 const HeaderFrame = styled.div`
   display: flex;
@@ -56,16 +55,16 @@ export default function Header() {
     <HeaderFrame>
       <HeaderElement>
         <Title>
-          <Nod>
-            <Link id="link" href="https://limit-orders-ui.vercel.app/order">
+          {/* <Nod> */}
+            {/* <Link id="link" href="https://limit-orders-ui.vercel.app/order"> */}
               <span role="img">
-              <img src={Gelato}/>{'  '}
+              <img alt={'Gelato Logo'} src={Gelato}/>
               </span>
-            </Link>
-          </Nod>
-          <Link id="link" href="https://limit-orders-ui.vercel.app/order">
-            <h1 id="title">Limit.Orders</h1>
-          </Link>
+            {/* </Link> */}
+          {/* </Nod> */}
+          {/* <Link id="link" href="https://limit-orders-ui.vercel.app/order"> */}
+            <h1 id="title">Gelato Uniswap</h1>
+          {/* </Link> */}
         </Title>
       </HeaderElement>
       <HeaderElement>

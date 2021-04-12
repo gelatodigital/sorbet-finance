@@ -1,13 +1,13 @@
-import React, { Suspense, lazy } from 'react'
-import styled from 'styled-components'
+import React, { lazy, Suspense } from 'react'
 import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom'
-
-import Web3ReactManager from '../components/Web3ReactManager'
-import Header from '../components/Header'
+import styled from 'styled-components'
 import Footer from '../components/Footer'
+import Header from '../components/Header'
 import NavigationTabs from '../components/NavigationTabs'
-
+import Web3ReactManager from '../components/Web3ReactManager'
 import { isAddress } from '../utils'
+
+
 
 const Swap = lazy(() => import('./Swap'))
 
