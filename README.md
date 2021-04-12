@@ -1,14 +1,14 @@
-# Limit Order
+# Gelato Uniswap
 
-> Protocol for decentralized & automated orders.
-
-**TL;DR**: [Traders](#traders) can create orders. [Relayers](#relayers) can earn a fee executing them when the trade conditions can be fulfilled.
-
+> Limit Orders on Uniswap v2.
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Contracts](#contracts)
-- [Interaction & Order Fulfillment](#interaction-and-order-fulfillment-example)
+- [Gelato Uniswap](#gelato-uniswap)
+  - [Table of Contents](#table-of-contents)
+  - [Contracts](#contracts)
+    - [Mainnet](#mainnet)
+  - [Introduction](#introduction)
+  - [Interaction and order fulfillment example](#interaction-and-order-fulfillment-example)
 
 ## Contracts
 
@@ -35,8 +35,6 @@ Every token combination is available. There **isn't** a limitation on how you ca
 An order at Limit Orders can only be canceled by its creator, and it can be executed if the creator receives the desired amount, making the system trustless and independent of a central entity.
 
 The [smart contract](https://etherscan.io/address/0xd412054cca18a61278ced6f674a526a6940ebd84#code) is validated and can be reviewed by anyone. The code hasn't been audited by a reputable third party yet, and we advise to proceed with caution.
-
-[More info of how it works](https://medium.com/@pine_eth/pine-finance-an-amm-orders-engine-525fe1f1b1eb)
 
 ## Interaction and order fulfillment example
 
@@ -80,7 +78,7 @@ To continue with real numbers, if the `execution_cost` is 0.04 ETH and the `rela
 
 If you want to add your token reach out us.
 
-- [Discord](https://discord.gg/w6JVcrg)
-- [Telegram](https://t.me/UniswapEX)
+- [Discord](https://discord.gg/ApbA39BKyJ)
+- [Telegram](https://t.me/therealgelatonetwork)
 
 Repo forked and modified from [Pine](https://github.com/pine-finance/pine-interface).
