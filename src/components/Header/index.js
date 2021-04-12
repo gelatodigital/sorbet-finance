@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-
+import Gelato from './../../assets/svg/Gelato_Black.svg';
 import { Link } from '../../theme'
 import Web3Status from '../Web3Status'
 import { darken } from 'polished'
@@ -51,21 +51,20 @@ const Title = styled.div`
     }
   }
 `
-
 export default function Header() {
   return (
     <HeaderFrame>
       <HeaderElement>
         <Title>
           <Nod>
-            <Link id="link" href="https://pine.finance">
-              <span role="img" aria-label="pine">
-                🌲{'  '}
+            <Link id="link" href="https://limit-orders-ui.vercel.app/order">
+              <span role="img">
+              <img src={Gelato}/>{'  '}
               </span>
             </Link>
           </Nod>
-          <Link id="link" href="https://pine.finance">
-            <h1 id="title">Pine.finance</h1>
+          <Link id="link" href="https://limit-orders-ui.vercel.app/order">
+            <h1 id="title">Limit.Orders</h1>
           </Link>
         </Title>
       </HeaderElement>

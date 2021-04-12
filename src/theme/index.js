@@ -58,12 +58,12 @@ const theme = darkMode => ({
   charcoalBlack: darkMode ? '#F2F2F2' : '#404040',
   // blues
   zumthorBlue: darkMode ? '#262626' : '#eeffeb',
-  malibuGreen: darkMode ? '#87c122' : '#01796f',
-  royalGreen: darkMode ? '#87c122' : '#01796f',
+  malibuPurple: darkMode ? '#87c122' : '#c166a9',
+  royalPurple: darkMode ? '#87c122' : '#c166a9',
   loadingBlue: darkMode ? '#e4f0ff' : '#e4f0ff',
 
   // purples
-  wisteriaPurple: darkMode ? '#87c122' : '#01796f',
+  wisteriaPurple: darkMode ? '#87c122' : '#c166a9',
   // reds
   salmonRed: '#FF6871',
   // orange
@@ -71,8 +71,8 @@ const theme = darkMode => ({
   // yellows
   warningYellow: '#FFE270',
   // pink
-  uniswapPink: darkMode ? '#87c122' : '#01796f',
-  connectedGreen: '#27AE60',
+  uniswapPink: darkMode ? '#87c122' : '#c166a9',
+  connectedPurple: '#c166a9',
 
   //specific
   textHover: darkMode ? theme.uniswapPink : theme.doveGray,
@@ -102,23 +102,23 @@ const theme = darkMode => ({
   advancedBG: darkMode ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.6)',
 
   //primary colors
-  primary1: darkMode ? '#2172E5' : '#01796f',
+  primary1: darkMode ? '#2172E5' : '#c166a9',
   primary2: darkMode ? '#3680E7' : '#FF8CC3',
   primary3: darkMode ? '#4D8FEA' : '#FF99C9',
   primary4: darkMode ? '#ffffff' : '#ffffff',
   primary5: darkMode ? '#153d6f70' : '#FDEAF1',
 
   // color text
-  primaryText1: darkMode ? '#6da8ff' : '#01796f',
+  primaryText1: darkMode ? '#6da8ff' : '#c166a9',
 
   // secondary colors
-  secondary1: darkMode ? '#2172E5' : '#01796f',
+  secondary1: darkMode ? '#2172E5' : '#c166a9',
   secondary2: darkMode ? '#17000b26' : '#F6DDE8',
   secondary3: darkMode ? '#17000b26' : '#FDEAF1',
 
   // other
   red1: '#FF6871',
-  green1: '#27AE60',
+  purple1: '#c166a9',
   yellow1: '#FFE270',
   yellow2: '#F3841E'
 })

@@ -76,24 +76,18 @@ export default function Footer() {
           >
             <h1 id="title">About</h1>
           </Link>
-          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://github.com/pine-finance/">
+          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://github.com/gelatodigital/limit-orders-ui">
             <h1 id="title">Code</h1>
           </Link>
-          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://etherscan.io/address/0xD412054ccA18A61278ceD6F674A526A6940eBd84">
+          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://etherscan.io/address/0x36049d479a97cde1fc6e2a5d2cae30b666ebf92b">
             <h1 id="title">Contract</h1>
           </Link>
-          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://v1.uniswapex.io/">
-            <h1 id="title">UniswapEx</h1>
-          </Link>
-          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://gitcoin.co/grants/765/uniswapex-v2">
-            <h1 id="title">Donate ❤</h1>
-          </Link>
-          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://discord.gg/w6JVcrg">
+          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://discord.gg/58SBYPmP">
             <DiscordImg>
               <SVGDiscord />
             </DiscordImg>
           </Link>
-          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://t.me/UniswapEX">
+          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://t.me/therealgelatonetwork">
             <TelegramImg>
               <SVGTelegram />
             </TelegramImg>

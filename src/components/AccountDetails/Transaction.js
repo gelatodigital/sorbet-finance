@@ -33,7 +33,7 @@ const TransactionState = styled(Link)`
 `
 
 const IconWrapper = styled.div`
-  color: ${({ pending, success, theme }) => (pending ? theme.primary1 : success ? theme.green1 : theme.red1)};
+  color: ${({ pending, success, theme }) => (pending ? theme.primary1 : success ? theme.purple1 : theme.red1)};
 `
 
 export default function Transaction({ hash }) {

@@ -38,8 +38,8 @@ const SubCurrencySelect = styled.button`
   cursor: pointer;
   user-select: none;
   background: ${({ theme }) => theme.zumthorBlue};
-  border: 1px solid ${({ theme }) => theme.royalGreen};
-  color: ${({ theme }) => theme.royalGreen};
+  border: 1px solid ${({ theme }) => theme.royalPurple};
+  color: ${({ theme }) => theme.royalPurple};
 `
 
 const InputRow = styled.div`
@@ -67,9 +67,9 @@ const StyledBorderlessInput = styled(BorderlessInput)`
 export const CurrencySelect = styled.button`
   align-items: center;
   font-size: 1rem;
-  color: ${({ selected, theme }) => (selected ? theme.textColor : theme.royalGreen)};
+  color: ${({ selected, theme }) => (selected ? theme.textColor : theme.royalPurple)};
   height: 2rem;
-  border: 1px solid ${({ selected, theme }) => (selected ? theme.mercuryGray : theme.royalGreen)};
+  border: 1px solid ${({ selected, theme }) => (selected ? theme.mercuryGray : theme.royalPurple)};
   border-radius: 2.5rem;
   background-color: #fafafa;
   outline: none;
@@ -78,11 +78,11 @@ export const CurrencySelect = styled.button`
 
   :hover {
     border: 1px solid
-      ${({ selected, theme }) => (selected ? darken(0.1, theme.mercuryGray) : darken(0.1, theme.royalGreen))};
+      ${({ selected, theme }) => (selected ? darken(0.1, theme.mercuryGray) : darken(0.1, theme.royalPurple))};
   }
 
   :focus {
-    border: 1px solid ${({ theme }) => darken(0.1, theme.royalGreen)};
+    border: 1px solid ${({ theme }) => darken(0.1, theme.royalPurple)};
   }
 `
 
@@ -97,7 +97,7 @@ const StyledDropDown = styled(DropDown)`
   height: 35%;
 
   path {
-    stroke: ${({ selected, theme }) => (selected ? theme.textColor : theme.royalGreen)};
+    stroke: ${({ selected, theme }) => (selected ? theme.textColor : theme.royalPurple)};
   }
 `
 
@@ -116,7 +116,7 @@ const Container = styled.div`
 
   background-color: ${({ theme }) => theme.inputBackground};
   :focus-within {
-    border: 1px solid ${({ theme }) => theme.malibuGreen};
+    border: 1px solid ${({ theme }) => theme.malibuPurple};
   }
 `
 

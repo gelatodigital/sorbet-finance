@@ -49,13 +49,13 @@ const GreenCircle = styled.div`
     height: 8px;
     width: 8px;
     margin-right: 8px;
-    background-color: ${({ theme }) => theme.green1};
+    background-color: ${({ theme }) => theme.purple1};
     border-radius: 50%;
   }
 `
 
 const CircleWrapper = styled.div`
-  color: ${({ theme }) => theme.green1};
+  color: ${({ theme }) => theme.purple1};
   display: flex;
   justify-content: center;
   align-items: center;
