@@ -2,7 +2,6 @@ import { darken } from 'polished';
 import React from 'react';
 import styled from 'styled-components';
 import Web3Status from '../Web3Status';
-import Gelato from './../../assets/svg/Gelato_Black.svg';
 
 const HeaderFrame = styled.div`
   display: flex;
@@ -55,15 +54,8 @@ export default function Header() {
     <HeaderFrame>
       <HeaderElement>
         <Title>
-          {/* <Nod> */}
-            {/* <Link id="link" href="https://limit-orders-ui.vercel.app/order"> */}
-              <span role="img">
-              <img alt={'Gelato Logo'} src={Gelato}/>
-              </span>
-            {/* </Link> */}
-          {/* </Nod> */}
           {/* <Link id="link" href="https://limit-orders-ui.vercel.app/order"> */}
-            <h1 id="title">Gelato Uniswap</h1>
+            <h1 id="title"><span>{'🍧'}</span>Uniswap Limit Orders</h1>
           {/* </Link> */}
         </Title>
       </HeaderElement>

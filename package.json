@@ -1,8 +1,8 @@
 {
-  "name": "gelato-limit-orders-ui",
-  "description": "Decentralized Limit Orders Exchange Protocol",
+  "name": "sorbet-finance",
+  "description": "Limit Orders on Uniswap",
   "version": "2.0.0",
-  "homepage": "https://limit-orders-ui.vercel.app",
+  "homepage": "https://sorbet.finance",
   "private": true,
   "dependencies": {
     "@ethersproject/constants": "^5.0.2",

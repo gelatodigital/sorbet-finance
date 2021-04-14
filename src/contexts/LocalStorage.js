@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from 'react'
 
-const GELATO_UNISWAP = 'GELATO_UNISWAP'
+const SORBET_FINANCE = 'SORBET_FINANCE'
 
 const VERSION = 'VERSION'
 const CURRENT_VERSION = 0
@@ -46,7 +46,7 @@ function init() {
   }
 
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(GELATO_UNISWAP))
+    const parsed = JSON.parse(window.localStorage.getItem(SORBET_FINANCE))
     if (parsed[VERSION] !== CURRENT_VERSION) {
       // this is where we could run migration logic
       return defaultLocalStorage
@@ -76,7 +76,7 @@ export function Updater() {
   const [state] = useLocalStorageContext()
 
   useEffect(() => {
-    window.localStorage.setItem(GELATO_UNISWAP, JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000) }))
+    window.localStorage.setItem(SORBET_FINANCE, JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000) }))
   })
 
   return null

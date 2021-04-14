@@ -1,14 +1,4 @@
 {
-  "version": 2,
-  "build": {
-    "src": "package.json",
-    "use": "@vercel/static-build",
-    "env": {
-      "REACT_APP_NETWORK_URL": "https://mainnet.infura.io/v3/a9bca4ddb8784b349f6ec65f04aadfea",
-      "REACT_APP_PORTIS_ID": "64731eda-0ddb-4a02-a69a-32264802fac3",
-      "REACT_APP_FORTMATIC_KEY": "pk_live_85AE47FD4F283564"
-    }
-  },
   "rewrites": [
     {
       "source": "^/favicon.ico",
