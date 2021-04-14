@@ -14,7 +14,7 @@ export default function Provider({ children }) {
   const globalBlockNumber = useBlockNumber()
 
   useEffect(() => {
-    fetch("https://www.gasnow.org/api/v3/gas/price?utm_source=gelato-uniswap").then((res) => {
+    fetch("https://www.gasnow.org/api/v3/gas/price?utm_source=sorbet-finance").then((res) => {
       res.json().then(gasInfo => {
         try {
           setGasPrice(ethers.utils.bigNumberify(gasInfo.data.fast))

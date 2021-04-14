@@ -1,9 +1,9 @@
-# Gelato Uniswap
+# Sorbet Finance - Limit Orders on Uniswap
 
 > Limit Orders on Uniswap v2.
 ## Table of Contents
 
-- [Gelato Uniswap](#gelato-uniswap)
+- [Sorbet Finance - Limit Orders on Uniswap](#sorbet-finance---limit-orders-on-uniswap)
   - [Table of Contents](#table-of-contents)
   - [Contracts](#contracts)
     - [Mainnet](#mainnet)
