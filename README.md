@@ -1,9 +1,9 @@
-# Sorbet Finance - Limit Orders on Uniswap
-
+# Sorbet Finance - Limit Orders on Uniswap v2
+ 
 > Limit Orders on Uniswap v2.
 ## Table of Contents
 
-- [Sorbet Finance - Limit Orders on Uniswap](#sorbet-finance---limit-orders-on-uniswap)
+- [Sorbet Finance - Limit Orders on Uniswap v2](#sorbet-finance---limit-orders-on-uniswap-v2)
   - [Table of Contents](#table-of-contents)
   - [Contracts](#contracts)
     - [Mainnet](#mainnet)
