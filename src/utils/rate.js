@@ -8,20 +8,20 @@ export function getExchangeRate(inputValue, inputDecimals, outputValue, outputDe
       outputValue &&
       (outputDecimals || outputDecimals === 0)
     ) {
-      const factor = ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(18))
+      const factor = ethers.BigNumber.from(10).pow(ethers.BigNumber.from(18))
 
       if (invert) {
         return inputValue
           .mul(factor)
           .div(outputValue)
-          .mul(ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(outputDecimals)))
-          .div(ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(inputDecimals)))
+          .mul(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(outputDecimals)))
+          .div(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(inputDecimals)))
       } else {
         return outputValue
           .mul(factor)
           .div(inputValue)
-          .mul(ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(inputDecimals)))
-          .div(ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(outputDecimals)))
+          .mul(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(inputDecimals)))
+          .div(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(outputDecimals)))
       }
     }
   } catch {}

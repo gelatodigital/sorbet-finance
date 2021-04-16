@@ -502,7 +502,7 @@ export default function TransactionDetails(props) {
         <div>
           {t('feeSet')}
           <ValueWrapper>
-            {b(`${amountFormatter(ethers.utils.bigNumberify(props.fee.toString()), 18, 4)} ETH`)}
+            {b(`${amountFormatter(ethers.BigNumber.from(props.fee.toString()), 18, 4)} ETH`)}
           </ValueWrapper>
           {t('toTheRelayer')}
         </div>

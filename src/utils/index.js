@@ -93,7 +93,7 @@ export function isAddress(value) {
 }
 
 export function calculateGasMargin(value, margin) {
-  const offset = value.mul(margin).div(ethers.utils.bigNumberify(10000))
+  const offset = value.mul(margin).div(ethers.BigNumber.from(10000))
   return value.add(offset)
 }
 
@@ -256,7 +256,7 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
     return amountFormatter(amount, baseDecimals, baseDecimals, useLessThan)
   }
 
-  const zero = ethers.utils.bigNumberify(0)
+  const zero = ethers.constants.Zero
   if (baseDecimals > 18 || displayDecimals > 18 || displayDecimals > baseDecimals) {
     throw Error(`Invalid combination of baseDecimals '${baseDecimals}' and displayDecimals '${displayDecimals}.`)
   }
@@ -275,10 +275,10 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
   // amount > 0
   else {
     // amount of 'wei' in 1 'ether'
-    const baseAmount = ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(baseDecimals))
+    const baseAmount = ethers.BigNumber.from(10).pow(ethers.BigNumber.from(baseDecimals))
 
     const minimumDisplayAmount = baseAmount.div(
-      ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(displayDecimals))
+      ethers.BigNumber.from(10).pow(ethers.BigNumber.from(displayDecimals))
     )
 
     // if balance is less than the minimum display amount
@@ -299,8 +299,7 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
       else {
         const [wholeComponent, decimalComponent] = stringAmount.split('.')
         const roundUpAmount = minimumDisplayAmount.div(ethers.constants.Two)
-        const roundedDecimalComponent = ethers.utils
-          .bigNumberify(decimalComponent.padEnd(baseDecimals, '0'))
+        const roundedDecimalComponent = ethers.BigNumber.from(decimalComponent.padEnd(baseDecimals, '0'))
           .add(roundUpAmount)
           .toString()
           .padStart(baseDecimals, '0')

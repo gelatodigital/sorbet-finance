@@ -4,6 +4,7 @@ import { useWeb3React } from '@web3-react/core'
 import { PastOrderCard } from '../PastOrderCard'
 import { isAddress } from '../../utils'
 import { ORDER_GRAPH } from '../../constants'
+import { getAllOrders } from '@gelatonetwork/limit-orders-lib'
 
 export function OrdersHistory() {
   const { account, chainId } = useWeb3React()
@@ -33,30 +34,12 @@ function usePastOrders(account, chainId) {
 }
 
 async function fetchUserPastOrders(account, chainId) {
-  const query = `
-  query GetOrdersByOwner($owner: String) {
-    orders(where:{owner:$owner,status_not:open}) {
-      id
-      inputToken
-      outputToken
-      inputAmount
-      minReturn
-      bought
-      status
-      cancelledTxHash
-      executedTxHash
-      updatedAt
-    }
-  }`
   try {
-    const res = await fetch(ORDER_GRAPH[chainId], {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, variables: { owner: account.toLowerCase() } })
+    const noOpenOrders = [];
+    (await getAllOrders(account, chainId)).forEach(element => {
+      if (element.status === 'executed' || element.status === 'cancelled') noOpenOrders.push(element)
     })
-
-    const { data } = await res.json()
-    return data.orders
+    return noOpenOrders
   } catch (e) {
     console.warn('Error loading orders from TheGraph', e)
     return []
