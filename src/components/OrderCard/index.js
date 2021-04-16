@@ -17,6 +17,8 @@ import { amountFormatter, getEtherscanLink } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import { Aligner, CurrencySelect, StyledTokenName } from '../CurrencyInputPanel'
 import TokenLogo from '../TokenLogo'
+import {cancelLimitOrderPayload} from "@gelatonetwork/limit-orders-lib"
+
 import './OrderCard.css'
 
 
@@ -58,7 +60,7 @@ const RightArrow = styled(WrappedArrowRight)`
 
 export function OrderCard(props) {
   const { t } = useTranslation()
-  const { chainId } = useWeb3React()
+  const { library, chainId } = useWeb3React()
 
   const order = props.data
 
@@ -80,27 +82,25 @@ export function OrderCard(props) {
     const abiCoder = new ethers.utils.AbiCoder()
 
     const { module, inputToken, outputToken, minReturn, owner, witness } = order
-    uniswapEXContract
-      .cancelOrder(
-        module,
-        inputToken,
-        owner,
-        witness,
-        abiCoder.encode(['address', 'uint256'], [outputToken, minReturn]),
-        {
-          gasLimit: pending ? 400000 : undefined,
-          gasPrice: gasPrice ? gasPrice : undefined
-        }
-      )
-      .then(response => {
-        addTransaction(response, { action: ACTION_CANCEL_ORDER, order: order })
-      })
+    const provider = new ethers.providers.Web3Provider(library.provider);
+
+    const transactionData = await cancelLimitOrderPayload(provider, inputToken, outputToken, minReturn, owner, witness)
+
+    const transactionResponse = await provider.getSigner().sendTransaction({
+      to: transactionData.to,
+      data: transactionData.data,
+      value: transactionData.value
+    });
+
+    await transactionResponse.wait()
+
+    addTransaction(transactionResponse, { action: ACTION_CANCEL_ORDER, order: order })
   }
 
-  const inputAmount = ethers.utils.bigNumberify(
+  const inputAmount = ethers.BigNumber.from(
     order.inputAmount !== '0' || !order.creationAmount ? order.inputAmount : order.creationAmount
   )
-  const minReturn = ethers.utils.bigNumberify(order.minReturn)
+  const minReturn = ethers.BigNumber.from(order.minReturn)
 
   const explorerLink = last ? getEtherscanLink(chainId, last.response.hash, 'transaction') : undefined
 

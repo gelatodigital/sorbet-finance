@@ -24,7 +24,7 @@ import { Spinner } from '../../theme'
 import Circle from '../../assets/images/circle-grey.svg'
 import { useUSDPrice } from '../../contexts/Application'
 
-const GAS_MARGIN = ethers.utils.bigNumberify(1000)
+const GAS_MARGIN = ethers.BigNumber.from(1000)
 
 const SubCurrencySelect = styled.button`
   ${({ theme }) => theme.flexRowNoWrap}

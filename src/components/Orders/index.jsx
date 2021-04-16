@@ -9,13 +9,11 @@ import { isAddress } from '../../utils'
 import { OrderCard } from '../OrderCard'
 import Circle from '../../assets/images/circle.svg'
 import { useUniswapExContract, useMulticallContract } from '../../hooks'
-import { OrdersHistory } from '../OrdersHistory'
+import { OrdersHistory } from '../OrdersHistory'
 import { Spinner } from '../../theme'
-import {
-  useAllPendingOrders,
-  useAllPendingCancelOrders
-} from '../../contexts/Transactions'
+import { useAllPendingOrders, useAllPendingCancelOrders } from '../../contexts/Transactions'
 import { ETH_ADDRESS, ORDER_GRAPH } from '../../constants'
+import { getAllOpenOrders } from '@gelatonetwork/limit-orders-lib'
 
 const SpinnerWrapper = styled(Spinner)`
   margin: 0 0.25rem 0 0.25rem;
@@ -38,34 +36,11 @@ function getSavedOrders(account, chainId) {
   return raw == null ? [] : raw
 }
 
-
 async function fetchUserOrders(account, chainId) {
-  const query = `
-  query GetOrdersByOwner($owner: String) {
-    orders(where:{owner:$owner,status:open}) {
-      id
-      owner
-      module
-      inputToken
-      outputToken
-      inputAmount
-      minReturn
-      witness
-      secret
-      status
-    }
-  }`
   try {
-    const res = await fetch(ORDER_GRAPH[chainId], {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, variables: { owner: account.toLowerCase() } })
-    })
-
-    const { data } = await res.json()
     return {
       allOrders: [],
-      openOrders: data.orders
+      openOrders: await getAllOpenOrders(account, chainId)
     }
   } catch (e) {
     console.warn('Error loading orders from TheGraph', e)
@@ -148,7 +123,7 @@ function useSavedOrders(account, chainId, uniswapEXContract, multicallContract, 
       console.log(`Loaded ${allOrders.length} orders from local storage`)
       if (allOrders.length > 0) {
         balancesOfOrders(allOrders, uniswapEXContract, multicallContract).then(amounts => {
-          allOrders.map((o, i) => (o.inputAmount = ethers.utils.bigNumberify(amounts[i]).toString()))
+          allOrders.map((o, i) => (o.inputAmount = ethers.BigNumber.from(amounts[i]).toString()))
           setState({
             allOrders: allOrders,
             openOrders: allOrders.filter(o => o.inputAmount !== '0')
@@ -197,7 +172,13 @@ export default function Orders() {
     setOrders(openOrders.concat(allOrders.filter(o => pendingOrders.find(p => p.secret === o.secret))))
 
     // eslint-disable-next-line
-  }, [local.allOrders.length, local.openOrders.length, graph.allOrders.length, graph.openOrders.length, pendingOrders.length])
+  }, [
+    local.allOrders.length,
+    local.openOrders.length,
+    graph.allOrders.length,
+    graph.openOrders.length,
+    pendingOrders.length
+  ])
 
   return (
     <>
