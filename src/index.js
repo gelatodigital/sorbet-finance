@@ -26,7 +26,7 @@ import './i18n'
 const Web3ProviderNetwork = createWeb3ReactRoot(NetworkContextName)
 
 if (process.env.NODE_ENV === 'production') {
-  ReactGA.initialize('UA-148036712-1')
+  ReactGA.initialize('UA-194248530-2')
 } else {
   ReactGA.initialize('test', { testMode: true })
 }
