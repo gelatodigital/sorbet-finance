@@ -1489,14 +1489,14 @@
   dependencies:
     "@ethersproject/logger" "^5.1.0"
 
-"@ethersproject/constants@>=5.0.0-beta.128", "@ethersproject/constants@^5.0.2", "@ethersproject/constants@^5.0.4", "@ethersproject/constants@^5.1.0":
+"@ethersproject/constants@>=5.0.0-beta.128", "@ethersproject/constants@^5.0.4", "@ethersproject/constants@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/constants/-/constants-5.1.0.tgz#4e7da6367ea0e9be87585d8b09f3fccf384b1452"
   integrity sha512-0/SuHrxc8R8k+JiLmJymxHJbojUDWBQqO+b+XFdwaP0jGzqC09YDy/CAlSZB6qHsBifY8X3I89HcK/oMqxRdBw==
   dependencies:
     "@ethersproject/bignumber" "^5.1.0"
 
-"@ethersproject/contracts@^5.0.2":
+"@ethersproject/contracts@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/contracts/-/contracts-5.1.0.tgz#f7c3451f1af77e029005733ccab3419d07d23f6b"
   integrity sha512-dvTMs/4XGSc57cYOW0KjgX1NdTujUu7mNb6PQdJWg08m9ULzPyGZuBkFJnijBcp6vTOCQ59RwjboWgNWw393og==
@@ -1553,7 +1553,7 @@
   dependencies:
     "@ethersproject/logger" "^5.1.0"
 
-"@ethersproject/providers@^5.0.5":
+"@ethersproject/providers@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.1.0.tgz#27695a02cfafa370428cde1c7a4abab13afb6a35"
   integrity sha512-FjpZL2lSXrYpQDg2fMjugZ0HjQD9a+2fOOoRhhihh+Z+qi/xZ8vIlPoumrEP1DzIG4DBV6liUqLNqnX2C6FIAA==
@@ -1614,7 +1614,7 @@
     bn.js "^4.4.0"
     elliptic "6.5.4"
 
-"@ethersproject/solidity@^5.0.2":
+"@ethersproject/solidity@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/solidity/-/solidity-5.1.0.tgz#095a9c75244edccb26c452c155736d363399b954"
   integrity sha512-kPodsGyo9zg1g9XSXp1lGhFaezBAUUsAUB1Vf6OkppE5Wksg4Et+x3kG4m7J/uShDMP2upkJtHNsIBK2XkVpKQ==
@@ -1649,7 +1649,7 @@
     "@ethersproject/rlp" "^5.1.0"
     "@ethersproject/signing-key" "^5.1.0"
 
-"@ethersproject/units@^5.0.2":
+"@ethersproject/units@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/units/-/units-5.1.0.tgz#b6ab3430ebc22adc3cb4839516496f167bee3ad5"
   integrity sha512-isvJrx6qG0nKWfxsGORNjmOq/nh175fStfvRTA2xEKrGqx8JNJY83fswu4GkILowfriEM/eYpretfJnfzi7YhA==
