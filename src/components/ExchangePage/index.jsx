@@ -1,30 +1,29 @@
-import React, { useState, useReducer, useEffect } from 'react'
+import { getLimitOrderPayloadWithSecret } from '@gelatonetwork/limit-orders-lib'
+import { useWeb3React } from '@web3-react/core'
+import { ethers } from 'ethers'
+import * as ls from 'local-storage'
+import React, { useEffect, useReducer, useState } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
-import { useWeb3React } from '@web3-react/core'
-import * as ls from 'local-storage'
-import { ethers } from 'ethers'
 import styled from 'styled-components'
-
-import { Button } from '../../theme'
-import CurrencyInputPanel from '../CurrencyInputPanel'
-import OversizedPanel from '../OversizedPanel'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
 import SVGClose from '../../assets/svg/SVGClose'
 import SVGDiv from '../../assets/svg/SVGDiv'
-import { amountFormatter } from '../../utils'
-import { useUniswapExContract } from '../../hooks'
+import { ETH_ADDRESS, GENERIC_GAS_LIMIT_ORDER_EXECUTE, LIMIT_ORDER_MODULE_ADDRESSES } from '../../constants'
+import { useFetchAllBalances } from '../../contexts/AllBalances'
+import { useAddressBalance } from '../../contexts/Balances'
+import { useGasPrice } from '../../contexts/GasPrice'
 import { useTokenDetails } from '../../contexts/Tokens'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
-import { useAddressBalance } from '../../contexts/Balances'
-import { useFetchAllBalances } from '../../contexts/AllBalances'
 import { useTradeExactIn } from '../../hooks/trade'
-import { ETH_ADDRESS, LIMIT_ORDER_MODULE_ADDRESSES, GENERIC_GAS_LIMIT_ORDER_EXECUTE } from '../../constants'
+import { Button } from '../../theme'
+import { amountFormatter } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
-import { useGasPrice } from '../../contexts/GasPrice'
-import { getLimitOrderPayloadWithSecret } from '@gelatonetwork/limit-orders-lib'
-
+import CurrencyInputPanel from '../CurrencyInputPanel'
+import OversizedPanel from '../OversizedPanel'
 import './ExchangePage.css'
+
+
 
 // Use to detach input from output
 let inputValue
@@ -295,7 +294,6 @@ export default function ExchangePage({ initialCurrency }) {
 
   const { independentValue, independentField, inputCurrency, outputCurrency, rateOp, inputRateValue } = swapState
 
-  const uniswapEXContract = useUniswapExContract()
   const [inputError, setInputError] = useState()
 
   const addTransaction = useTransactionAdder()
@@ -507,7 +505,7 @@ export default function ExchangePage({ initialCurrency }) {
   }
 
   async function onPlace() {
-    let method, fromCurrency, toCurrency, inputAmount, minimumReturn, data
+    let  fromCurrency, toCurrency, inputAmount, minimumReturn
     ReactGA.event({
       category: 'place',
       action: 'place'
@@ -517,31 +515,26 @@ export default function ExchangePage({ initialCurrency }) {
     minimumReturn = outputValueParsed
 
     if (swapType === ETH_TO_TOKEN) {
-      //@TODO: change it later
-      method = uniswapEXContract.encodeEthOrder
       fromCurrency = ETH_ADDRESS
       toCurrency = outputCurrency
     } else if (swapType === TOKEN_TO_ETH) {
-      method = uniswapEXContract.encodeTokenOrder
       fromCurrency = inputCurrency
       toCurrency = ETH_ADDRESS
     } else if (swapType === TOKEN_TO_TOKEN) {
-      method = uniswapEXContract.encodeTokenOrder
       fromCurrency = inputCurrency
       toCurrency = outputCurrency
     }
     try {
-      const provider = new ethers.providers.Web3Provider(library.provider);
 
       const transactionDataWithSecret = await getLimitOrderPayloadWithSecret(
-        provider.getSigner(),
+        chainId,
         fromCurrency,
         toCurrency,
         inputAmount,
-        minimumReturn
+        minimumReturn,
+        account
       );
 
-      // const order = swapType === ETH_TO_TOKEN ? data : `0x${data.slice(267)}`
       const order = {
         inputAmount: inputAmount.toString(),
         creationAmount: inputAmount.toString(),
@@ -553,15 +546,15 @@ export default function ExchangePage({ initialCurrency }) {
         secret: transactionDataWithSecret.secret,
         status: 'open',
         outputToken: toCurrency.toLowerCase(),
-        witness: transactionDataWithSecret.witness
+        witness: transactionDataWithSecret.witness.toLowerCase()
       }
 
       saveOrder(account, order, chainId)
 
+      const provider = new ethers.providers.Web3Provider(library.provider)
       const res = await provider.getSigner().sendTransaction({
-        to: transactionDataWithSecret.txData.to,
-        data: transactionDataWithSecret.txData.data,
-        value: transactionDataWithSecret.txData.value
+        ...transactionDataWithSecret.txData,
+        gasPrice: gasPrice
       })
 
       if (res.hash) {

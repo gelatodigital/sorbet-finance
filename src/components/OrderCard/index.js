@@ -1,29 +1,24 @@
-import React, { useMemo } from 'react'
-import { ethers } from 'ethers'
-import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
-import { useWeb3React } from '@web3-react/core'
+import { getCancelLimitOrderPayload } from "@gelatonetwork/limit-orders-lib"
 import Tooltip from '@reach/tooltip'
-import { getEtherscanLink } from '../../utils'
-import { CurrencySelect, Aligner, StyledTokenName } from '../CurrencyInputPanel'
-import TokenLogo from '../TokenLogo'
+import { useWeb3React } from '@web3-react/core'
+import { ethers } from 'ethers'
+import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+import styled from 'styled-components'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
-import { amountFormatter } from '../../utils'
-import { useUniswapExContract } from '../../hooks'
-import { useTradeExactIn } from '../../hooks/trade'
-import { useTokenDetails } from '../../contexts/Tokens'
-import { useGasPrice } from '../../contexts/GasPrice'
-import {
-  ACTION_PLACE_ORDER,
-  ACTION_CANCEL_ORDER,
-  useTransactionAdder,
-  useOrderPendingState
-} from '../../contexts/Transactions'
 import { ETH_ADDRESS, GENERIC_GAS_LIMIT_ORDER_EXECUTE } from '../../constants'
+import { useGasPrice } from '../../contexts/GasPrice'
+import { useTokenDetails } from '../../contexts/Tokens'
+import {
+  ACTION_CANCEL_ORDER, ACTION_PLACE_ORDER, useOrderPendingState, useTransactionAdder
+} from '../../contexts/Transactions'
+import { useTradeExactIn } from '../../hooks/trade'
+import { amountFormatter, getEtherscanLink } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
-import {cancelLimitOrderPayload} from "@gelatonetwork/limit-orders-lib"
-
+import { Aligner, CurrencySelect, StyledTokenName } from '../CurrencyInputPanel'
+import TokenLogo from '../TokenLogo'
 import './OrderCard.css'
+
 
 const CancelButton = styled.div`
   color: ${({ selected, theme }) => (selected ? theme.textColor : theme.textColor)};
@@ -78,21 +73,20 @@ export function OrderCard(props) {
   const canceling = state === ACTION_CANCEL_ORDER
   const pending = state === ACTION_PLACE_ORDER
 
-  const uniswapEXContract = useUniswapExContract()
   const addTransaction = useTransactionAdder()
 
   async function onCancel(order, pending) {
-    const abiCoder = new ethers.utils.AbiCoder()
 
-    const { module, inputToken, outputToken, minReturn, owner, witness } = order
-    const provider = new ethers.providers.Web3Provider(library.provider);
+    const { inputToken, outputToken, minReturn, owner, witness } = order
 
-    const transactionData = await cancelLimitOrderPayload(provider, inputToken, outputToken, minReturn, owner, witness)
+    const transactionData = await getCancelLimitOrderPayload(chainId, inputToken, outputToken, minReturn, owner, witness)
 
+    const provider = new ethers.providers.Web3Provider(library.provider)
     const transactionResponse = await provider.getSigner().sendTransaction({
       to: transactionData.to,
       data: transactionData.data,
-      value: transactionData.value
+      value: transactionData.value,
+      gasPrice: gasPrice
     });
 
     await transactionResponse.wait()
