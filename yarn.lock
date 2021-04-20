@@ -1746,10 +1746,10 @@
     "@ethersproject/properties" "^5.1.0"
     "@ethersproject/strings" "^5.1.0"
 
-"@gelatonetwork/limit-orders-lib@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@gelatonetwork/limit-orders-lib/-/limit-orders-lib-0.0.3.tgz#4404c6b46bfadb7909e4299650a70045c580f480"
-  integrity sha512-hNqOw70v3LVP6WoAWL5TmjDzRCj+gd1UjI/NeHpwJbVLAU46+SQhUdWJwrYF0njWmzSj2KX5UsULVZixh2WXOg==
+"@gelatonetwork/limit-orders-lib@0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@gelatonetwork/limit-orders-lib/-/limit-orders-lib-0.1.2.tgz#180591a25da5d9f3b3fa797f6f75b270fa352ce9"
+  integrity sha512-oSx2TyGuckNkBIGdv8MtEjbQoJ/VoLU+IMooCPLnFSs9+FziXrneAVzDe6Jb/XU31gwxh/0faItjgt/0w1QSSQ==
   dependencies:
     ethers "5.1.0"
     graphql "15.5.0"
@@ -12767,11 +12767,6 @@ prepend-http@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/prepend-http/-/prepend-http-2.0.0.tgz#e92434bfa5ea8c19f41cdfd401d741a3c819d897"
   integrity sha1-6SQ0v6XqjBn0HN/UAddBo8gZ2Jc=
-
-prettier@^1.17.0:
-  version "1.19.1"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-1.19.1.tgz#f7d7f5ff8a9cd872a7be4ca142095956a60797cb"
-  integrity sha512-s7PoyDv/II1ObgQunCbB9PdLmUcBZcnWOcxDh7O0N/UwDEsHyqkW+Qh28jW+mVuCdx7gLB0BotYI1Y6uI9iyew==
 
 pretty-bytes@^5.1.0:
   version "5.6.0"
