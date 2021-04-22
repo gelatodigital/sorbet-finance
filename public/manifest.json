@@ -1,6 +1,6 @@
 {
-  "short_name": "Uniswap",
-  "name": "Uniswap Exchange",
+  "short_name": "Sorbet",
+  "name": "Sorbet Finance",
   "icons": [
     {
       "src": "favicon.ico",
@@ -11,5 +11,7 @@
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "background_color": "#ffffff",
+  "description": "Place limit orders on Uniswap, powered by Gelato",
+  "iconPath": "sorbet.png"
 }

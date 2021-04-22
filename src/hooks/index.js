@@ -1,20 +1,19 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { useWeb3React } from '@web3-react/core'
-import { isMobile } from 'react-device-detect'
-
-import ERC20_ABI from '../constants/abis/erc20'
-import MULTICALL_ABI from '../constants/abis/multicall'
+import { SafeAppConnector, useSafeAppConnection } from '@gnosis.pm/safe-apps-web3-react';
+import { useWeb3React } from '@web3-react/core';
+import copy from 'copy-to-clipboard';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { isMobile } from 'react-device-detect';
+import { injected } from '../connectors';
+import { MULTICALL_NETWORKS, NetworkContextName } from '../constants';
+import ERC20_ABI from '../constants/abis/erc20';
+import MULTICALL_ABI from '../constants/abis/multicall';
 import {
-  getContract,
-  getFactoryContract,
-  getExchangeContract,
-  getUniswapExContract,
+  getContract, getExchangeContract, getFactoryContract, getUniswapExContract,
   getUniswapV2Contracts,
   isAddress
-} from '../utils'
-import copy from 'copy-to-clipboard'
-import { NetworkContextName, MULTICALL_NETWORKS } from '../constants'
-import { injected } from '../connectors'
+} from '../utils';
+
+const safeMultisigConnector = new SafeAppConnector();
 
 // modified from https://usehooks.com/useDebounce/
 export function useDebounce(value, delay) {
@@ -213,26 +212,37 @@ export function useENSName(address) {
 }
 
 export function useEagerConnect() {
-  const { activate, active } = useWeb3React() // specifically using useWeb3React because of what this hook does
+  
+  const triedToConnectToSafe = useSafeAppConnection(safeMultisigConnector);
+  const { active: networkActive, activate, active } = useWeb3React() // specifically using useWeb3React because of what this hook does
   const [tried, setTried] = useState(false)
 
+  console.log(triedToConnectToSafe)
+  console.log(networkActive)
+  console.log(active)
+  
   useEffect(() => {
-    injected.isAuthorized().then(isAuthorized => {
-      if (isAuthorized) {
-        activate(injected, undefined, true).catch(() => {
-          setTried(true)
-        })
-      } else {
-        if (isMobile && window.ethereum) {
+    if (triedToConnectToSafe && !networkActive  && !active) {
+      console.log("tried to connect to safe, not active")
+      injected.isAuthorized().then(isAuthorized => {
+        if (isAuthorized) {
           activate(injected, undefined, true).catch(() => {
             setTried(true)
           })
         } else {
-          setTried(true)
+          if (isMobile && window.ethereum) {
+            activate(injected, undefined, true).catch(() => {
+              setTried(true)
+            })
+          } else {
+            setTried(true)
+          }
         }
-      }
-    })
-  }, [activate]) // intentionally only running on mount (make sure it's only mounted once :))
+      })
+    } else {
+      console.log("Did not try to connect to safe or not active")
+    }
+  }, [activate, triedToConnectToSafe, networkActive, active]) // intentionally only running on mount (make sure it's only mounted once :))
 
   // if the connection worked, wait until we get confirmation of that to flip the flag
   useEffect(() => {
