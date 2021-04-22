@@ -85,6 +85,9 @@ export default function Footer() {
           <Link id="link" rel="noopener noreferrer" target="_blank" href="https://gelato.network">
             <h1 id="title">powered by Gelato</h1>
           </Link>
+          <Link id="link" rel="noopener noreferrer" target="_blank" href="https://gelato-1.gitbook.io/sorbet-finance/">
+            <h1 id="title">FAQs</h1>
+          </Link>
           <Link id="link" rel="noopener noreferrer" target="_blank" href="https://discord.gg/ApbA39BKyJ">
             <DiscordImg>
               <SVGDiscord />
