@@ -1,28 +1,24 @@
-import React, { useMemo } from 'react'
-import { ethers } from 'ethers'
-import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
-import { useWeb3React } from '@web3-react/core'
 import Tooltip from '@reach/tooltip'
-import { getEtherscanLink } from '../../utils'
-import { CurrencySelect, Aligner, StyledTokenName } from '../CurrencyInputPanel'
-import TokenLogo from '../TokenLogo'
+import { useWeb3React } from '@web3-react/core'
+import { ethers } from 'ethers'
+import React, { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
+import styled from 'styled-components'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
-import { amountFormatter } from '../../utils'
+import { ETH_ADDRESS, GENERIC_GAS_LIMIT_ORDER_EXECUTE } from '../../constants'
+import { useGasPrice } from '../../contexts/GasPrice'
+import { useTokenDetails } from '../../contexts/Tokens'
+import {
+  ACTION_CANCEL_ORDER, ACTION_PLACE_ORDER, useOrderPendingState, useTransactionAdder
+} from '../../contexts/Transactions'
 import { useUniswapExContract } from '../../hooks'
 import { useTradeExactIn } from '../../hooks/trade'
-import { useTokenDetails } from '../../contexts/Tokens'
-import { useGasPrice } from '../../contexts/GasPrice'
-import {
-  ACTION_PLACE_ORDER,
-  ACTION_CANCEL_ORDER,
-  useTransactionAdder,
-  useOrderPendingState
-} from '../../contexts/Transactions'
-import { ETH_ADDRESS, GENERIC_GAS_LIMIT_ORDER_EXECUTE } from '../../constants'
+import { amountFormatter, getEtherscanLink } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
-
+import { Aligner, CurrencySelect, StyledTokenName } from '../CurrencyInputPanel'
+import TokenLogo from '../TokenLogo'
 import './OrderCard.css'
+
 
 const CancelButton = styled.div`
   color: ${({ selected, theme }) => (selected ? theme.textColor : theme.textColor)};
@@ -92,7 +88,8 @@ export function OrderCard(props) {
         witness,
         abiCoder.encode(['address', 'uint256'], [outputToken, minReturn]),
         {
-          gasLimit: pending ? 400000 : undefined
+          gasLimit: pending ? 400000 : undefined,
+          gasPrice: gasPrice ? gasPrice : undefined
         }
       )
       .then(response => {
