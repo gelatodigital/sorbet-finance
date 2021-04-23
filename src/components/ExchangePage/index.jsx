@@ -1,29 +1,29 @@
-import React, { useState, useReducer, useEffect } from 'react'
+import { useWeb3React } from '@web3-react/core'
+import { ethers } from 'ethers'
+import * as ls from 'local-storage'
+import React, { useEffect, useReducer, useState } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
-import { useWeb3React } from '@web3-react/core'
-import * as ls from 'local-storage'
-import { ethers } from 'ethers'
 import styled from 'styled-components'
-
-import { Button } from '../../theme'
-import CurrencyInputPanel from '../CurrencyInputPanel'
-import OversizedPanel from '../OversizedPanel'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
 import SVGClose from '../../assets/svg/SVGClose'
 import SVGDiv from '../../assets/svg/SVGDiv'
-import { amountFormatter } from '../../utils'
-import { useUniswapExContract } from '../../hooks'
+import { ETH_ADDRESS, GENERIC_GAS_LIMIT_ORDER_EXECUTE, LIMIT_ORDER_MODULE_ADDRESSES } from '../../constants'
+import { useFetchAllBalances } from '../../contexts/AllBalances'
+import { useAddressBalance } from '../../contexts/Balances'
+import { useGasPrice } from '../../contexts/GasPrice'
 import { useTokenDetails } from '../../contexts/Tokens'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
-import { useAddressBalance } from '../../contexts/Balances'
-import { useFetchAllBalances } from '../../contexts/AllBalances'
+import { useUniswapExContract } from '../../hooks'
 import { useTradeExactIn } from '../../hooks/trade'
-import { ETH_ADDRESS, LIMIT_ORDER_MODULE_ADDRESSES, GENERIC_GAS_LIMIT_ORDER_EXECUTE } from '../../constants'
+import { Button } from '../../theme'
+import { amountFormatter } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
-import { useGasPrice } from '../../contexts/GasPrice'
-
+import CurrencyInputPanel from '../CurrencyInputPanel'
+import OversizedPanel from '../OversizedPanel'
 import './ExchangePage.css'
+
+
 
 // Use to detach input from output
 let inputValue
@@ -577,12 +577,13 @@ export default function ExchangePage({ initialCurrency }) {
 
       let res
       if (swapType === ETH_TO_TOKEN) {
-        res = await uniswapEXContract.depositEth(data, { value: inputAmount })
+        res = await uniswapEXContract.depositEth(data, { value: inputAmount, gasPrice: gasPrice ? gasPrice : undefined })
       } else {
         const provider = new ethers.providers.Web3Provider(library.provider)
         res = await provider.getSigner().sendTransaction({
           to: fromCurrency,
-          data: data
+          data: data,
+          gasPrice: gasPrice ? gasPrice : undefined
         })
       }
 
