@@ -575,8 +575,6 @@ export default function ExchangePage({ initialCurrency }) {
 
       saveOrder(account, order, chainId)
 
-      console.log(data)
-
       let res
       if (swapType === ETH_TO_TOKEN) {
         res = await uniswapEXContract.depositEth(data, { value: inputAmount, gasPrice: gasPrice ? gasPrice : undefined })

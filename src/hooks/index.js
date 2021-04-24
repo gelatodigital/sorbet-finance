@@ -216,14 +216,9 @@ export function useEagerConnect() {
   const triedToConnectToSafe = useSafeAppConnection(safeMultisigConnector);
   const { active: networkActive, activate, active } = useWeb3React() // specifically using useWeb3React because of what this hook does
   const [tried, setTried] = useState(false)
-
-  console.log(triedToConnectToSafe)
-  console.log(networkActive)
-  console.log(active)
   
   useEffect(() => {
     if (triedToConnectToSafe && !networkActive  && !active) {
-      console.log("tried to connect to safe, not active")
       injected.isAuthorized().then(isAuthorized => {
         if (isAuthorized) {
           activate(injected, undefined, true).catch(() => {
@@ -239,8 +234,6 @@ export function useEagerConnect() {
           }
         }
       })
-    } else {
-      console.log("Did not try to connect to safe or not active")
     }
   }, [activate, triedToConnectToSafe, networkActive, active]) // intentionally only running on mount (make sure it's only mounted once :))
 
