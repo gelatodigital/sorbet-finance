@@ -1,3 +1,4 @@
+import { getLimitOrderPayloadWithSecret } from '@gelatonetwork/limit-orders-lib'
 import { useWeb3React } from '@web3-react/core'
 import { ethers } from 'ethers'
 import * as ls from 'local-storage'
@@ -21,7 +22,6 @@ import { amountFormatter } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../CurrencyInputPanel'
 import OversizedPanel from '../OversizedPanel'
-import { getLimitOrderPayloadWithSecret } from '@gelatonetwork/limit-orders-lib'
 
 import './ExchangePage.css'
 
@@ -296,7 +296,6 @@ export default function ExchangePage({ initialCurrency }) {
 
   const { independentValue, independentField, inputCurrency, outputCurrency, rateOp, inputRateValue } = swapState
 
-  const uniswapEXContract = useUniswapExContract()
   const [inputError, setInputError] = useState()
 
   const addTransaction = useTransactionAdder()
@@ -508,7 +507,7 @@ export default function ExchangePage({ initialCurrency }) {
   }
 
   async function onPlace() {
-    let method, fromCurrency, toCurrency, inputAmount, minimumReturn, data
+    let  fromCurrency, toCurrency, inputAmount, minimumReturn
     ReactGA.event({
       category: 'place',
       action: 'place'
@@ -518,31 +517,26 @@ export default function ExchangePage({ initialCurrency }) {
     minimumReturn = outputValueParsed
 
     if (swapType === ETH_TO_TOKEN) {
-      //@TODO: change it later
-      method = uniswapEXContract.encodeEthOrder
       fromCurrency = ETH_ADDRESS
       toCurrency = outputCurrency
     } else if (swapType === TOKEN_TO_ETH) {
-      method = uniswapEXContract.encodeTokenOrder
       fromCurrency = inputCurrency
       toCurrency = ETH_ADDRESS
     } else if (swapType === TOKEN_TO_TOKEN) {
-      method = uniswapEXContract.encodeTokenOrder
       fromCurrency = inputCurrency
       toCurrency = outputCurrency
     }
     try {
-      const provider = new ethers.providers.Web3Provider(library.provider);
 
       const transactionDataWithSecret = await getLimitOrderPayloadWithSecret(
-        provider.getSigner(),
+        chainId,
         fromCurrency,
         toCurrency,
         inputAmount,
-        minimumReturn
+        minimumReturn,
+        account
       );
 
-      // const order = swapType === ETH_TO_TOKEN ? data : `0x${data.slice(267)}`
       const order = {
         inputAmount: inputAmount.toString(),
         creationAmount: inputAmount.toString(),
@@ -554,15 +548,15 @@ export default function ExchangePage({ initialCurrency }) {
         secret: transactionDataWithSecret.secret,
         status: 'open',
         outputToken: toCurrency.toLowerCase(),
-        witness: transactionDataWithSecret.witness
+        witness: transactionDataWithSecret.witness.toLowerCase()
       }
 
       saveOrder(account, order, chainId)
 
+      const provider = new ethers.providers.Web3Provider(library.provider)
       const res = await provider.getSigner().sendTransaction({
-        to: transactionDataWithSecret.txData.to,
-        data: transactionDataWithSecret.txData.data,
-        value: transactionDataWithSecret.txData.value
+        ...transactionDataWithSecret.txData,
+        gasPrice: gasPrice
       })
 
       if (res.hash) {

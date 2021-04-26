@@ -1,3 +1,4 @@
+import { getCancelLimitOrderPayload } from "@gelatonetwork/limit-orders-lib"
 import Tooltip from '@reach/tooltip'
 import { useWeb3React } from '@web3-react/core'
 import { ethers } from 'ethers'
@@ -75,21 +76,20 @@ export function OrderCard(props) {
   const canceling = state === ACTION_CANCEL_ORDER
   const pending = state === ACTION_PLACE_ORDER
 
-  const uniswapEXContract = useUniswapExContract()
   const addTransaction = useTransactionAdder()
 
   async function onCancel(order, pending) {
-    const abiCoder = new ethers.utils.AbiCoder()
 
-    const { module, inputToken, outputToken, minReturn, owner, witness } = order
-    const provider = new ethers.providers.Web3Provider(library.provider);
+    const { inputToken, outputToken, minReturn, owner, witness } = order
 
-    const transactionData = await cancelLimitOrderPayload(provider, inputToken, outputToken, minReturn, owner, witness)
+    const transactionData = await getCancelLimitOrderPayload(chainId, inputToken, outputToken, minReturn, owner, witness)
 
+    const provider = new ethers.providers.Web3Provider(library.provider)
     const transactionResponse = await provider.getSigner().sendTransaction({
       to: transactionData.to,
       data: transactionData.data,
-      value: transactionData.value
+      value: transactionData.value,
+      gasPrice: gasPrice
     });
 
     await transactionResponse.wait()

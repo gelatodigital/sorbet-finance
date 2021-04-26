@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import { getAllOpenOrders } from '@gelatonetwork/limit-orders-lib'
 import { useWeb3React } from '@web3-react/core'
-import * as ls from 'local-storage'
 import { ethers } from 'ethers'
+import * as ls from 'local-storage'
+import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
-
+import Circle from '../../assets/images/circle.svg'
+import { ETH_ADDRESS } from '../../constants'
+import { useAllPendingCancelOrders, useAllPendingOrders } from '../../contexts/Transactions'
+import { useMulticallContract, useUniswapExContract } from '../../hooks'
+import { Spinner } from '../../theme'
 import { isAddress } from '../../utils'
 import { OrderCard } from '../OrderCard'
-import Circle from '../../assets/images/circle.svg'
-import { useUniswapExContract, useMulticallContract } from '../../hooks'
 import { OrdersHistory } from '../OrdersHistory'
-import { Spinner } from '../../theme'
-import { useAllPendingOrders, useAllPendingCancelOrders } from '../../contexts/Transactions'
-import { ETH_ADDRESS, ORDER_GRAPH } from '../../constants'
-import { getAllOpenOrders } from '@gelatonetwork/limit-orders-lib'
+
 
 const SpinnerWrapper = styled(Spinner)`
   margin: 0 0.25rem 0 0.25rem;

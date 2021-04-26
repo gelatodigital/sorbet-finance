@@ -11,6 +11,7 @@
     "@ethersproject/providers": "^5.1.0",
     "@ethersproject/solidity": "^5.1.0",
     "@ethersproject/units": "^5.1.0",
+    "@gelatonetwork/limit-orders-lib": "0.1.2",
     "@makerdao/multicall": "^0.10.0-rc.4",
     "@gnosis.pm/safe-apps-web3-react": "^0.1.2",
     "@reach/dialog": "^0.2.8",
@@ -65,7 +66,8 @@
     "fix:all": "yarn fix:lint && yarn fix:format",
     "check:lint": "yarn lint:base",
     "check:format": "yarn format:base --check",
-    "check:all": "yarn check:lint && yarn check:format"
+    "check:all": "yarn check:lint && yarn check:format",
+    "prettier": "^1.17.0"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -82,9 +84,5 @@
       "last 1 safari version"
     ]
   },
-  "license": "GPL-3.0-or-later",
-  "devDependencies": {
-    "@gelatonetwork/limit-orders-lib": "^0.0.3",
-    "prettier": "^1.17.0"
-  }
+  "license": "GPL-3.0-or-later"
 }
