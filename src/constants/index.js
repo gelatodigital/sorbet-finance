@@ -1,8 +1,8 @@
-import { Token, ChainId, WETH } from 'uniswap-v2-sdk'
 import { ethers } from 'ethers'
-
+import { ChainId, Token, WETH } from 'uniswap-v2-sdk'
 // @TODO: we should test walletconnect, walletlink before adding
-import { injected, fortmatic, portis } from '../connectors'
+import { fortmatic, injected, portis } from '../connectors'
+
 
 export const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
