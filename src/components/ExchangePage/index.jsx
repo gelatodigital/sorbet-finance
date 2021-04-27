@@ -504,7 +504,7 @@ export default function ExchangePage({ initialCurrency }) {
 
   const estimatedText = `(${t('estimated')})`
   function formatBalance(value) {
-    return `Balance: ${value}`
+    return `(${t('balance', {balanceInput: value})})`
   }
 
   async function onPlace() {
@@ -665,7 +665,8 @@ export default function ExchangePage({ initialCurrency }) {
           }}
         >
           <ExchangeRate>
-            Execution rate at {gasPrice ? amountFormatter(gasPrice, 9, 0, false) : '...'} GWEI
+            {t('executionRate', {gasPrice: gasPrice ? amountFormatter(gasPrice, 9, 0, false) : '...'})}
+            {/* Execution rate at {gasPrice ? amountFormatter(gasPrice, 9, 0, false) : '...'} GWEI */}
           </ExchangeRate>
           {executionRateNegative ? (
             'Never executes'
@@ -769,7 +770,7 @@ export default function ExchangePage({ initialCurrency }) {
           <span role="img" aria-label="warning">
             ⚠️
           </span>
-          Order too small, extreme execution rate
+          {t('orderWarning')}
         </div>
       )}
     </>
