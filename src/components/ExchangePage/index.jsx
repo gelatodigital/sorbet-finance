@@ -505,7 +505,7 @@ export default function ExchangePage({ initialCurrency }) {
   }
 
   async function onPlace() {
-    let  fromCurrency, toCurrency, inputAmount, minimumReturn
+    let fromCurrency, toCurrency, inputAmount, minimumReturn, data
     ReactGA.event({
       category: 'place',
       action: 'place'
@@ -527,12 +527,12 @@ export default function ExchangePage({ initialCurrency }) {
     try {
 
       const transactionDataWithSecret = await getLimitOrderPayloadWithSecret(
-        chainId,
+        (await provider.getNetwork()).chainId,
         fromCurrency,
         toCurrency,
         inputAmount,
         minimumReturn,
-        account
+        account.toLowerCase()
       );
 
       const order = {

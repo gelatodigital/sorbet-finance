@@ -2,14 +2,11 @@ import { ethers } from 'ethers'
 import { Contract } from '@ethersproject/contracts'
 import { AddressZero } from '@ethersproject/constants'
 
-import FACTORY_ABI from '../constants/abis/factory'
-import EXCHANGE_ABI from '../constants/abis/exchange'
 import ERC20_ABI from '../constants/abis/erc20'
 import ERC20_BYTES32_ABI from '../constants/abis/erc20_bytes32'
 import UNISWAPEX_ABI from '../constants/abis/uniswapEX'
-import FACTORY_V2_ABI from '../constants/abis/factoryV2.json'
 import PAIR_ABI from '../constants/abis/pair.json'
-import { FACTORY_ADDRESSES, UNISWAPEX_ADDRESSES, UNISWAPV2_ADDRESSES } from '../constants'
+import { UNISWAPEX_ADDRESSES} from '../constants'
 import { formatFixed } from '@uniswap/sdk'
 
 export const ERROR_CODES = ['TOKEN_NAME', 'TOKEN_SYMBOL', 'TOKEN_DECIMALS'].reduce(
@@ -121,22 +118,8 @@ export function getUniswapExContract(chainId, library, account) {
   return getContract(UNISWAPEX_ADDRESSES[chainId], UNISWAPEX_ABI, library, account)
 }
 
-export function getUniswapV2Contracts(chainId, library, account) {
-  return { factoryV2: getContract(UNISWAPV2_ADDRESSES[chainId].FACTORY, FACTORY_V2_ABI, library, account) }
-}
-
 export function getPairContract(address, library, account) {
   return getContract(address, PAIR_ABI, library, account)
-}
-
-// account is optional
-export function getFactoryContract(chainId, library, account) {
-  return getContract(FACTORY_ADDRESSES[chainId], FACTORY_ABI, library, account)
-}
-
-// account is optional
-export function getExchangeContract(exchangeAddress, library, account) {
-  return getContract(exchangeAddress, EXCHANGE_ABI, library, account)
 }
 
 // get token name
@@ -196,11 +179,6 @@ export async function getTokenDecimals(tokenAddress, library) {
       error.code = ERROR_CODES.TOKEN_DECIMALS
       throw error
     })
-}
-
-// get the exchange address for a token from the factory
-export async function getTokenExchangeAddressFromFactory(tokenAddress, chainId, library) {
-  return getFactoryContract(chainId, library).getExchange(tokenAddress)
 }
 
 // get the ether balance of an address

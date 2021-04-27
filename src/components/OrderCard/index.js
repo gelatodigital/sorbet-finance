@@ -17,6 +17,7 @@ import { amountFormatter, getEtherscanLink } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import { Aligner, CurrencySelect, StyledTokenName } from '../CurrencyInputPanel'
 import TokenLogo from '../TokenLogo'
+
 import './OrderCard.css'
 
 
@@ -79,10 +80,8 @@ export function OrderCard(props) {
 
     const { inputToken, outputToken, minReturn, owner, witness } = order
 
-    const transactionData = await getCancelLimitOrderPayload(chainId, inputToken, outputToken, minReturn, owner, witness)
-
-    const provider = new ethers.providers.Web3Provider(library.provider)
-    const transactionResponse = await provider.getSigner().sendTransaction({
+    const transactionData = await getCancelLimitOrderPayload((await library.provider.getNetwork()).chainId, inputToken, outputToken, minReturn, owner, witness)
+    const transactionResponse = await library.provider.getSigner().sendTransaction({
       to: transactionData.to,
       data: transactionData.data,
       value: transactionData.value,

@@ -14,7 +14,6 @@ import { isAddress } from '../../utils'
 import { OrderCard } from '../OrderCard'
 import { OrdersHistory } from '../OrdersHistory'
 
-
 const SpinnerWrapper = styled(Spinner)`
   margin: 0 0.25rem 0 0.25rem;
 `
