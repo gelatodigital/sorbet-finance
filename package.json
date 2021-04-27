@@ -36,6 +36,7 @@
     "lodash.flatmap": "^4.5.0",
     "polished": "^3.3.2",
     "react": "^16.8.6",
+    "react-confetti": "^6.0.1",
     "react-device-detect": "^1.6.2",
     "react-dom": "^16.8.6",
     "react-feather": "^1.1.6",
