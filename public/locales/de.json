@@ -80,7 +80,7 @@
   "place": "Poner",
   "placeAnyway": "Auftrag trotzdem erteilen",
   "cancel": "stornieren",
-  "noOpenOrders": "Keine offenen Bestellungen",
+  "noOpenOrders": "Keine offenen Aufträge",
   "placeAbove": "Auftrag {{ rateDelta }}% über dem Markt",
   "placeBelow": "Auftrag {{ rateDelta }}% unter dem Markt",
   "feeSet": "Sie zahlen eine Gebühr von",
