@@ -99,43 +99,6 @@ export function useUniswapExContract(withSignerIfPossible = true) {
   }, [chainId, library, withSignerIfPossible, account])
 }
 
-export function useUniswapV2Contracts(withSignerIfPossible = true) {
-  const { chainId, library, account } = useActiveWeb3React()
-
-  return useMemo(() => {
-    try {
-      return getUniswapV2Contracts(chainId, library, withSignerIfPossible ? account : undefined)
-    } catch (e) {
-      return null
-    }
-  }, [chainId, library, withSignerIfPossible, account])
-}
-
-// returns null on errors
-export function useFactoryContract(withSignerIfPossible = true) {
-  const { chainId, library, account } = useWeb3React()
-
-  return useMemo(() => {
-    try {
-      return getFactoryContract(chainId, library, withSignerIfPossible ? account : undefined)
-    } catch {
-      return null
-    }
-  }, [chainId, library, withSignerIfPossible, account])
-}
-
-export function useExchangeContract(exchangeAddress, withSignerIfPossible = true) {
-  const { library, account } = useWeb3React()
-
-  return useMemo(() => {
-    try {
-      return getExchangeContract(exchangeAddress, library, withSignerIfPossible ? account : undefined)
-    } catch {
-      return null
-    }
-  }, [exchangeAddress, library, withSignerIfPossible, account])
-}
-
 export function useCopyClipboard(timeout = 500) {
   const [isCopied, setIsCopied] = useState(false)
 

@@ -3,7 +3,6 @@ import { useWeb3React } from '@web3-react/core'
 
 import { PastOrderCard } from '../PastOrderCard'
 import { isAddress } from '../../utils'
-import { ORDER_GRAPH } from '../../constants'
 import { getAllOrders } from '@gelatonetwork/limit-orders-lib'
 
 export function OrdersHistory() {
