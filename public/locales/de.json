@@ -78,7 +78,7 @@
   "enterTokenCont": "Tokenadresse eingeben um fortzufahren",
   "rate": "Bewertung",
   "place": "Poner",
-  "placeAnyway": "Platz trotzdem",
+  "placeAnyway": "Auftrag trotzdem erteilen",
   "cancel": "stornieren",
   "noOpenOrders": "Keine offenen Bestellungen",
   "placeAbove": "Auftrag {{ rateDelta }}% über dem Markt",
