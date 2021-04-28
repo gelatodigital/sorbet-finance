@@ -97,7 +97,7 @@ export default function SupriseModal() {
                         <h5>You just successfully executed at least one limit order!</h5>
                         <h5>And what's cooler, you just earned yourself the opportunity to reserve a whitelist spot for the (still secret) Gelato token sale. Please keep this info to yourself 🤫</h5>
                         <a href={url}><Button onClick={() => {onGiftTaken()}}>Claim your spot now!</Button></a>
-                        {/* <p>(65 out of 100 spots have reserved) - © 2021 Gelato Digital All rights reserved.</p> */}
+                        <p>(65 out of 100 spots have reserved)</p>
                     </Flex>
                 </Container>
         </Modal>
