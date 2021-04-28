@@ -527,6 +527,7 @@ export default function ExchangePage({ initialCurrency }) {
       toCurrency = outputCurrency
     }
     try {
+      const provider = new ethers.providers.Web3Provider(library.provider)
 
       const transactionDataWithSecret = await getLimitOrderPayloadWithSecret(
         (await provider.getNetwork()).chainId,
@@ -553,7 +554,6 @@ export default function ExchangePage({ initialCurrency }) {
 
       saveOrder(account, order, chainId)
 
-      const provider = new ethers.providers.Web3Provider(library.provider)
       const res = await provider.getSigner().sendTransaction({
         ...transactionDataWithSecret.txData,
         gasPrice: gasPrice
