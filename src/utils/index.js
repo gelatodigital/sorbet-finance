@@ -2,14 +2,11 @@ import { ethers } from 'ethers'
 import { Contract } from '@ethersproject/contracts'
 import { AddressZero } from '@ethersproject/constants'
 
-import FACTORY_ABI from '../constants/abis/factory'
-import EXCHANGE_ABI from '../constants/abis/exchange'
 import ERC20_ABI from '../constants/abis/erc20'
 import ERC20_BYTES32_ABI from '../constants/abis/erc20_bytes32'
 import UNISWAPEX_ABI from '../constants/abis/uniswapEX'
-import FACTORY_V2_ABI from '../constants/abis/factoryV2.json'
 import PAIR_ABI from '../constants/abis/pair.json'
-import { FACTORY_ADDRESSES, UNISWAPEX_ADDRESSES, UNISWAPV2_ADDRESSES } from '../constants'
+import { UNISWAPEX_ADDRESSES} from '../constants'
 import { formatFixed } from '@uniswap/sdk'
 
 export const ERROR_CODES = ['TOKEN_NAME', 'TOKEN_SYMBOL', 'TOKEN_DECIMALS'].reduce(
@@ -93,7 +90,7 @@ export function isAddress(value) {
 }
 
 export function calculateGasMargin(value, margin) {
-  const offset = value.mul(margin).div(ethers.utils.bigNumberify(10000))
+  const offset = value.mul(margin).div(ethers.BigNumber.from(10000))
   return value.add(offset)
 }
 
@@ -121,22 +118,8 @@ export function getUniswapExContract(chainId, library, account) {
   return getContract(UNISWAPEX_ADDRESSES[chainId], UNISWAPEX_ABI, library, account)
 }
 
-export function getUniswapV2Contracts(chainId, library, account) {
-  return { factoryV2: getContract(UNISWAPV2_ADDRESSES[chainId].FACTORY, FACTORY_V2_ABI, library, account) }
-}
-
 export function getPairContract(address, library, account) {
   return getContract(address, PAIR_ABI, library, account)
-}
-
-// account is optional
-export function getFactoryContract(chainId, library, account) {
-  return getContract(FACTORY_ADDRESSES[chainId], FACTORY_ABI, library, account)
-}
-
-// account is optional
-export function getExchangeContract(exchangeAddress, library, account) {
-  return getContract(exchangeAddress, EXCHANGE_ABI, library, account)
 }
 
 // get token name
@@ -198,11 +181,6 @@ export async function getTokenDecimals(tokenAddress, library) {
     })
 }
 
-// get the exchange address for a token from the factory
-export async function getTokenExchangeAddressFromFactory(tokenAddress, chainId, library) {
-  return getFactoryContract(chainId, library).getExchange(tokenAddress)
-}
-
 // get the ether balance of an address
 export async function getEtherBalance(address, library) {
   if (!isAddress(address)) {
@@ -256,7 +234,7 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
     return amountFormatter(amount, baseDecimals, baseDecimals, useLessThan)
   }
 
-  const zero = ethers.utils.bigNumberify(0)
+  const zero = ethers.constants.Zero
   if (baseDecimals > 18 || displayDecimals > 18 || displayDecimals > baseDecimals) {
     throw Error(`Invalid combination of baseDecimals '${baseDecimals}' and displayDecimals '${displayDecimals}.`)
   }
@@ -275,10 +253,10 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
   // amount > 0
   else {
     // amount of 'wei' in 1 'ether'
-    const baseAmount = ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(baseDecimals))
+    const baseAmount = ethers.BigNumber.from(10).pow(ethers.BigNumber.from(baseDecimals))
 
     const minimumDisplayAmount = baseAmount.div(
-      ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(displayDecimals))
+      ethers.BigNumber.from(10).pow(ethers.BigNumber.from(displayDecimals))
     )
 
     // if balance is less than the minimum display amount
@@ -299,8 +277,7 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
       else {
         const [wholeComponent, decimalComponent] = stringAmount.split('.')
         const roundUpAmount = minimumDisplayAmount.div(ethers.constants.Two)
-        const roundedDecimalComponent = ethers.utils
-          .bigNumberify(decimalComponent.padEnd(baseDecimals, '0'))
+        const roundedDecimalComponent = ethers.BigNumber.from(decimalComponent.padEnd(baseDecimals, '0'))
           .add(roundUpAmount)
           .toString()
           .padStart(baseDecimals, '0')

@@ -1,3 +1,4 @@
+import { getLimitOrderPayloadWithSecret } from '@gelatonetwork/limit-orders-lib'
 import { useWeb3React } from '@web3-react/core'
 import { ethers } from 'ethers'
 import * as ls from 'local-storage'
@@ -14,15 +15,14 @@ import { useAddressBalance } from '../../contexts/Balances'
 import { useGasPrice } from '../../contexts/GasPrice'
 import { useTokenDetails } from '../../contexts/Tokens'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
-import { useUniswapExContract } from '../../hooks'
 import { useTradeExactIn } from '../../hooks/trade'
 import { Button } from '../../theme'
 import { amountFormatter } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../CurrencyInputPanel'
+import OrderDetailModal from '../OrderDetailModal/OrderDetailModal'
 import OversizedPanel from '../OversizedPanel'
 import './ExchangePage.css'
-
 
 
 // Use to detach input from output
@@ -169,7 +169,7 @@ function swapStateReducer(state, action) {
     case 'FLIP_RATE_OP': {
       const { rateOp, inputRateValue } = state
 
-      const rate = inputRateValue ? ethers.utils.bigNumberify(ethers.utils.parseUnits(inputRateValue, 18)) : undefined
+      const rate = inputRateValue ? ethers.BigNumber.from(ethers.utils.parseUnits(inputRateValue, 18)) : undefined
       const flipped = rate ? amountFormatter(flipRate(rate), 18, 18, false) : ''
 
       return {
@@ -232,20 +232,20 @@ function applyExchangeRateTo(inputValue, exchangeRate, inputDecimals, outputDeci
       (inputDecimals || inputDecimals === 0) &&
       (outputDecimals || outputDecimals === 0)
     ) {
-      const factor = ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(18))
+      const factor = ethers.BigNumber.from(10).pow(ethers.BigNumber.from(18))
 
       if (invert) {
         return inputValue
           .mul(factor)
           .div(exchangeRate)
-          .mul(ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(outputDecimals)))
-          .div(ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(inputDecimals)))
+          .mul(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(outputDecimals)))
+          .div(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(inputDecimals)))
       } else {
         return exchangeRate
           .mul(inputValue)
           .div(factor)
-          .mul(ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(outputDecimals)))
-          .div(ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(inputDecimals)))
+          .mul(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(outputDecimals)))
+          .div(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(inputDecimals)))
       }
     }
   } catch {}
@@ -254,7 +254,7 @@ function applyExchangeRateTo(inputValue, exchangeRate, inputDecimals, outputDeci
 function exchangeRateDiff(exchangeRateA, exchangeRateB) {
   try {
     if (exchangeRateA && exchangeRateB) {
-      const factor = ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(18))
+      const factor = ethers.BigNumber.from(10).pow(ethers.BigNumber.from(18))
       const deltaRaw = factor.mul(exchangeRateA).div(exchangeRateB)
 
       if (false && deltaRaw < factor) {
@@ -269,7 +269,7 @@ function exchangeRateDiff(exchangeRateA, exchangeRateB) {
 function flipRate(rate) {
   try {
     if (rate) {
-      const factor = ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(18))
+      const factor = ethers.BigNumber.from(10).pow(ethers.BigNumber.from(18))
       return factor.mul(factor).div(rate)
     }
   } catch {}
@@ -281,7 +281,7 @@ function safeParseUnits(number, units) {
   } catch {
     const margin = units * 8
     const decimals = ethers.utils.parseUnits(number, margin)
-    return decimals.div(ethers.utils.bigNumberify(10).pow(margin - units))
+    return decimals.div(ethers.BigNumber.from(10).pow(margin - units))
   }
 }
 
@@ -294,8 +294,9 @@ export default function ExchangePage({ initialCurrency }) {
 
   const { independentValue, independentField, inputCurrency, outputCurrency, rateOp, inputRateValue } = swapState
 
-  const uniswapEXContract = useUniswapExContract()
   const [inputError, setInputError] = useState()
+
+  const [confirmationPending, setConfirmationPending] = useState(false)
 
   const addTransaction = useTransactionAdder()
 
@@ -337,11 +338,9 @@ export default function ExchangePage({ initialCurrency }) {
   )
 
   if (bestTradeExactIn) {
-    inputValue = ethers.utils.bigNumberify(
-      ethers.utils.parseUnits(bestTradeExactIn.inputAmount.toExact(), inputDecimals)
-    )
+    inputValue = ethers.BigNumber.from(ethers.utils.parseUnits(bestTradeExactIn.inputAmount.toExact(), inputDecimals))
   } else if (independentField === INPUT && independentValue) {
-    inputValue = ethers.utils.bigNumberify(ethers.utils.parseUnits(independentValue, inputDecimals))
+    inputValue = ethers.BigNumber.from(ethers.utils.parseUnits(independentValue, inputDecimals))
   }
 
   switch (independentField) {
@@ -419,20 +418,44 @@ export default function ExchangePage({ initialCurrency }) {
     realInputValue &&
     getExchangeRate(realInputValue, inputDecimals, outputValueParsed, outputDecimals, rateOp === RATE_OP_DIV)
 
-  const limitSlippage = ethers.utils
-    .bigNumberify(SLIPPAGE_WARNING)
-    .mul(ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(16)))
+  const limitSlippage = ethers.BigNumber.from(SLIPPAGE_WARNING).mul(
+    ethers.BigNumber.from(10).pow(ethers.BigNumber.from(16))
+  )
 
-  const limitExecution = ethers.utils
-    .bigNumberify(EXECUTION_WARNING)
-    .mul(ethers.utils.bigNumberify(10).pow(ethers.utils.bigNumberify(16)))
+  const limitExecution = ethers.BigNumber.from(EXECUTION_WARNING).mul(
+    ethers.BigNumber.from(10).pow(ethers.BigNumber.from(16))
+  )
 
   // validate + parse independent value
   const [independentError, setIndependentError] = useState()
 
+  const [activatePlaceModal, setActivatePlaceModal] = useState()
+
   const executionRateDelta = executionRate && exchangeRateDiff(executionRate, rateRaw)
   const executionRateNegative = executionRate?.lt(ethers.constants.Zero)
   const executionRateWarning = executionRateNegative || executionRateDelta?.abs()?.gt(limitExecution)
+
+  function getWadNumber(nb, decimalsNb) {
+    return nb.mul(ethers.utils.parseUnits('1', 18)).div(ethers.utils.parseUnits('1', decimalsNb))
+  }
+
+  let adviceRate = executionRateDelta?.abs()?.gt(limitExecution)
+    ? amountFormatter(
+        ethers.BigNumber.from(getWadNumber(outputValueParsed, dependentDecimals))
+          .mul(ethers.utils.parseUnits('1', 18))
+          .div(
+            executionRate
+              .mul(ethers.utils.parseUnits('1', 18))
+
+              .div(executionRateDelta.mul(ethers.utils.parseUnits('1', 18)).div(limitExecution))
+          )
+          .mul(ethers.utils.parseUnits('11', 17)) // + 10%
+          .div(ethers.utils.parseUnits('1', 18)),
+        18,
+        4,
+        false
+      )
+    : inputValueParsed
 
   useEffect(() => {
     if (independentValue && (independentDecimals || independentDecimals === 0)) {
@@ -497,18 +520,20 @@ export default function ExchangePage({ initialCurrency }) {
       ? exchangeRateDiff(inverseRate, exchangeRateInverted)
       : exchangeRateDiff(rateRaw, exchangeRate)
 
-  const highSlippageWarning = rateDelta && rateDelta.lt(ethers.utils.bigNumberify(0).sub(limitSlippage))
+  const highSlippageWarning = rateDelta && rateDelta.lt(ethers.BigNumber.from(0).sub(limitSlippage))
   const rateDeltaFormatted = amountFormatter(rateDelta, 16, 2, true)
 
   const isValid = outputValueParsed && !inputError && !independentError
 
   const estimatedText = `(${t('estimated')})`
   function formatBalance(value) {
-    return `(${t('balance', {balanceInput: value})})`
+    return `(${t('balance', { balanceInput: value })})`
   }
 
-  async function onPlace() {
-    let method, fromCurrency, toCurrency, inputAmount, minimumReturn, data
+  async function onPlaceComfirmed() {
+    setActivatePlaceModal(false)
+    setConfirmationPending(true)
+    let fromCurrency, toCurrency, inputAmount, minimumReturn
     ReactGA.event({
       category: 'place',
       action: 'place'
@@ -518,47 +543,27 @@ export default function ExchangePage({ initialCurrency }) {
     minimumReturn = outputValueParsed
 
     if (swapType === ETH_TO_TOKEN) {
-      //@TODO: change it later
-      method = uniswapEXContract.encodeEthOrder
       fromCurrency = ETH_ADDRESS
       toCurrency = outputCurrency
     } else if (swapType === TOKEN_TO_ETH) {
-      method = uniswapEXContract.encodeTokenOrder
       fromCurrency = inputCurrency
       toCurrency = ETH_ADDRESS
     } else if (swapType === TOKEN_TO_TOKEN) {
-      method = uniswapEXContract.encodeTokenOrder
       fromCurrency = inputCurrency
       toCurrency = outputCurrency
     }
     try {
-      // Prefix Hex for secret message
-      // this secret it's only intended for avoiding relayer front-running
-      // so a decreased entropy it's not an issue
-      const secret = ethers.utils.hexlify(ethers.utils.randomBytes(13)).replace('0x', '')
-      const fullSecret = `4200696e652e66696e616e63652020d83ddc09${secret}`
-      const { privateKey, address } = new ethers.Wallet(fullSecret)
-      const abiCoder = new ethers.utils.AbiCoder()
-      data = await (swapType === ETH_TO_TOKEN
-        ? method(
-            LIMIT_ORDER_MODULE_ADDRESSES[chainId],
-            fromCurrency,
-            account,
-            address,
-            abiCoder.encode(['address', 'uint256'], [toCurrency, minimumReturn]),
-            privateKey
-          )
-        : method(
-            LIMIT_ORDER_MODULE_ADDRESSES[chainId],
-            fromCurrency,
-            account,
-            address,
-            abiCoder.encode(['address', 'uint256'], [toCurrency, minimumReturn]),
-            privateKey,
-            inputAmount
-          ))
+      const provider = new ethers.providers.Web3Provider(library.provider)
 
-      // const order = swapType === ETH_TO_TOKEN ? data : `0x${data.slice(267)}`
+      const transactionDataWithSecret = await getLimitOrderPayloadWithSecret(
+        chainId,
+        fromCurrency,
+        toCurrency,
+        inputAmount,
+        minimumReturn,
+        account.toLowerCase()
+      )
+
       const order = {
         inputAmount: inputAmount.toString(),
         creationAmount: inputAmount.toString(),
@@ -567,32 +572,37 @@ export default function ExchangePage({ initialCurrency }) {
         minReturn: minimumReturn.toString(),
         module: LIMIT_ORDER_MODULE_ADDRESSES[chainId].toLowerCase(),
         owner: account.toLowerCase(),
-        secret: privateKey,
+        secret: transactionDataWithSecret.secret,
         status: 'open',
         outputToken: toCurrency.toLowerCase(),
-        witness: address.toLowerCase()
+        witness: transactionDataWithSecret.witness.toLowerCase()
       }
 
       saveOrder(account, order, chainId)
 
-      let res
-      if (swapType === ETH_TO_TOKEN) {
-        res = await uniswapEXContract.depositEth(data, { value: inputAmount, gasPrice: gasPrice ? gasPrice : undefined })
-      } else {
-        const provider = new ethers.providers.Web3Provider(library.provider)
-        res = await provider.getSigner().sendTransaction({
-          to: fromCurrency,
-          data: data,
-          gasPrice: gasPrice ? gasPrice : undefined
-        })
-      }
+      const res = await provider.getSigner().sendTransaction({
+        ...transactionDataWithSecret.txData,
+        gasPrice: gasPrice
+      })
+
+      setConfirmationPending(false)
 
       if (res.hash) {
         addTransaction(res, { action: ACTION_PLACE_ORDER, order: order })
       }
+      
     } catch (e) {
+      setConfirmationPending(false)
       console.log('Error on place order', e.message)
     }
+  }
+
+  async function onPlace() {
+    setActivatePlaceModal(true)
+  }
+
+  async function onDismiss() {
+    setActivatePlaceModal(false)
   }
 
   const [customSlippageError] = useState('')
@@ -601,6 +611,20 @@ export default function ExchangePage({ initialCurrency }) {
 
   return (
     <>
+      <OrderDetailModal
+        isOpen={activatePlaceModal}
+        outputValueFormatted={outputValueFormatted}
+        inputValueFormatted={inputValueFormatted}
+        inputCurrency={inputCurrency}
+        outputCurrency={outputCurrency}
+        executionRate={amountFormatter(executionRate, 18, 4, false)}
+        executionRateNegative={executionRateNegative}
+        rateFormatted={rateFormatted || ''}
+        adviceRate={adviceRate}
+        warning={executionRateWarning}
+        onPlaceComfirmed={onPlaceComfirmed}
+        onDismiss={onDismiss}
+      ></OrderDetailModal>
       <CurrencyInputPanel
         title={t('input')}
         allBalances={allBalances}
@@ -665,7 +689,7 @@ export default function ExchangePage({ initialCurrency }) {
           }}
         >
           <ExchangeRate>
-            {t('executionRate', {gasPrice: gasPrice ? amountFormatter(gasPrice, 9, 0, false) : '...'})}
+            {t('executionRate', { gasPrice: gasPrice ? amountFormatter(gasPrice, 9, 0, false) : '...' })}
             {/* Execution rate at {gasPrice ? amountFormatter(gasPrice, 9, 0, false) : '...'} GWEI */}
           </ExchangeRate>
           {executionRateNegative ? (
@@ -741,13 +765,13 @@ export default function ExchangePage({ initialCurrency }) {
           )}
         </ExchangeRateWrapper>
       </OversizedPanel>
-      <Flex>
+      <Flex>        
         <Button
-          disabled={!account || !isValid || customSlippageError === 'invalid'}
+          disabled={!account || !isValid || customSlippageError === 'invalid' || (rateDeltaFormatted && rateDeltaFormatted.startsWith('-'))}
           onClick={onPlace}
           warning={highSlippageWarning || executionRateWarning || customSlippageError === 'warning'}
         >
-          {customSlippageError === 'warning' ? t('placeAnyway') : t('place')}
+          {confirmationPending ? t('pending') : customSlippageError === 'warning' ? t('placeAnyway') : t('place')}
         </Button>
       </Flex>
       {rateDeltaFormatted && (

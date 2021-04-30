@@ -57,9 +57,9 @@ export function PastOrderCard(props) {
 
   const cancelled = order.status === 'cancelled'
   const executed = order.status === 'executed'
-  const bought = ethers.utils.bigNumberify(executed ? order.bought : 0)
-  const inputAmount = ethers.utils.bigNumberify(order.inputAmount)
-  const minReturn = ethers.utils.bigNumberify(order.minReturn)
+  const bought = ethers.BigNumber.from(executed ? order.bought : 0)
+  const inputAmount = ethers.BigNumber.from(order.inputAmount)
+  const minReturn = ethers.BigNumber.from(order.minReturn)
 
   const explorerLink = getEtherscanLink(
     chainId,

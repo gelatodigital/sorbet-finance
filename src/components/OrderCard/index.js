@@ -1,3 +1,4 @@
+import { getCancelLimitOrderPayload } from "@gelatonetwork/limit-orders-lib"
 import Tooltip from '@reach/tooltip'
 import { useWeb3React } from '@web3-react/core'
 import { ethers } from 'ethers'
@@ -11,7 +12,6 @@ import { useTokenDetails } from '../../contexts/Tokens'
 import {
   ACTION_CANCEL_ORDER, ACTION_PLACE_ORDER, useOrderPendingState, useTransactionAdder
 } from '../../contexts/Transactions'
-import { useUniswapExContract } from '../../hooks'
 import { useTradeExactIn } from '../../hooks/trade'
 import { amountFormatter, getEtherscanLink } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
@@ -58,7 +58,7 @@ const RightArrow = styled(WrappedArrowRight)`
 
 export function OrderCard(props) {
   const { t } = useTranslation()
-  const { chainId } = useWeb3React()
+  const { library, chainId } = useWeb3React()
 
   const order = props.data
 
@@ -73,34 +73,31 @@ export function OrderCard(props) {
   const canceling = state === ACTION_CANCEL_ORDER
   const pending = state === ACTION_PLACE_ORDER
 
-  const uniswapEXContract = useUniswapExContract()
   const addTransaction = useTransactionAdder()
 
   async function onCancel(order, pending) {
-    const abiCoder = new ethers.utils.AbiCoder()
 
-    const { module, inputToken, outputToken, minReturn, owner, witness } = order
-    uniswapEXContract
-      .cancelOrder(
-        module,
-        inputToken,
-        owner,
-        witness,
-        abiCoder.encode(['address', 'uint256'], [outputToken, minReturn]),
-        {
-          gasLimit: pending ? 400000 : undefined,
-          gasPrice: gasPrice ? gasPrice : undefined
-        }
-      )
-      .then(response => {
-        addTransaction(response, { action: ACTION_CANCEL_ORDER, order: order })
-      })
+    const { inputToken, outputToken, minReturn, owner, witness } = order
+
+    const transactionData = await getCancelLimitOrderPayload(chainId, inputToken, outputToken, minReturn, owner, witness)
+    const res = await (new ethers.providers.Web3Provider(library.provider)).getSigner().sendTransaction({
+      to: transactionData.to,
+      data: transactionData.data,
+      value: transactionData.value,
+      gasPrice: gasPrice,
+      gasLimit: 400000
+    });
+
+    if (res.hash) {
+      addTransaction(res, { action: ACTION_CANCEL_ORDER, order: order })
+    }
+    
   }
 
-  const inputAmount = ethers.utils.bigNumberify(
+  const inputAmount = ethers.BigNumber.from(
     order.inputAmount !== '0' || !order.creationAmount ? order.inputAmount : order.creationAmount
   )
-  const minReturn = ethers.utils.bigNumberify(order.minReturn)
+  const minReturn = ethers.BigNumber.from(order.minReturn)
 
   const explorerLink = last ? getEtherscanLink(chainId, last.response.hash, 'transaction') : undefined
 

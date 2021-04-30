@@ -17,7 +17,7 @@ export default function Provider({ children }) {
     fetch("https://www.gasnow.org/api/v3/gas/price?utm_source=sorbet-finance").then((res) => {
       res.json().then(gasInfo => {
         try {
-          setGasPrice(ethers.utils.bigNumberify(gasInfo.data.fast))
+          setGasPrice(ethers.BigNumber.from(gasInfo.data.fast))
         } catch {}
       })
     })
