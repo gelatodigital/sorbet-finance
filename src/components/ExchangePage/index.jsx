@@ -3,7 +3,6 @@ import { useWeb3React } from '@web3-react/core'
 import { ethers } from 'ethers'
 import * as ls from 'local-storage'
 import React, { useEffect, useReducer, useState } from 'react'
-import { useContext } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -16,7 +15,6 @@ import { useAddressBalance } from '../../contexts/Balances'
 import { useGasPrice } from '../../contexts/GasPrice'
 import { useTokenDetails } from '../../contexts/Tokens'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
-import { useUniswapExContract } from '../../hooks'
 import { useTradeExactIn } from '../../hooks/trade'
 import { Button } from '../../theme'
 import { amountFormatter } from '../../utils'
@@ -24,8 +22,8 @@ import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../CurrencyInputPanel'
 import OrderDetailModal from '../OrderDetailModal/OrderDetailModal'
 import OversizedPanel from '../OversizedPanel'
-
 import './ExchangePage.css'
+
 
 // Use to detach input from output
 let inputValue
@@ -527,7 +525,7 @@ export default function ExchangePage({ initialCurrency }) {
   }
 
   async function onPlaceComfirmed() {
-    let fromCurrency, toCurrency, inputAmount, minimumReturn, data
+    let fromCurrency, toCurrency, inputAmount, minimumReturn
     ReactGA.event({
       category: 'place',
       action: 'place'
@@ -550,7 +548,7 @@ export default function ExchangePage({ initialCurrency }) {
       const provider = new ethers.providers.Web3Provider(library.provider)
 
       const transactionDataWithSecret = await getLimitOrderPayloadWithSecret(
-        (await provider.getNetwork()).chainId,
+        chainId,
         fromCurrency,
         toCurrency,
         inputAmount,

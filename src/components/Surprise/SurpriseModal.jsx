@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import styled from 'styled-components'
-import Modal from '../Modal'
-import { getAllExecutedOrders, getAllOrders } from '@gelatonetwork/limit-orders-lib'
+import { getAllExecutedOrders } from '@gelatonetwork/limit-orders-lib'
 import { useWeb3React } from '@web3-react/core'
 import * as ls from 'local-storage'
-import { Button } from '../../theme'
-import GelatoMainLogo from "../../assets/svg/GelatoMainLogo.svg"
+import React, { useEffect, useState } from 'react'
 import Confetti from "react-confetti"
+import styled from 'styled-components'
+import GelatoMainLogo from "../../assets/svg/GelatoMainLogo.svg"
+import { Button } from '../../theme'
+import Modal from '../Modal'
 
 const Flex = styled.div`
   display: block;
@@ -21,7 +21,7 @@ const Flex = styled.div`
       font-weight: bolder;
   }
 
-  h3 {
+  h2 {
       margin-top: 0;
       margin-bottom: 0;
       padding-bottom: 1rem;
@@ -36,7 +36,7 @@ const Flex = styled.div`
 
   p {
     margin-top: 2px;
-    margin-bottom: 0;
+    margin-bottom: 8px;
     font-size: x-small;
     color: #848484
   }
@@ -57,11 +57,16 @@ export default function SupriseModal() {
 
   useEffect(
       () => {
+        async function getAllExecutedOrdersAsync() {
+          const allExecOrder = await getAllExecutedOrders(account, chainId)
+          setIsOpen(allExecOrder.length > 0 && !ls.get(lsKey(LS_GIFT, account, chainId)))
+        }
+
         if(!isOpen) {
             getAllExecutedOrdersAsync()
         }
       }
-  ,  [active, account])
+  ,  [active, account, chainId])
 
   // ///
   // Local Storage
@@ -69,10 +74,7 @@ export default function SupriseModal() {
 
   const LS_GIFT = 'gift_'
 
-  async function getAllExecutedOrdersAsync() {
-    const allExecOrder = await getAllExecutedOrders(account, chainId)
-    setIsOpen(allExecOrder.length > 0 && !ls.get(lsKey(LS_GIFT, account, chainId)))
-  }
+  
 
   function lsKey(key, account, chainId) {
     return key + account.toString() + chainId
@@ -93,11 +95,11 @@ export default function SupriseModal() {
                 <Container>
                     <Flex>
                         <img width={"40%"} src={GelatoMainLogo} alt={''}></img>
-                        <h3><span>{'🍦'}</span>Congratulations!!<span>{'🍦'}</span></h3>
-                        <h5>You just successfully executed at least one limit order!</h5>
-                        <h5>And what's cooler, you just earned yourself the opportunity to reserve a whitelist spot for the (still secret) Gelato token sale. Please keep this info to yourself 🤫</h5>
-                        <a href={url}><Button onClick={() => {onGiftTaken()}}>Claim your spot now!</Button></a>
-                        <p>(65 out of 100 spots have reserved)</p>
+                        <h2><span>{'🍦'}</span>Congratulations<span>{'🍦'}</span></h2>
+                        <h5>You successfully executed a limit order on Sorbet.</h5>
+                        <h5>This means you just earned yourself the opportunity to reserve a whitelist spot for the (still secret) Gelato Token Sale.</h5>
+                        <p>Please keep this info to yourself<span>{'🤫'}</span></p>
+                        <a href={url} rel="noopener noreferrer" target="_blank"><Button onClick={() => {onGiftTaken()}}>Claim your spot now!</Button></a>
                     </Flex>
                 </Container>
         </Modal>

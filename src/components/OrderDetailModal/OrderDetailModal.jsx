@@ -1,15 +1,15 @@
 import React from 'react'
-import styled from 'styled-components'
-import { AutoColumn } from '../Column'
-import { CardSection, DataCard } from '../earn/styled'
-import { StyledTokenName } from '../CurrencyInputPanel'
-import ArrowRight from '../../assets/svg/SVGArrowRight'
-import Modal from '../Modal'
-import TokenLogo from '../TokenLogo'
 import { useTranslation } from 'react-i18next'
+import styled from 'styled-components'
+import ArrowRight from '../../assets/svg/SVGArrowRight'
 import { useAllTokenDetails } from '../../contexts/Tokens'
 import { Button } from '../../theme'
 import { amountFormatter } from '../../utils/index'
+import { AutoColumn } from '../Column'
+import { StyledTokenName } from '../CurrencyInputPanel'
+import { CardSection, DataCard } from '../earn/styled'
+import Modal from '../Modal'
+import TokenLogo from '../TokenLogo'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
@@ -41,11 +41,6 @@ const Container = styled.div`
   padding: 1em;
   display: inline-grid;
   grid-template-columns: 40fr 5fr 10fr 5fr 40fr;
-`
-
-const Label = styled.div`
-  grid-column-start: 0;
-  grid-column-end: 1;
 `
 
 const LeftContainer = styled.div`

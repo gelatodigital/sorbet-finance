@@ -12,13 +12,11 @@ import { useTokenDetails } from '../../contexts/Tokens'
 import {
   ACTION_CANCEL_ORDER, ACTION_PLACE_ORDER, useOrderPendingState, useTransactionAdder
 } from '../../contexts/Transactions'
-import { useUniswapExContract } from '../../hooks'
 import { useTradeExactIn } from '../../hooks/trade'
 import { amountFormatter, getEtherscanLink } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import { Aligner, CurrencySelect, StyledTokenName } from '../CurrencyInputPanel'
 import TokenLogo from '../TokenLogo'
-
 import './OrderCard.css'
 
 
@@ -81,17 +79,18 @@ export function OrderCard(props) {
 
     const { inputToken, outputToken, minReturn, owner, witness } = order
 
-    const transactionData = await getCancelLimitOrderPayload((await library.provider.getNetwork()).chainId, inputToken, outputToken, minReturn, owner, witness)
-    const transactionResponse = await library.provider.getSigner().sendTransaction({
+    const transactionData = await getCancelLimitOrderPayload(chainId, inputToken, outputToken, minReturn, owner, witness)
+    const res = await library.provider.getSigner().sendTransaction({
       to: transactionData.to,
       data: transactionData.data,
       value: transactionData.value,
       gasPrice: gasPrice
     });
 
-    await transactionResponse.wait()
-
-    addTransaction(transactionResponse, { action: ACTION_CANCEL_ORDER, order: order })
+    if (res.hash) {
+      addTransaction(res, { action: ACTION_CANCEL_ORDER, order: order })
+    }
+    
   }
 
   const inputAmount = ethers.BigNumber.from(
