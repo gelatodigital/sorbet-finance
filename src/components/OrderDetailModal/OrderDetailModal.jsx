@@ -10,7 +10,7 @@ import { StyledTokenName } from '../CurrencyInputPanel'
 import { CardSection, DataCard } from '../earn/styled'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
-import { device } from '../../theme/components'
+import { deviceDown, deviceUp } from '../../theme/components'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
@@ -87,20 +87,12 @@ const WarningMsgMobile = styled.div`
   font-size: x-small;
   color: #f92500;
 
-  @media ${device.desktopL} {
+  @media ${deviceDown.laptop} {
     visibility: collapse;
   }
 
-  @media ${device.desktop} {
-    visibility: collapse;
-  }
-
-  @media ${device.laptopL} {
-    visibility: collapse;
-  }
-
-  @media ${device.laptopL} {
-    visibility: collapse;
+  @media ${deviceUp.laptop} {
+    visibility: visible;
   }
 `
 
@@ -108,15 +100,11 @@ const WarningMsg = styled.div`
   font-size: small;
   color: #f92500;
 
-  @media ${device.mobileL} {
-    visibility: collapse;
+  @media ${deviceDown.laptop} {
+    visibility: visible;
   }
 
-  @media ${device.mobileM} {
-    visibility: collapse;
-  }
-
-  @media ${device.mobileS} {
+  @media ${deviceUp.laptop} {
     visibility: collapse;
   }
 `
@@ -124,34 +112,22 @@ const WarningMsg = styled.div`
 const TextMobile = styled.div`
   font-size: x-small;
 
-  @media ${device.desktopL} {
+  @media ${deviceDown.laptop} {
     visibility: collapse;
   }
 
-  @media ${device.desktop} {
-    visibility: collapse;
-  }
-
-  @media ${device.laptopL} {
-    visibility: collapse;
-  }
-
-  @media ${device.laptopL} {
-    visibility: collapse;
+  @media ${deviceUp.laptop} {
+    visibility: visible;
   }
 `
 
 const Text = styled.div`
   font-size: medium;
-  @media ${device.mobileL} {
-    visibility: collapse;
+  @media ${deviceDown.laptop} {
+    visibility: visible;
   }
 
-  @media ${device.mobileM} {
-    visibility: collapse;
-  }
-
-  @media ${device.mobileS} {
+  @media ${deviceUp.laptop} {
     visibility: collapse;
   }
 `
@@ -160,20 +136,12 @@ const SmallTextMobile = styled.div`
   margin-top: -25px;
   font-size: small;
 
-  @media ${device.desktopL} {
+  @media ${deviceDown.laptop} {
     visibility: collapse;
   }
 
-  @media ${device.desktop} {
-    visibility: collapse;
-  }
-
-  @media ${device.laptopL} {
-    visibility: collapse;
-  }
-
-  @media ${device.laptopL} {
-    visibility: collapse;
+  @media ${deviceUp.laptop} {
+    visibility: visible;
   }
 `
 
@@ -181,15 +149,11 @@ const SmallText = styled.div`
   margin-top: -25px;
   font-size: small;
 
-  @media ${device.mobileL} {
-    visibility: collapse;
+  @media ${deviceDown.laptop} {
+    visibility: visible;
   }
 
-  @media ${device.mobileM} {
-    visibility: collapse;
-  }
-
-  @media ${device.mobileS} {
+  @media ${deviceUp.laptop} {
     visibility: collapse;
   }
 `

@@ -7,46 +7,16 @@ import styled from 'styled-components'
 import GelatoMainLogo from '../../assets/svg/GelatoMainLogo.svg'
 import { Button } from '../../theme'
 import Modal from '../Modal'
-import { device } from '../../theme/components'
+import { deviceDown, deviceUp } from '../../theme/components'
 
 const CustomButton = styled(Button)`
-  @media ${device.desktopL} {
+  @media ${deviceDown.laptop} {
     font-size: 1rem;
     padding: 1rem 2rem 1rem 2rem;
     border-radius: 3rem;
   }
 
-  @media ${device.desktop} {
-    font-size: 1rem;
-    padding: 1rem 2rem 1rem 2rem;
-    border-radius: 3rem;
-  }
-
-  @media ${device.laptopL} {
-    font-size: 1rem;
-    padding: 1rem 2rem 1rem 2rem;
-    border-radius: 3rem;
-  }
-
-  @media ${device.laptopL} {
-    font-size: 1rem;
-    padding: 1rem 2rem 1rem 2rem;
-    border-radius: 3rem;
-  }
-
-  @media ${device.mobileL} {
-    padding: 1rem 1rem 1rem 1rem !important;
-    font-size: small !important;
-    border-radius: 3rem;
-  }
-
-  @media ${device.mobileM} {
-    padding: 1rem 1rem 1rem 1rem !important;
-    font-size: small !important;
-    border-radius: 3rem;
-  }
-
-  @media ${device.mobileS} {
+  @media ${deviceUp.laptop} {
     padding: 1rem 1rem 1rem 1rem !important;
     font-size: small !important;
     border-radius: 3rem;
