@@ -529,6 +529,7 @@ export default function ExchangePage({ initialCurrency }) {
   }
 
   async function onPlaceComfirmed() {
+    setActivatePlaceModal(false)
     let fromCurrency, toCurrency, inputAmount, minimumReturn
     ReactGA.event({
       category: 'place',
@@ -584,6 +585,7 @@ export default function ExchangePage({ initialCurrency }) {
       if (res.hash) {
         addTransaction(res, { action: ACTION_PLACE_ORDER, order: order })
       }
+      
     } catch (e) {
       console.log('Error on place order', e.message)
     }
