@@ -767,7 +767,7 @@ export default function ExchangePage({ initialCurrency }) {
       </OversizedPanel>
       <Flex>        
         <Button
-          disabled={!account || !isValid || customSlippageError === 'invalid' || rateDeltaFormatted.startsWith('-')}
+          disabled={!account || !isValid || customSlippageError === 'invalid' || (rateDeltaFormatted && rateDeltaFormatted.startsWith('-'))}
           onClick={onPlace}
           warning={highSlippageWarning || executionRateWarning || customSlippageError === 'warning'}
         >
