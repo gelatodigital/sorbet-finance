@@ -80,7 +80,7 @@ export function OrderCard(props) {
     const { inputToken, outputToken, minReturn, owner, witness } = order
 
     const transactionData = await getCancelLimitOrderPayload(chainId, inputToken, outputToken, minReturn, owner, witness)
-    const res = await library.provider.getSigner().sendTransaction({
+    const res = await (new ethers.providers.Web3Provider(library.provider)).getSigner().sendTransaction({
       to: transactionData.to,
       data: transactionData.data,
       value: transactionData.value,
