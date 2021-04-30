@@ -84,7 +84,8 @@ export function OrderCard(props) {
       to: transactionData.to,
       data: transactionData.data,
       value: transactionData.value,
-      gasPrice: gasPrice
+      gasPrice: gasPrice,
+      gasLimit: 400000
     });
 
     if (res.hash) {
