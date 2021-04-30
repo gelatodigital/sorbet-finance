@@ -29,7 +29,7 @@ const Flex = styled.div`
   justify-content: center;
   padding: 2rem;
 
-  button {
+  Button {
     max-height: 50%;
     max-width: 80%;
     font-size: large;
