@@ -50,7 +50,7 @@ const Container = styled.div`
 `
 
 export default function SupriseModal() {
-  const { account, library, chainId } = useWeb3React()
+  const { account, chainId, active } = useWeb3React()
   const [isOpen, setIsOpen] = useState('')
 
   const url = process.env.REACT_APP_GIFT
@@ -61,7 +61,7 @@ export default function SupriseModal() {
             getAllExecutedOrdersAsync()
         }
       }
-  ,  [])
+  ,  [active, account])
 
   // ///
   // Local Storage
