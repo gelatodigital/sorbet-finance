@@ -166,14 +166,14 @@ export default function OrderDetailModal({
           {warning ? (
             <>
               <Container>
-                <LeftContainer className="slippage-warning">Actual Rate</LeftContainer>
+                <LeftContainer className="slippage-warning">Actual Execution Rate</LeftContainer>
                 <MiddleContainer></MiddleContainer>
                 <RightContainer className="slippage-warning">{executionRate}</RightContainer>
               </Container>
             </>
           ) : (
             <Container>
-              <LeftContainer className="market-delta-info">Actual Rate</LeftContainer>
+              <LeftContainer className="market-delta-info">Actual Execution Rate</LeftContainer>
               <MiddleContainer></MiddleContainer>
               <RightContainer className="market-delta-info">{executionRate}</RightContainer>
             </Container>
