@@ -3,6 +3,7 @@ import { useWeb3React } from '@web3-react/core'
 import { ethers } from 'ethers'
 import * as ls from 'local-storage'
 import React, { useEffect, useReducer, useState } from 'react'
+import { useContext } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -20,10 +21,9 @@ import { Button } from '../../theme'
 import { amountFormatter } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../CurrencyInputPanel'
+import OrderDetailModal from '../OrderDetailModal/OrderDetailModal'
 import OversizedPanel from '../OversizedPanel'
 import './ExchangePage.css'
-
-
 
 // Use to detach input from output
 let inputValue
@@ -336,9 +336,7 @@ export default function ExchangePage({ initialCurrency }) {
   )
 
   if (bestTradeExactIn) {
-    inputValue = ethers.BigNumber.from(
-      ethers.utils.parseUnits(bestTradeExactIn.inputAmount.toExact(), inputDecimals)
-    )
+    inputValue = ethers.BigNumber.from(ethers.utils.parseUnits(bestTradeExactIn.inputAmount.toExact(), inputDecimals))
   } else if (independentField === INPUT && independentValue) {
     inputValue = ethers.BigNumber.from(ethers.utils.parseUnits(independentValue, inputDecimals))
   }
@@ -418,18 +416,40 @@ export default function ExchangePage({ initialCurrency }) {
     realInputValue &&
     getExchangeRate(realInputValue, inputDecimals, outputValueParsed, outputDecimals, rateOp === RATE_OP_DIV)
 
-  const limitSlippage = ethers.BigNumber.from(SLIPPAGE_WARNING)
-    .mul(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(16)))
+  const limitSlippage = ethers.BigNumber.from(SLIPPAGE_WARNING).mul(
+    ethers.BigNumber.from(10).pow(ethers.BigNumber.from(16))
+  )
 
-  const limitExecution = ethers.BigNumber.from(EXECUTION_WARNING)
-    .mul(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(16)))
+  const limitExecution = ethers.BigNumber.from(EXECUTION_WARNING).mul(
+    ethers.BigNumber.from(10).pow(ethers.BigNumber.from(16))
+  )
 
   // validate + parse independent value
   const [independentError, setIndependentError] = useState()
 
+  const [activatePlaceModal, setActivatePlaceModal] = useState()
+
   const executionRateDelta = executionRate && exchangeRateDiff(executionRate, rateRaw)
   const executionRateNegative = executionRate?.lt(ethers.constants.Zero)
   const executionRateWarning = executionRateNegative || executionRateDelta?.abs()?.gt(limitExecution)
+
+  const adviceRate = executionRateDelta?.abs()?.gt(limitExecution)
+    ? amountFormatter(
+        ethers.BigNumber.from(outputValueParsed)
+          .mul(ethers.utils.parseUnits('1', 18))
+          .div(
+            executionRate
+              .mul(ethers.utils.parseUnits('1', 18))
+
+              .div(executionRateDelta.mul(ethers.utils.parseUnits('1', 18)).div(limitExecution))
+          )
+          .mul(ethers.utils.parseUnits('11', 17)) // + 10%
+          .div(ethers.utils.parseUnits('1', 18)),
+        18,
+        4,
+        false
+      )
+    : inputValueParsed
 
   useEffect(() => {
     if (independentValue && (independentDecimals || independentDecimals === 0)) {
@@ -504,7 +524,7 @@ export default function ExchangePage({ initialCurrency }) {
     return `Balance: ${value}`
   }
 
-  async function onPlace() {
+  async function onPlaceComfirmed() {
     let fromCurrency, toCurrency, inputAmount, minimumReturn, data
     ReactGA.event({
       category: 'place',
@@ -534,7 +554,7 @@ export default function ExchangePage({ initialCurrency }) {
         inputAmount,
         minimumReturn,
         account.toLowerCase()
-      );
+      )
 
       const order = {
         inputAmount: inputAmount.toString(),
@@ -565,12 +585,33 @@ export default function ExchangePage({ initialCurrency }) {
     }
   }
 
+  async function onPlace() {
+    setActivatePlaceModal(true)
+  }
+
+  async function onDismiss() {
+    setActivatePlaceModal(false)
+  }
+
   const [customSlippageError] = useState('')
 
   const allBalances = useFetchAllBalances()
 
   return (
     <>
+      <OrderDetailModal
+        isOpen={activatePlaceModal}
+        outputValueFormatted={outputValueFormatted}
+        inputValueFormatted={inputValueFormatted}
+        inputCurrency={inputCurrency}
+        outputCurrency={outputCurrency}
+        executionRate={amountFormatter(executionRate, 18, 4, false)}
+        rateFormatted={rateFormatted || ''}
+        adviceRate={adviceRate}
+        warning={executionRateWarning}
+        onPlaceComfirmed={onPlaceComfirmed}
+        onDismiss={onDismiss}
+      ></OrderDetailModal>
       <CurrencyInputPanel
         title={t('input')}
         allBalances={allBalances}
