@@ -288,7 +288,13 @@ export default function OrderDetailModal({
             </LeftContainer>
             <MiddleContainer></MiddleContainer>
             <RightContainer>
-              {executionRateNegative && <SmallText>{'too high'}</SmallText>}
+              {executionRateNegative && (
+                <>
+                  {' '}
+                  <SmallText>{'too high'}</SmallText>
+                  <SmallTextMobile>{'too high'}</SmallTextMobile>
+                </>
+              )}
               {!executionRateNegative && (
                 <>
                   <SmallTextMobile>{feesRounding(executionRate, rateFormatted)}%</SmallTextMobile>
