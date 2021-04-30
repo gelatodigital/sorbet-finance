@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import { getAllPastOrders } from '@gelatonetwork/limit-orders-lib'
 import { useWeb3React } from '@web3-react/core'
-
-import { PastOrderCard } from '../PastOrderCard'
+import React, { useEffect, useState } from 'react'
 import { isAddress } from '../../utils'
-import { getAllOrders } from '@gelatonetwork/limit-orders-lib'
+import { PastOrderCard } from '../PastOrderCard'
+
 
 export function OrdersHistory() {
   const { account, chainId } = useWeb3React()
@@ -34,11 +34,8 @@ function usePastOrders(account, chainId) {
 
 async function fetchUserPastOrders(account, chainId) {
   try {
-    const noOpenOrders = [];
-    (await getAllOrders(account, chainId)).forEach(element => {
-      if (element.status === 'executed' || element.status === 'cancelled') noOpenOrders.push(element)
-    })
-    return noOpenOrders
+    const pastOrders = await getAllPastOrders(account, chainId)
+    return pastOrders
   } catch (e) {
     console.warn('Error loading orders from TheGraph', e)
     return []
