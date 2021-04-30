@@ -88,6 +88,7 @@ const WarningMsgMobile = styled.div`
   color: #f92500;
 
   @media ${deviceDown.laptop} {
+    height: 0px !important;
     visibility: collapse;
   }
 
@@ -105,6 +106,7 @@ const WarningMsg = styled.div`
   }
 
   @media ${deviceUp.laptop} {
+    height: 0px !important;
     visibility: collapse;
   }
 `
@@ -113,6 +115,7 @@ const TextMobile = styled.div`
   font-size: x-small;
 
   @media ${deviceDown.laptop} {
+    height: 0px !important;
     visibility: collapse;
   }
 
@@ -128,6 +131,7 @@ const Text = styled.div`
   }
 
   @media ${deviceUp.laptop} {
+    height: 0px !important;
     visibility: collapse;
   }
 `
@@ -137,6 +141,7 @@ const SmallTextMobile = styled.div`
   font-size: small;
 
   @media ${deviceDown.laptop} {
+    height: 0px !important;
     visibility: collapse;
   }
 
@@ -154,6 +159,7 @@ const SmallText = styled.div`
   }
 
   @media ${deviceUp.laptop} {
+    height: 0px !important;
     visibility: collapse;
   }
 `
