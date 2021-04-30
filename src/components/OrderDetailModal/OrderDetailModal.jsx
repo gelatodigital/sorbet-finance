@@ -180,7 +180,7 @@ export default function OrderDetailModal({
           )}
           <Container>
             <LeftContainer>
-              <SmallText>Extra slippage due to gas fees</SmallText>
+              <SmallText>% Execution Rate Overhead (due to gas fees) </SmallText>
             </LeftContainer>
             <MiddleContainer></MiddleContainer>
             <RightContainer>
