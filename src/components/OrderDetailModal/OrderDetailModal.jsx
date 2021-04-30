@@ -113,7 +113,7 @@ const WarningMsg = styled.div`
 
 const TextMobile = styled.div`
   font-size: x-small;
-
+  margin-top: -25px;
   @media ${deviceDown.laptop} {
     height: 0px !important;
     visibility: collapse;
@@ -126,6 +126,7 @@ const TextMobile = styled.div`
 
 const Text = styled.div`
   font-size: medium;
+  margin-top: -25px;
   @media ${deviceDown.laptop} {
     visibility: visible;
   }
@@ -249,7 +250,7 @@ export default function OrderDetailModal({
               {!executionRateNegative && (
                 <RightContainer>
                   <TextMobile className="slippage-warning">{executionRate}</TextMobile>
-                  <Text className="slippage-warningt">{executionRate}</Text>
+                  <Text className="slippage-warning">{executionRate}</Text>
                 </RightContainer>
               )}
               {executionRateNegative && (
