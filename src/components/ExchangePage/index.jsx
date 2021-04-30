@@ -296,6 +296,8 @@ export default function ExchangePage({ initialCurrency }) {
 
   const [inputError, setInputError] = useState()
 
+  const [confirmationPending, setConfirmationPending] = useState(false)
+
   const addTransaction = useTransactionAdder()
 
   // get swap type from the currency types
@@ -530,6 +532,7 @@ export default function ExchangePage({ initialCurrency }) {
 
   async function onPlaceComfirmed() {
     setActivatePlaceModal(false)
+    setConfirmationPending(true)
     let fromCurrency, toCurrency, inputAmount, minimumReturn
     ReactGA.event({
       category: 'place',
@@ -582,11 +585,14 @@ export default function ExchangePage({ initialCurrency }) {
         gasPrice: gasPrice
       })
 
+      setConfirmationPending(false)
+
       if (res.hash) {
         addTransaction(res, { action: ACTION_PLACE_ORDER, order: order })
       }
       
     } catch (e) {
+      setConfirmationPending(false)
       console.log('Error on place order', e.message)
     }
   }
@@ -612,6 +618,7 @@ export default function ExchangePage({ initialCurrency }) {
         inputCurrency={inputCurrency}
         outputCurrency={outputCurrency}
         executionRate={amountFormatter(executionRate, 18, 4, false)}
+        executionRateNegative={executionRateNegative}
         rateFormatted={rateFormatted || ''}
         adviceRate={adviceRate}
         warning={executionRateWarning}
@@ -758,13 +765,13 @@ export default function ExchangePage({ initialCurrency }) {
           )}
         </ExchangeRateWrapper>
       </OversizedPanel>
-      <Flex>
+      <Flex>        
         <Button
           disabled={!account || !isValid || customSlippageError === 'invalid'}
           onClick={onPlace}
           warning={highSlippageWarning || executionRateWarning || customSlippageError === 'warning'}
         >
-          {customSlippageError === 'warning' ? t('placeAnyway') : t('place')}
+          {confirmationPending ? t('pending') : customSlippageError === 'warning' ? t('placeAnyway') : t('place')}
         </Button>
       </Flex>
       {rateDeltaFormatted && (
