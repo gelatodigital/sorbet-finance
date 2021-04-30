@@ -116,7 +116,8 @@ export default function OrderDetailModal({
   adviceRate,
   warning,
   onPlaceComfirmed,
-  onDismiss
+  onDismiss,
+  executionRateNegative
 }) {
   const allTokens = useAllTokenDetails()
   const { t } = useTranslation()
@@ -168,23 +169,40 @@ export default function OrderDetailModal({
               <Container>
                 <LeftContainer className="slippage-warning">Actual Execution Rate</LeftContainer>
                 <MiddleContainer></MiddleContainer>
+                
+                {!executionRateNegative && (
                 <RightContainer className="slippage-warning">{executionRate}</RightContainer>
+              )}
+              {executionRateNegative && (
+                <RightContainer className="slippage-warning">{'Will never execute'}</RightContainer>
+              )}
               </Container>
             </>
           ) : (
             <Container>
               <LeftContainer className="market-delta-info">Actual Execution Rate</LeftContainer>
               <MiddleContainer></MiddleContainer>
-              <RightContainer className="market-delta-info">{executionRate}</RightContainer>
+              {!executionRateNegative && (
+                <RightContainer className="market-delta-info">{executionRate}</RightContainer>
+              )}
+              {executionRateNegative && (
+                <RightContainer className="market-delta-info">{'Will never execute'}</RightContainer>
+              )}
+              
             </Container>
           )}
           <Container>
             <LeftContainer>
-              <SmallText>% Execution Rate Overhead (due to gas fees) </SmallText>
+              <SmallText>% Execution Rate Overhead</SmallText>
             </LeftContainer>
             <MiddleContainer></MiddleContainer>
             <RightContainer>
-              <SmallText>{feesRounding(executionRate, rateFormatted)}%</SmallText>
+              {executionRateNegative && (
+                <SmallText>{'too high'}</SmallText>  
+              )}
+              {!executionRateNegative && (
+                <SmallText>{feesRounding(executionRate, rateFormatted)}%</SmallText>  
+              )}
             </RightContainer>
           </Container>
           <Flex>
