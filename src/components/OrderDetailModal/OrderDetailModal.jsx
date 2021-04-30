@@ -10,6 +10,7 @@ import { StyledTokenName } from '../CurrencyInputPanel'
 import { CardSection, DataCard } from '../earn/styled'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
+import { device } from '../../theme/components'
 
 const ContentWrapper = styled(AutoColumn)`
   width: 100%;
@@ -23,10 +24,11 @@ const CustomTokenLogo = styled(TokenLogo)`
 const ModalUpper = styled(DataCard)`
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   padding: 0.5rem;
+  overflow: inherit !important;
 `
 
 const TBlack = styled.div`
-  font-size: 48;
+  font-size: large;
   font-weight: 600;
   color: black;
 `
@@ -81,13 +83,115 @@ const RightContainer = styled.div`
   justify-items: center;
 `
 
+const WarningMsgMobile = styled.div`
+  font-size: x-small;
+  color: #f92500;
+
+  @media ${device.desktopL} {
+    visibility: collapse;
+  }
+
+  @media ${device.desktop} {
+    visibility: collapse;
+  }
+
+  @media ${device.laptopL} {
+    visibility: collapse;
+  }
+
+  @media ${device.laptopL} {
+    visibility: collapse;
+  }
+`
+
 const WarningMsg = styled.div`
   font-size: small;
   color: #f92500;
+
+  @media ${device.mobileL} {
+    visibility: collapse;
+  }
+
+  @media ${device.mobileM} {
+    visibility: collapse;
+  }
+
+  @media ${device.mobileS} {
+    visibility: collapse;
+  }
 `
+
+const TextMobile = styled.div`
+  font-size: x-small;
+
+  @media ${device.desktopL} {
+    visibility: collapse;
+  }
+
+  @media ${device.desktop} {
+    visibility: collapse;
+  }
+
+  @media ${device.laptopL} {
+    visibility: collapse;
+  }
+
+  @media ${device.laptopL} {
+    visibility: collapse;
+  }
+`
+
+const Text = styled.div`
+  font-size: medium;
+  @media ${device.mobileL} {
+    visibility: collapse;
+  }
+
+  @media ${device.mobileM} {
+    visibility: collapse;
+  }
+
+  @media ${device.mobileS} {
+    visibility: collapse;
+  }
+`
+
+const SmallTextMobile = styled.div`
+  margin-top: -25px;
+  font-size: small;
+
+  @media ${device.desktopL} {
+    visibility: collapse;
+  }
+
+  @media ${device.desktop} {
+    visibility: collapse;
+  }
+
+  @media ${device.laptopL} {
+    visibility: collapse;
+  }
+
+  @media ${device.laptopL} {
+    visibility: collapse;
+  }
+`
+
 const SmallText = styled.div`
   margin-top: -25px;
   font-size: small;
+
+  @media ${device.mobileL} {
+    visibility: collapse;
+  }
+
+  @media ${device.mobileM} {
+    visibility: collapse;
+  }
+
+  @media ${device.mobileS} {
+    visibility: collapse;
+  }
 `
 
 const Flex = styled.div`
@@ -165,43 +269,60 @@ export default function OrderDetailModal({
             <RightContainer>{rateFormatted}</RightContainer>
           </Container>
           {warning ? (
-            <>
-              <Container>
-                <LeftContainer className="slippage-warning">Actual Execution Rate</LeftContainer>
-                <MiddleContainer></MiddleContainer>
-                
-                {!executionRateNegative && (
-                <RightContainer className="slippage-warning">{executionRate}</RightContainer>
+            <Container>
+              <LeftContainer>
+                <TextMobile className="slippage-warning">Execution Rate</TextMobile>
+                <Text className="slippage-warning">Actual Execution Rate</Text>
+              </LeftContainer>
+              <MiddleContainer></MiddleContainer>
+
+              {!executionRateNegative && (
+                <RightContainer>
+                  <TextMobile className="slippage-warning">{executionRate}</TextMobile>
+                  <Text className="slippage-warningt">{executionRate}</Text>
+                </RightContainer>
               )}
               {executionRateNegative && (
-                <RightContainer className="slippage-warning">{'Will never execute'}</RightContainer>
+                <RightContainer>
+                  <TextMobile className="slippage-warning">{'Will never execute'}</TextMobile>
+                  <Text className="slippage-warning">{'Will never execute'}</Text>
+                </RightContainer>
               )}
-              </Container>
-            </>
+            </Container>
           ) : (
             <Container>
-              <LeftContainer className="market-delta-info">Actual Execution Rate</LeftContainer>
+              <LeftContainer>
+                <TextMobile className="market-delta-info">Execution Rate</TextMobile>
+                <Text className="market-delta-info">Actual Execution Rate</Text>
+              </LeftContainer>
               <MiddleContainer></MiddleContainer>
               {!executionRateNegative && (
-                <RightContainer className="market-delta-info">{executionRate}</RightContainer>
+                <RightContainer>
+                  <TextMobile className="market-delta-info">{executionRate}</TextMobile>
+                  <Text className="market-delta-info">{executionRate}</Text>
+                </RightContainer>
               )}
               {executionRateNegative && (
-                <RightContainer className="market-delta-info">{'Will never execute'}</RightContainer>
+                <RightContainer>
+                  <TextMobile className="market-delta-info">{'Will never execute'}</TextMobile>
+                  <Text className="market-delta-info">{'Will never execute'}</Text>
+                </RightContainer>
               )}
-              
             </Container>
           )}
           <Container>
             <LeftContainer>
+              <SmallTextMobile>% Overhead</SmallTextMobile>
               <SmallText>% Execution Rate Overhead</SmallText>
             </LeftContainer>
             <MiddleContainer></MiddleContainer>
             <RightContainer>
-              {executionRateNegative && (
-                <SmallText>{'too high'}</SmallText>  
-              )}
+              {executionRateNegative && <SmallText>{'too high'}</SmallText>}
               {!executionRateNegative && (
-                <SmallText>{feesRounding(executionRate, rateFormatted)}%</SmallText>  
+                <>
+                  <SmallTextMobile>{feesRounding(executionRate, rateFormatted)}%</SmallTextMobile>
+                  <SmallText>{feesRounding(executionRate, rateFormatted)}%</SmallText>{' '}
+                </>
               )}
             </RightContainer>
           </Container>
@@ -212,6 +333,9 @@ export default function OrderDetailModal({
           </Flex>
           {warning ? (
             <AutoColumn justify="center">
+              <WarningMsgMobile>
+                Recommended sell amount ~ {adviceRate} {allTokens[inputCurrency] && allTokens[inputCurrency].symbol}
+              </WarningMsgMobile>
               <WarningMsg>
                 Order very small! Minimum recommended sell amount ~ {adviceRate}{' '}
                 {allTokens[inputCurrency] && allTokens[inputCurrency].symbol}
