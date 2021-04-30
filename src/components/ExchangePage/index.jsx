@@ -433,9 +433,13 @@ export default function ExchangePage({ initialCurrency }) {
   const executionRateNegative = executionRate?.lt(ethers.constants.Zero)
   const executionRateWarning = executionRateNegative || executionRateDelta?.abs()?.gt(limitExecution)
 
-  const adviceRate = executionRateDelta?.abs()?.gt(limitExecution)
+  function getWadNumber(nb, decimalsNb) {
+    return nb.mul(ethers.utils.parseUnits('1', 18)).div(ethers.utils.parseUnits('1', decimalsNb))
+  }
+
+  let adviceRate = executionRateDelta?.abs()?.gt(limitExecution)
     ? amountFormatter(
-        ethers.BigNumber.from(outputValueParsed)
+        ethers.BigNumber.from(getWadNumber(outputValueParsed, dependentDecimals))
           .mul(ethers.utils.parseUnits('1', 18))
           .div(
             executionRate
@@ -521,7 +525,7 @@ export default function ExchangePage({ initialCurrency }) {
 
   const estimatedText = `(${t('estimated')})`
   function formatBalance(value) {
-    return `(${t('balance', {balanceInput: value})})`
+    return `(${t('balance', { balanceInput: value })})`
   }
 
   async function onPlaceComfirmed() {
@@ -676,7 +680,7 @@ export default function ExchangePage({ initialCurrency }) {
           }}
         >
           <ExchangeRate>
-            {t('executionRate', {gasPrice: gasPrice ? amountFormatter(gasPrice, 9, 0, false) : '...'})}
+            {t('executionRate', { gasPrice: gasPrice ? amountFormatter(gasPrice, 9, 0, false) : '...' })}
             {/* Execution rate at {gasPrice ? amountFormatter(gasPrice, 9, 0, false) : '...'} GWEI */}
           </ExchangeRate>
           {executionRateNegative ? (
