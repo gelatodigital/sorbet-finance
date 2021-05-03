@@ -17,13 +17,12 @@ import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
 import SearchIcon from '../../assets/images/magnifying-glass.svg'
 import { useTransactionAdder, usePendingApproval } from '../../contexts/Transactions'
-import { useTokenDetails, useAllTokenDetails, WETH } from '../../contexts/Tokens'
+import { useTokenDetails, useAllTokenDetails } from '../../contexts/Tokens'
 import { ReactComponent as Close } from '../../assets/images/x.svg'
 import { transparentize } from 'polished'
 import { Spinner } from '../../theme'
 import Circle from '../../assets/images/circle-grey.svg'
 import { useUSDPrice } from '../../contexts/Application'
-import { useWeb3React } from '@web3-react/core'
 
 const GAS_MARGIN = ethers.BigNumber.from(1000)
 
@@ -274,7 +273,6 @@ export default function CurrencyInputPanel({
   errorMessage,
   disableUnlock,
   disableTokenSelect,
-  selectedTokens,
   selectedTokenAddress = '',
   showUnlock,
   value,
@@ -412,8 +410,6 @@ export default function CurrencyInputPanel({
           onDismiss={() => {
             setModalIsOpen(false)
           }}
-          selectedTokens={selectedTokens}
-          selectedTokenAddress={selectedTokenAddress}
           onTokenSelect={onCurrencySelected}
           allBalances={allBalances}
         />
@@ -422,10 +418,9 @@ export default function CurrencyInputPanel({
   )
 }
 
-function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, selectedTokens, selectedTokenAddress }) {
+function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances }) {
   const { t } = useTranslation()
 
-  const { chainId } = useWeb3React()
   const [searchQuery, setSearchQuery] = useState('')
   const { name } = useTokenDetails(searchQuery)
 
@@ -460,11 +455,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
 
   const tokenList = useMemo(() => {
     return Object.keys(allTokens)
-      .filter(k => {
-        if (selectedTokens && selectedTokens.indexOf('ETH') !== -1 && selectedTokenAddress !== 'ETH' && k.toLocaleLowerCase() == WETH[chainId]) return false
-        if (selectedTokens && selectedTokens.map(t => t.toLocaleLowerCase()).indexOf(WETH[chainId]) !== -1 && selectedTokenAddress.toLocaleLowerCase() !== WETH[chainId] && k === 'ETH') return false
-        return true
-      })
+      .filter(k => allTokens[k].symbol)
       .sort((a, b) => {
         const aSymbol = allTokens[a].symbol.toLowerCase()
         const bSymbol = allTokens[b].symbol.toLowerCase()
@@ -517,7 +508,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
           usdBalance: usdBalance
         }
       })
-  }, [allBalances, allTokens, usdAmounts, selectedTokenAddress, selectedTokens])
+  }, [allBalances, allTokens, usdAmounts])
 
   const filteredTokenList = useMemo(() => {
     return tokenList.filter(tokenEntry => {
