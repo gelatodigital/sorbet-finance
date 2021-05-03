@@ -433,7 +433,7 @@ export default function ExchangePage({ initialCurrency }) {
   const executionRateDelta = executionRate && exchangeRateDiff(executionRate, rateRaw)
   const executionRateNegative = executionRate?.lt(ethers.constants.Zero)
   const executionRateWarning = executionRateNegative || executionRateDelta?.abs()?.gt(limitExecution)
-  const isTradeBtwEthAndWeth =
+  const isLOBtwEthAndWeth =
     (inputCurrency === 'ETH' && outputCurrency.toLocaleLowerCase() === WETH[chainId]) ||
     (outputCurrency === 'ETH' && inputCurrency.toLocaleLowerCase() === WETH[chainId])
 
@@ -773,7 +773,7 @@ export default function ExchangePage({ initialCurrency }) {
             !isValid ||
             customSlippageError === 'invalid' ||
             (rateDeltaFormatted && rateDeltaFormatted.startsWith('-')) ||
-            isTradeBtwEthAndWeth
+            isLOBtwEthAndWeth
           }
           onClick={onPlace}
           warning={highSlippageWarning || executionRateWarning || customSlippageError === 'warning'}
@@ -804,7 +804,7 @@ export default function ExchangePage({ initialCurrency }) {
           {t('orderWarning')}
         </div>
       )}
-      {isTradeBtwEthAndWeth && (
+      {isLOBtwEthAndWeth && (
         <div className="slippage-warning">
           <span role="img" aria-label="warning">
             ⚠️
