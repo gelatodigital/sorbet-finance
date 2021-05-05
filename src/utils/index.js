@@ -5,8 +5,10 @@ import { AddressZero } from '@ethersproject/constants'
 import ERC20_ABI from '../constants/abis/erc20'
 import ERC20_BYTES32_ABI from '../constants/abis/erc20_bytes32'
 import UNISWAPEX_ABI from '../constants/abis/uniswapEX'
+import GELATO_METAPOOL_ABI from '../constants/abis/metapool'
+import POOL_V3_ABI from '../constants/abis/poolV3'
 import PAIR_ABI from '../constants/abis/pair.json'
-import { UNISWAPEX_ADDRESSES} from '../constants'
+import { UNISWAPEX_ADDRESSES, GELATO_METAPOOL, ETH_DAI_POOL_V3 } from '../constants'
 import { formatFixed } from '@uniswap/sdk'
 
 export const ERROR_CODES = ['TOKEN_NAME', 'TOKEN_SYMBOL', 'TOKEN_DECIMALS'].reduce(
@@ -111,6 +113,14 @@ export function getContract(address, ABI, library, account) {
   }
 
   return new Contract(address, ABI, getProviderOrSigner(library, account))
+}
+
+export function getGelatoMetapoolContract(chainId, library, account) {
+  return getContract(GELATO_METAPOOL[chainId], GELATO_METAPOOL_ABI, library, account)
+}
+
+export function getPoolV3Contract(chainId, library, account) {
+  return getContract(ETH_DAI_POOL_V3[chainId], POOL_V3_ABI, library, account)
 }
 
 // account is optional

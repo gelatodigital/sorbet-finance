@@ -6,9 +6,8 @@ import Header from '../components/Header'
 import Web3ReactManager from '../components/Web3ReactManager'
 import { isAddress } from '../utils'
 
-
-
 const Swap = lazy(() => import('./Swap'))
+const AddLiquidity = lazy(() => import('./AddLiquidity'))
 
 const AppWrapper = styled.div`
   display: flex;
@@ -73,6 +72,7 @@ export default function App() {
                           }
                         }}
                       />
+                      <Route exact strict path="/add-liquidity" component={AddLiquidity} />
                       <Redirect to="/order" />
                     </Switch>
                   </Suspense>

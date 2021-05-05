@@ -9,7 +9,7 @@ import ERC20_ABI from '../constants/abis/erc20';
 import MULTICALL_ABI from '../constants/abis/multicall';
 import {
   getContract, getExchangeContract, getFactoryContract, getUniswapExContract,
-  getUniswapV2Contracts,
+  getUniswapV2Contracts, getPoolV3Contract, getGelatoMetapoolContract,
   isAddress
 } from '../utils';
 
@@ -93,6 +93,32 @@ export function useUniswapExContract(withSignerIfPossible = true) {
   return useMemo(() => {
     try {
       return getUniswapExContract(chainId, library, withSignerIfPossible ? account : undefined)
+    } catch (e) {
+      return null
+    }
+  }, [chainId, library, withSignerIfPossible, account])
+}
+
+// returns null on errors
+export function useGelatoMetapoolContract(withSignerIfPossible = true) {
+  const { chainId, library, account } = useActiveWeb3React()
+
+  return useMemo(() => {
+    try {
+      return getGelatoMetapoolContract(chainId, library, withSignerIfPossible ? account : undefined)
+    } catch (e) {
+      return null
+    }
+  }, [chainId, library, withSignerIfPossible, account])
+}
+
+// returns null on errors
+export function usePoolV3Contract(withSignerIfPossible = true) {
+  const { chainId, library, account } = useActiveWeb3React()
+
+  return useMemo(() => {
+    try {
+      return getPoolV3Contract(chainId, library, withSignerIfPossible ? account : undefined)
     } catch (e) {
       return null
     }

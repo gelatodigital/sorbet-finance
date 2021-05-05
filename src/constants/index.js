@@ -34,6 +34,14 @@ const WETH_ONLY = {
   [ChainId.KOVAN]: [WETH[ChainId.KOVAN]]
 }
 
+export const GELATO_METAPOOL = {
+  3: '0xd26133af3a606480916BEbEA9fFE94Cbeb4D05c2',
+};
+
+export const ETH_DAI_POOL_V3 = {
+  3: '0x25d0ea8fac3ce2313c6a478da92e0ccf95213b1a',
+}
+
 // used to construct intermediary pairs for trading
 export const BASES_TO_CHECK_TRADES_AGAINST = {
   ...WETH_ONLY,
