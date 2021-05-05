@@ -17,7 +17,20 @@ import { useGelatoMetapoolContract, usePoolV3Contract } from '../../hooks'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import { ReactComponent as Plus } from '../../assets/images/plus-blue.svg'
 import OversizedPanel from '../../components/OversizedPanel'
-import ContextualInfo from '../../components/ContextualInfo'
+import { BigNumber } from "bignumber.js";
+
+/* eslint-disable-next-line */
+BigNumber.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
+
+// returns the sqrt price as a 64x96
+function encodePriceSqrt(reserve1, reserve0) {
+  return new BigNumber(reserve1)
+    .div(reserve0)
+    .sqrt()
+    .multipliedBy(new BigNumber(2).pow(96))
+    .integerValue(3)
+    .toString();
+}
 
 let inputValue;
 
@@ -130,7 +143,11 @@ export default function AddLiquidity() {
   const [confirmationPending, setConfirmationPending] = useState(false)
   const [isInputApproved, setIsInputApproved] = useState(false)
   const [isOutputApproved, setIsOutputApproved] = useState(false)
-  const [marketRate, setMarketRate] = useState(null);
+  const [marketRate, setMarketRate] = useState(null)
+  const [lowerBoundRate, setLowerBoundRate] = useState(null)
+  const [upperBoundRate, setUpperBoundRate] = useState(null)
+  const [balance0, setBalance0] = useState(null)
+  const [balance1, setBalance1] = useState(null)
 
 
   const addTransaction = useTransactionAdder()
@@ -178,14 +195,44 @@ export default function AddLiquidity() {
 
   const poolV3 = usePoolV3Contract()
 
+  const gelatoPool = useGelatoMetapoolContract()
+
   const onApprove = async () => {
     console.log("Approving")
   }
 
   useEffect(() => {
-    poolV3.slot0().then(({tick}) => {
+    let sqrtMidPrice;
+    poolV3.slot0().then(({sqrtPriceX96, tick}) => {
       let price = 1/(1.0001**Number(tick))
+      sqrtMidPrice = sqrtPriceX96;
       setMarketRate(price);
+    })
+    let lowerTick;
+    let sqrtUpperPriceX96;
+    let sqrtLowerPriceX96;
+    gelatoPool.currentLowerTick().then((result) => {
+      lowerTick = Number(result)
+      gelatoPool.currentUpperTick().then((result) => {
+        let upperTick = Number(result)
+        let upperPrice = 1/(1.0001**Number(lowerTick))
+        let lowerPrice = 1/(1.0001**Number(upperTick))
+        sqrtUpperPriceX96 = encodePriceSqrt("1", upperPrice.toString())
+        sqrtLowerPriceX96 = encodePriceSqrt("1", lowerPrice.toString())
+        setLowerBoundRate(lowerPrice)
+        setUpperBoundRate(upperPrice)
+        console.log("sup")
+        gelatoPool.getPositionID().then((result) => {
+          console.log("POSITION ID", result)
+          poolV3.positions(result).then(({_liquidity}) => {
+            console.log("LIQUIDITY", _liquidity);
+            gelatoPool.getAmountsForLiquidity(sqrtMidPrice, sqrtLowerPriceX96, sqrtUpperPriceX96, _liquidity).then(({amount0, amount1}) => {
+              setBalance0(amount1)
+              setBalance1(amount0)
+            })
+          })
+        })
+      })
     })
   }, []);
 
@@ -241,21 +288,19 @@ export default function AddLiquidity() {
           </ExchangeRateWrapper>
           <ExchangeRateWrapper>
             <ExchangeRate>{'Gelato Pool Position'}</ExchangeRate>
-            <span>hey</span>
-            {/*<span>
-              {positionBalanceInput && positionBalanceOutput
-                ? `${amountFormatter(positionBalanceInput, 18, 4)} ${inputSymbol} + ${amountFormatter(positionBalanceOutput, 18, 4)} ${outputSymbol}`
+            {<span>
+              {lowerBoundRate && upperBoundRate
+                ? `${lowerBoundRate.toFixed(3)} ${outputSymbol} - ${upperBoundRate.toFixed(3)} ${outputSymbol}`
               : ' - '}
-              </span>*/}
+              </span>}
           </ExchangeRateWrapper>
           <ExchangeRateWrapper>
             <ExchangeRate>{'Gelato Pool Reserves'}</ExchangeRate>
-            <span>hey</span>
-            {/*<span>
-              {positionBalanceInput && positionBalanceOutput
-                ? `${amountFormatter(positionBalanceInput, 18, 4)} ${inputSymbol} + ${amountFormatter(positionBalanceOutput, 18, 4)} ${outputSymbol}`
+            {<span>
+              {(balance0 && balance1)
+                ? `${amountFormatter(balance0, 18, 4)} ${inputSymbol} + ${amountFormatter(balance1, 18, 4)} ${outputSymbol}`
               : ' - '}
-              </span>*/}
+              </span>}
           </ExchangeRateWrapper>
           <ExchangeRateWrapper>
             <ExchangeRate>
