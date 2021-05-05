@@ -13,7 +13,7 @@ import { ETH_ADDRESS, GENERIC_GAS_LIMIT_ORDER_EXECUTE, LIMIT_ORDER_MODULE_ADDRES
 import { useFetchAllBalances } from '../../contexts/AllBalances'
 import { useAddressBalance } from '../../contexts/Balances'
 import { useGasPrice } from '../../contexts/GasPrice'
-import { useTokenDetails } from '../../contexts/Tokens'
+import { useTokenDetails, WETH } from '../../contexts/Tokens'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
 import { useTradeExactIn } from '../../hooks/trade'
 import { Button } from '../../theme'
@@ -23,7 +23,6 @@ import CurrencyInputPanel from '../CurrencyInputPanel'
 import OrderDetailModal from '../OrderDetailModal/OrderDetailModal'
 import OversizedPanel from '../OversizedPanel'
 import './ExchangePage.css'
-
 
 // Use to detach input from output
 let inputValue
@@ -434,6 +433,9 @@ export default function ExchangePage({ initialCurrency }) {
   const executionRateDelta = executionRate && exchangeRateDiff(executionRate, rateRaw)
   const executionRateNegative = executionRate?.lt(ethers.constants.Zero)
   const executionRateWarning = executionRateNegative || executionRateDelta?.abs()?.gt(limitExecution)
+  const isLOBtwEthAndWeth =
+    (inputCurrency === 'ETH' && outputCurrency.toLocaleLowerCase() === WETH[chainId]) ||
+    (outputCurrency === 'ETH' && inputCurrency.toLocaleLowerCase() === WETH[chainId])
 
   function getWadNumber(nb, decimalsNb) {
     return nb.mul(ethers.utils.parseUnits('1', 18)).div(ethers.utils.parseUnits('1', decimalsNb))
@@ -590,7 +592,6 @@ export default function ExchangePage({ initialCurrency }) {
       if (res.hash) {
         addTransaction(res, { action: ACTION_PLACE_ORDER, order: order })
       }
-      
     } catch (e) {
       setConfirmationPending(false)
       console.log('Error on place order', e.message)
@@ -765,9 +766,15 @@ export default function ExchangePage({ initialCurrency }) {
           )}
         </ExchangeRateWrapper>
       </OversizedPanel>
-      <Flex>        
+      <Flex>
         <Button
-          disabled={!account || !isValid || customSlippageError === 'invalid' || (rateDeltaFormatted && rateDeltaFormatted.startsWith('-'))}
+          disabled={
+            !account ||
+            !isValid ||
+            customSlippageError === 'invalid' ||
+            (rateDeltaFormatted && rateDeltaFormatted.startsWith('-')) ||
+            isLOBtwEthAndWeth
+          }
           onClick={onPlace}
           warning={highSlippageWarning || executionRateWarning || customSlippageError === 'warning'}
         >
@@ -795,6 +802,14 @@ export default function ExchangePage({ initialCurrency }) {
             ⚠️
           </span>
           {t('orderWarning')}
+        </div>
+      )}
+      {isLOBtwEthAndWeth && (
+        <div className="slippage-warning">
+          <span role="img" aria-label="warning">
+            ⚠️
+          </span>
+          {t('ethToWethLOWng')}
         </div>
       )}
     </>

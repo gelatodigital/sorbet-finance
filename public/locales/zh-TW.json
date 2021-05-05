@@ -91,5 +91,6 @@
   "notExecuted": "您的訂單將不會執行",
   "mayNotExecuted": "您的訂單可能無法執行",
   "orderWarning": "訂單太小，執行率極高",
+  "ethToWethLOWng": "ETH和WETH之間的限價單是不允許的",
   "executionRate": "執行率 {{ gasPrice }} GWEI"
 }
