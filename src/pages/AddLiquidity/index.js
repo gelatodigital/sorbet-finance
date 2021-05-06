@@ -11,7 +11,6 @@ import { useAddressBalance } from '../../contexts/Balances'
 import { useTokenDetails, WETH, DAI } from '../../contexts/Tokens'
 import { usePendingApproval, useTransactionAdder } from '../../contexts/Transactions'
 import { Button } from '../../theme'
-import { amountFormatter } from '../../utils'
 import { useGelatoMetapoolContract, usePoolV3Contract, useTokenContract } from '../../hooks'
 //import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
@@ -23,8 +22,6 @@ import { useGasPrice } from '../../contexts/GasPrice'
 
 /* eslint-disable-next-line */
 BigNumber.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
-
-const STATIC_GAS_MARGIN = ethers.BigNumber.from(20000)
 
 // returns the sqrt price as a 64x96
 function encodePriceSqrt(reserve1, reserve0) {
@@ -184,6 +181,9 @@ export default function AddLiquidity() {
   const [metapoolLiquidity, setMetapoolLiquidity] = useState(null)
   const [poolShare, setPoolShare] = useState(null)
 
+  const [isAddLiquidityPending, setIsAddLiquidityPending] = useState(null)
+  const [isApproveWethPending, setIsApproveWethPending] = useState(null)
+  const [isApproveDaiPending, setIsApproveDaiPending] = useState(null)
 
   const addTransaction = useTransactionAdder()
   const gasPrice = useGasPrice()
@@ -232,13 +232,20 @@ export default function AddLiquidity() {
       const sqrtLowerPriceX96 = encodePriceSqrt("1", result.lowerPrice.toString())
       const sqrtUpperPriceX96 = encodePriceSqrt("1", result.upperPrice.toString())
       gelatoPool.getLiquidityForAmounts(result.sqrtPrice.toString(), sqrtLowerPriceX96.toString(), sqrtUpperPriceX96.toString(), parsedDai.toString(), parsedWeth.toString()).then((r2) => {
-        gelatoPool.estimateGas.mint(r2.toString()).then((estimatedGas) => {
+        //gelatoPool.estimateGas.mint(r2.toString()).then((estimatedGas) => {
           gelatoPool.mint(r2.toString(), {/*gasPrice: gasPrice,*/ gasLimit: 400000}).then((tx) => {
+            setIsAddLiquidityPending(true)
             tx.wait().then(() => {
               console.log("complete!")
+              setIsAddLiquidityPending(false)
+              setDaiValueFormatted('')
+              setWethValueFormatted('')
             })
+          }).catch((error) => {
+            console.log("error adding liquidity!", error)
+            setIsAddLiquidityPending(false)
           })
-        });
+        //})
       })
     })
   }
@@ -379,8 +386,32 @@ export default function AddLiquidity() {
     return `(${t('balance', { balanceInput: value })})`
   }
 
-  const onApprove = async () => {
-    console.log("Approving")
+  const onApproveWeth = async () => {
+    console.log("Approving Dai")
+    wethContract.approve(gelatoPool.address, ethers.constants.MaxUint256, {/*gasPrice,*/ gasLimit: 200000}).then((tx) => {
+      setIsApproveWethPending(true)
+      tx.wait().then(() => {
+        setIsWethApproved(true)
+        setIsApproveWethPending(false)
+      })
+    }).catch((error) => {
+      console.log('error approving weth!', error)
+      setIsApproveWethPending(false)
+    })
+  }
+
+  const onApproveDai = async () => {
+    console.log("Approving Dai")
+    daiContract.approve(gelatoPool.address, ethers.constants.MaxUint256, {/*gasPrice,*/ gasLimit: 200000}).then((tx) => {
+      setIsApproveDaiPending(true)
+      tx.wait().then(() => {
+        setIsDaiApproved(true)
+        setIsApproveDaiPending(false)
+      })
+    }).catch((error) => {
+      console.log('error approving dai!', error)
+      setIsApproveDaiPending(false)
+    })
   }
 
   useEffect(() => {
@@ -473,7 +504,7 @@ export default function AddLiquidity() {
             <ExchangeRate>{'Gelato Pool Token Supply'}</ExchangeRate>
             {<span>
               {(metapoolSupply)
-                ? `${Number(ethers.utils.formatEther(metapoolSupply))} gUNIV3`
+                ? `${Number(ethers.utils.formatEther(metapoolSupply)).toFixed(5)} gUNIV3`
               : ' - '}
               </span>}
           </ExchangeRateWrapper>
@@ -496,21 +527,21 @@ export default function AddLiquidity() {
       </OversizedPanel>
       {!isWethApproved && (
         <Flex>
-          <Button onClick={onApprove}>
-            {`Approve ${wethSymbol}`}
+          <Button disabled={isApproveWethPending || isApproveDaiPending} onClick={onApproveWeth}>
+          {isApproveWethPending ? `Pending...` : `Approve ${wethSymbol}`}
           </Button>
         </Flex>
       )}
       {!isDaiApproved && (
         <Flex>
-          <Button onClick={onApprove}>
-            {`Approve ${daiSymbol}`}
+          <Button disabled={isApproveDaiPending || isApproveWethPending} onClick={onApproveDai}>
+            {isApproveDaiPending ? `Pending...` : `Approve ${daiSymbol}`}
           </Button>
         </Flex>
       )}
       <Flex>
-        <Button disabled={!isValid} onClick={onAddLiquidity}>
-          {t('addLiquidity')}
+        <Button disabled={!isValid || isAddLiquidityPending } onClick={onAddLiquidity}>
+          {!isAddLiquidityPending ? t('addLiquidity') : "Pending..."}
         </Button>
       </Flex>
   </>
