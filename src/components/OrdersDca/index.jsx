@@ -96,7 +96,6 @@ async function fetchUserOrders(account, chainId) {
      //   allOrders.map((o, i) => (o.amount = ethers.BigNumber.from(amounts[i]).toString()))
 
     const { data } = await res.json()
-    console.log(data)
     return {
       allOrders: data.trades,
       openOrders: data.trades.filter(trade => trade.status === "awaitingExec")
@@ -114,11 +113,9 @@ function useGraphOrders(account, chainId) {
   const [state, setState] = useState({ openOrders: [], allOrders: [] })
 
   const fetchOrdersAndSetState = () => {
-    console.log(`Get Open DCA Orders`)
     if (account && isAddress(account)) {
       fetchUserOrders(account, chainId).then(orders => {
-        console.log(`Fetched a total of ${orders.allOrders.length} orders. ${orders.openOrders.length} of those are OPEN orders from the graph`)
-        console.log(orders)
+        // console.log(`Fetched a total of ${orders.allOrders.length} orders. ${orders.openOrders.length} of those are OPEN orders from the graph`)
         setState(orders)
       })
       .catch(error => {console.log(error)})
@@ -144,11 +141,9 @@ function useSavedOrders(account, chainId, deps = []) {
   const [state, setState] = useState({ allOrders: [], openOrders: [] })
 
   useEffect(() => {
-    console.log(`Requesting load orders from storage`)
     if (isAddress(account)) {
       const allOrders = getSavedOrders(account, chainId)
       console.log(`Loaded ${allOrders.length} orders from local storage`)
-      console.log(allOrders)
       if (allOrders.length > 0) {
         // balancesOfOrders(allOrders, uniswapEXContract, multicallContract).then(amounts => {
         //   allOrders.map((o, i) => (o.amount = ethers.BigNumber.from(amounts[i]).toString()))
@@ -187,22 +182,15 @@ export default function OrdersDca() {
 
   // Define orders to show as openOrders + pending orders
   useEffect(() => {
-    console.log("#####################")
-    console.log(local)
-    console.log(graph)
     // Aggregate graph and local orders, graph orders have priority
-    const allOrders = graph.allOrders.concat(
-      local.allOrders.filter(o => !graph.allOrders.find(c => c.witness === o.witness))
-    )
+    // const allOrders = graph.allOrders.concat(
+    //   local.allOrders.filter(o => !graph.allOrders.find(c => c.witness === o.witness))
+    // )
     const openOrders = graph.openOrders.concat(
       local.openOrders.filter(o => !graph.allOrders.find(c => c.witness === o.witness))
     )
-
-    console.log(openOrders)
-
-    setOrders(openOrders.concat(allOrders.filter(o => pendingOrders.find(p => p.witness === o.witness))))
+    setOrders(openOrders)
     
-
     // eslint-disable-next-line
   }, [local.allOrders.length, local.openOrders.length, graph.allOrders.length, graph.openOrders.length, pendingOrders.length])
 

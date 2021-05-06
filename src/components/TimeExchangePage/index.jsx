@@ -9,18 +9,17 @@ import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
 import SVGDiv from '../../assets/svg/SVGDiv'
-import { ALL_INTERVALS, DCA_ORDER_THRESHOLD, ETH_ADDRESS, GELATO_DCA, GENERIC_GAS_LIMIT_ORDER_EXECUTE, PLATFORM_WALLET } from '../../constants'
+import { ALL_INTERVALS, DCA_ORDER_THRESHOLD, ETH_ADDRESS, GELATO_DCA, PLATFORM_WALLET } from '../../constants'
 import { useFetchAllBalances } from '../../contexts/AllBalances'
 import { useAddressAllowance } from '../../contexts/Allowances'
 import { useAddressBalance } from '../../contexts/Balances'
 import { useGasPrice } from '../../contexts/GasPrice'
-import { useTokenDetails, WETH } from '../../contexts/Tokens'
+import { useTokenDcaDetails, WETH } from '../../contexts/TokensDca'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
 import { useGelatoDcaContract } from '../../hooks'
 import { useTradeExactIn } from '../../hooks/trade'
 import { Button } from '../../theme'
 import { amountFormatter, trackTx } from '../../utils'
-import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../CurrencyInputPanel'
 import CurrencyInputPanelDca from '../CurrencyInputPanelDca'
 import OversizedPanel from '../OversizedPanel'
@@ -41,10 +40,6 @@ const INTERVAL = 4
 const ETH_TO_TOKEN = 0
 const TOKEN_TO_ETH = 1
 const TOKEN_TO_TOKEN = 2
-
-// Denominated in bips
-const SLIPPAGE_WARNING = '30' // [30+%
-const EXECUTION_WARNING = '3' // [10+%
 
 const RATE_OP_MULT = 'x'
 const RATE_OP_DIV = '/'
@@ -254,48 +249,6 @@ function getIntervalSeconds(interval) {
   }
 }
 
-function applyExchangeRateTo(inputValue, exchangeRate, inputDecimals, outputDecimals, invert = false) {
-  try {
-    if (
-      inputValue &&
-      exchangeRate &&
-      (inputDecimals || inputDecimals === 0) &&
-      (outputDecimals || outputDecimals === 0)
-    ) {
-      const factor = ethers.BigNumber.from(10).pow(ethers.BigNumber.from(18))
-
-      if (invert) {
-        return inputValue
-          .mul(factor)
-          .div(exchangeRate)
-          .mul(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(outputDecimals)))
-          .div(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(inputDecimals)))
-      } else {
-        return exchangeRate
-          .mul(inputValue)
-          .div(factor)
-          .mul(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(outputDecimals)))
-          .div(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(inputDecimals)))
-      }
-    }
-  } catch {}
-}
-
-function exchangeRateDiff(exchangeRateA, exchangeRateB) {
-  try {
-    if (exchangeRateA && exchangeRateB) {
-      const factor = ethers.BigNumber.from(10).pow(ethers.BigNumber.from(18))
-      const deltaRaw = factor.mul(exchangeRateA).div(exchangeRateB)
-
-      if (false && deltaRaw < factor) {
-        return factor.sub(deltaRaw)
-      } else {
-        return deltaRaw.sub(factor)
-      }
-    }
-  } catch {}
-}
-
 function flipRate(rate) {
   try {
     if (rate) {
@@ -303,16 +256,6 @@ function flipRate(rate) {
       return factor.mul(factor).div(rate)
     }
   } catch {}
-}
-
-function safeParseUnits(number, units) {
-  try {
-    return ethers.utils.parseUnits(number, units)
-  } catch {
-    const margin = units * 8
-    const decimals = ethers.utils.parseUnits(number, margin)
-    return decimals.div(ethers.BigNumber.from(10).pow(margin - units))
-  }
 }
 
 export default function TimeExchangePage({ initialCurrency }) {
@@ -324,7 +267,7 @@ export default function TimeExchangePage({ initialCurrency }) {
   // core swap state
   const [swapState, dispatchSwapState] = useReducer(swapStateReducer, initialCurrency, getInitialSwapState)
 
-  const { independentValue, independentField, inputCurrency, outputCurrency, rateOp, inputRateValue, numTrades, interval } = swapState
+  const { independentValue, independentField, inputCurrency, outputCurrency, rateOp, numTrades, interval } = swapState
 
   const gelatoDcaContract = useGelatoDcaContract()
   const [inputError, setInputError] = useState()
@@ -335,17 +278,13 @@ export default function TimeExchangePage({ initialCurrency }) {
   const swapType = getSwapType(inputCurrency, outputCurrency)
 
   // get decimals and exchange address for each of the currency types
-  const { symbol: inputSymbol, decimals: inputDecimals } = useTokenDetails(inputCurrency)
-  const { symbol: outputSymbol, decimals: outputDecimals } = useTokenDetails(outputCurrency)
+  const { symbol: inputSymbol, decimals: inputDecimals } = useTokenDcaDetails(inputCurrency)
+  const { symbol: outputSymbol, decimals: outputDecimals } = useTokenDcaDetails(outputCurrency)
 
   // get balances for each of the currency types
   const inputBalance = useAddressBalance(account, inputCurrency)
-  const outputBalance = useAddressBalance(account, outputCurrency)
   const inputBalanceFormatted = !!(inputBalance && Number.isInteger(inputDecimals))
     ? amountFormatter(inputBalance, inputDecimals, Math.min(4, inputDecimals))
-    : ''
-  const outputBalanceFormatted = !!(outputBalance && Number.isInteger(outputDecimals))
-    ? amountFormatter(outputBalance, outputDecimals, Math.min(4, outputDecimals))
     : ''
 
   // get token allowance for gelatoDCA
@@ -353,17 +292,12 @@ export default function TimeExchangePage({ initialCurrency }) {
 
   // compute useful transforms of the data above
   const independentDecimals = independentField === INPUT || independentField === RATE ? inputDecimals : outputDecimals
-  const dependentDecimals = independentField === OUTPUT ? inputDecimals : outputDecimals
 
   // declare/get parsed and formatted versions of input/output values
   const [independentValueParsed, setIndependentValueParsed] = useState()
   const inputValueParsed = independentField === INPUT ? independentValueParsed : inputValue
   const inputValueFormatted =
     independentField === INPUT ? independentValue : amountFormatter(inputValue, inputDecimals, inputDecimals, false)
-
-  let outputValueFormatted
-  let outputValueParsed
-  let rateRaw
 
   const bestTradeExactIn = useTradeExactIn(
     inputCurrency,
@@ -379,94 +313,11 @@ export default function TimeExchangePage({ initialCurrency }) {
     inputValue = ethers.BigNumber.from(ethers.utils.parseUnits(independentValue, inputDecimals))
   }
 
-  switch (independentField) {
-    case OUTPUT:
-      outputValueParsed = independentValueParsed
-      outputValueFormatted = independentValue
-      rateRaw = getExchangeRate(
-        inputValueParsed,
-        inputDecimals,
-        outputValueParsed,
-        outputDecimals,
-        rateOp === RATE_OP_DIV
-      )
-      break
-    case RATE:
-      if (!inputRateValue || Number(inputRateValue) === 0) {
-        outputValueParsed = ''
-        outputValueFormatted = ''
-      } else {
-        rateRaw = safeParseUnits(inputRateValue, 18)
-        outputValueParsed = applyExchangeRateTo(
-          inputValueParsed,
-          rateRaw,
-          inputDecimals,
-          outputDecimals,
-          rateOp === RATE_OP_DIV
-        )
-        outputValueFormatted = amountFormatter(
-          outputValueParsed,
-          dependentDecimals,
-          Math.min(4, dependentDecimals),
-          false
-        )
-      }
-      break
-    case INPUT:
-      outputValueParsed = bestTradeExactIn
-        ? ethers.utils.parseUnits(bestTradeExactIn.outputAmount.toExact(), dependentDecimals)
-        : null
-      outputValueFormatted = bestTradeExactIn ? bestTradeExactIn.outputAmount.toSignificant(6) : ''
-      rateRaw = getExchangeRate(
-        inputValueParsed,
-        inputDecimals,
-        outputValueParsed,
-        outputDecimals,
-        rateOp === RATE_OP_DIV
-      )
-      break
-    default:
-      break
-  }
-
-  // rate info
-  const rateFormatted = independentField === RATE ? inputRateValue : amountFormatter(rateRaw, 18, 4, false)
-  const inverseRateInputSymbol = rateOp === RATE_OP_DIV ? inputSymbol : outputSymbol
-  const inverseRateOutputSymbol = rateOp === RATE_OP_DIV ? outputSymbol : inputSymbol
-  const inverseRate = flipRate(rateRaw)
-
-
   // load required gas
   const gasPrice = useGasPrice()
-  const gasLimit = GENERIC_GAS_LIMIT_ORDER_EXECUTE
-  const requiredGas = gasPrice?.mul(gasLimit)
-
-  const gasInInputTokens = useTradeExactIn('ETH', amountFormatter(requiredGas, 18, 18), inputCurrency)
-
-  let usedInput
-  if (inputSymbol === 'ETH') {
-    usedInput = requiredGas
-  } else if (gasInInputTokens) {
-    usedInput = ethers.utils.parseUnits(gasInInputTokens.outputAmount.toExact(), inputDecimals)
-  }
-
-  const realInputValue = usedInput && inputValueParsed?.sub(usedInput)
-  const executionRate =
-    realInputValue &&
-    getExchangeRate(realInputValue, inputDecimals, outputValueParsed, outputDecimals, rateOp === RATE_OP_DIV)
-
-  const limitSlippage = ethers.BigNumber.from(SLIPPAGE_WARNING)
-    .mul(ethers.BigNumber.from("10").pow(ethers.BigNumber.from(16)))
-
-  const limitExecution = ethers.BigNumber.from(EXECUTION_WARNING)
-    .mul(ethers.BigNumber.from("10").pow(ethers.BigNumber.from(16)))
-
+  
   // validate + parse independent value
   const [independentError, setIndependentError] = useState()
-
-  const executionRateDelta = executionRate && exchangeRateDiff(executionRate, rateRaw)
-  const executionRateNegative = executionRate?.lt(ethers.constants.Zero)
-  // const executionRateWarning = executionRateNegative || executionRateDelta?.abs()?.gt(limitExecution)
   
 
   // Calc minimum order size
@@ -548,32 +399,11 @@ export default function TimeExchangePage({ initialCurrency }) {
         dispatchSwapState({ type: 'UPDATE_DEPENDENT', payload: null })
       }
     }
-  }, [independentField])
-
-  const [inverted, setInverted] = useState(false)
-
-  const marketRate = getExchangeRate(
-    inputValueParsed,
-    inputDecimals,
-    bestTradeExactIn ? ethers.utils.parseUnits(bestTradeExactIn.outputAmount.toExact(), outputDecimals) : null,
-    outputDecimals,
-    rateOp === RATE_OP_DIV
-  )
-
-  const exchangeRate = marketRate
-  const exchangeRateInverted = flipRate(exchangeRate)
-
-  const rateDelta =
-    rateOp === RATE_OP_DIV
-      ? exchangeRateDiff(inverseRate, exchangeRateInverted)
-      : exchangeRateDiff(rateRaw, exchangeRate)
-
-  const highSlippageWarning = rateDelta && rateDelta.lt(ethers.BigNumber.from(0).sub(limitSlippage))
-  const rateDeltaFormatted = amountFormatter(rateDelta, 16, 2, true)
+  }, [independentField])  
   
-  const isValid = outputValueParsed && !inputError && !independentError
+  const isValid = !inputError && !independentError
 
-  const estimatedText = `(${t('estimated')})`
+  
   function formatBalance(value) {
     return `Balance: ${value}`
   }
@@ -803,9 +633,9 @@ export default function TimeExchangePage({ initialCurrency }) {
       </OversizedPanel>
       <Flex>
         <Button
-          disabled={showUnlock || !account || !isValid || customSlippageError === 'invalid' || numTradesIsZero || executionRateWarning || isLOBtwEthAndWeth}
+          disabled={showUnlock || !account || !isValid || customSlippageError === 'invalid' || numTradesIsZero || executionRateWarning || isLOBtwEthAndWeth || !outputSymbol}
           onClick={onPlace}
-          warning={highSlippageWarning || executionRateWarning || customSlippageError === 'warning'}
+          warning={ executionRateWarning || customSlippageError === 'warning'}
         >
           {customSlippageError === 'warning' ? t('placeAnyway') : t('place')}
         </Button>

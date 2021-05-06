@@ -12,6 +12,7 @@ import BalancesContextProvider from './contexts/Balances'
 import GasPricesContextProvider from './contexts/GasPrice'
 import LocalStorageContextProvider, { Updater as LocalStorageContextUpdater } from './contexts/LocalStorage'
 import TokensContextProvider from './contexts/Tokens'
+import TokensContextDcaProvider from './contexts/TokensDca'
 import TransactionContextProvider, { Updater as TransactionContextUpdater } from './contexts/Transactions'
 import './i18n'
 import App from './pages/App'
@@ -44,15 +45,17 @@ function ContextProviders({ children }) {
       <ApplicationContextProvider>
         <TransactionContextProvider>
           <TokensContextProvider>
-            <BalancesContextProvider>
-              <AllBalancesContextProvider>
-                <AllowancesContextProvider>
-                  <GasPricesContextProvider>
-                    {children}
-                  </GasPricesContextProvider>
-                </AllowancesContextProvider>
-              </AllBalancesContextProvider>
-            </BalancesContextProvider>
+            <TokensContextDcaProvider>
+              <BalancesContextProvider>
+                <AllBalancesContextProvider>
+                  <AllowancesContextProvider>
+                    <GasPricesContextProvider>
+                      {children}
+                    </GasPricesContextProvider>
+                  </AllowancesContextProvider>
+                </AllBalancesContextProvider>
+              </BalancesContextProvider>
+            </TokensContextDcaProvider>
           </TokensContextProvider>
         </TransactionContextProvider>
       </ApplicationContextProvider>

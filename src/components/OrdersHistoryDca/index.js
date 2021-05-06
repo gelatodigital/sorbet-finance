@@ -24,8 +24,6 @@ function usePastOrders(account, chainId) {
   const fetchOrdersAndSetState = () => {
     if (account && isAddress(account)) {
       fetchUserPastDcaOrders(account, chainId).then(orders => {
-        console.log(`Past User Orders`)
-        console.log(orders)
         if (orders) console.log(`Fetched ${orders.length} past orders from the graph`)
         setState(orders)
       })

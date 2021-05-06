@@ -16,6 +16,7 @@ import { ReactComponent as Close } from '../../assets/images/x.svg'
 import { useUSDPrice } from '../../contexts/Application'
 import { useGasPrice } from '../../contexts/GasPrice'
 import { useAllTokenDetails, useTokenDetails } from '../../contexts/Tokens'
+import { useAllTokenDcaDetails, useTokenDcaDetails } from '../../contexts/TokensDca'
 import { usePendingApproval, useTransactionAdder } from '../../contexts/Transactions'
 import { useTokenContract } from '../../hooks'
 import { BorderlessInput, Spinner } from '../../theme'
@@ -295,6 +296,11 @@ export default function CurrencyInputPanel({
   const addTransaction = useTransactionAdder()
 
   const allTokens = useAllTokenDetails()
+  const allDcaTokens = useAllTokenDcaDetails()
+
+  let tokenListFromContext;
+  if(window.location.pathname === "/limit-order") tokenListFromContext = allTokens
+  if(window.location.pathname === "/dca") tokenListFromContext = allDcaTokens
 
   function renderUnlockButton() {
     if (disableUnlock || !showUnlock || selectedTokenAddress === 'ETH' || !selectedTokenAddress) {
@@ -367,7 +373,7 @@ export default function CurrencyInputPanel({
               {selectedTokenAddress ? <TokenLogo address={selectedTokenAddress} /> : null}
               {
                 <StyledTokenName>
-                  {(allTokens[selectedTokenAddress] && allTokens[selectedTokenAddress].symbol) || t('selectToken')}
+                  {(tokenListFromContext[selectedTokenAddress] && tokenListFromContext[selectedTokenAddress].symbol) || t('selectToken')}
                 </StyledTokenName>
               }
               {!disableTokenSelect && <StyledDropDown selected={!!selectedTokenAddress} />}
@@ -430,14 +436,27 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
   const { t } = useTranslation()
 
   const [searchQuery, setSearchQuery] = useState('')
-  const { name } = useTokenDetails(searchQuery)
+  const { nameLimit } = useTokenDetails(searchQuery)
+  const { nameDca } = useTokenDcaDetails(searchQuery)
 
   const allTokens = useAllTokenDetails()
+  const allDcaTokens = useAllTokenDcaDetails()
+
+  let tokenListFromContext;
+  let name
+  if(window.location.pathname === "/limit-order") {
+    name = nameLimit
+    tokenListFromContext = allTokens
+  }
+  if(window.location.pathname === "/dca") {
+    name = nameDca
+    tokenListFromContext = allDcaTokens
+  }
 
   // BigNumber.js instance
   const ethPrice = useUSDPrice()
 
-  const _usdAmounts = Object.keys(allTokens).map(k => {
+  const _usdAmounts = Object.keys(tokenListFromContext).map(k => {
     if (
       ethPrice &&
       allBalances &&
@@ -448,7 +467,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
     ) {
       const USDRate = ethPrice.times(allBalances[k].ethRate)
       const balanceBigNumber = new BigNumber(allBalances[k].balance.toString())
-      const usdBalance = balanceBigNumber.times(USDRate).div(new BigNumber(10).pow(allTokens[k].decimals))
+      const usdBalance = balanceBigNumber.times(USDRate).div(new BigNumber(10).pow(tokenListFromContext[k].decimals))
       return usdBalance
     } else {
       return null
@@ -456,17 +475,17 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
   })
   const usdAmounts =
     _usdAmounts &&
-    Object.keys(allTokens).reduce(
+    Object.keys(tokenListFromContext).reduce(
       (accumulator, currentValue, i) => Object.assign({ [currentValue]: _usdAmounts[i] }, accumulator),
       {}
     )
 
   const tokenList = useMemo(() => {
-    return Object.keys(allTokens)
-      .filter(k => allTokens[k].symbol)
+    return Object.keys(tokenListFromContext)
+      .filter(k => tokenListFromContext[k].symbol)
       .sort((a, b) => {
-        const aSymbol = allTokens[a].symbol.toLowerCase()
-        const bSymbol = allTokens[b].symbol.toLowerCase()
+        const aSymbol = tokenListFromContext[a].symbol.toLowerCase()
+        const bSymbol = tokenListFromContext[b].symbol.toLowerCase()
 
         if (aSymbol === 'ETH'.toLowerCase() || bSymbol === 'ETH'.toLowerCase()) {
           return aSymbol === bSymbol ? 0 : aSymbol === 'ETH'.toLowerCase() ? -1 : 1
@@ -505,18 +524,18 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
           balance = formatEthBalance(allBalances[k].balance)
           usdBalance = usdAmounts[k]
         } else if (allBalances && allBalances[k]) {
-          balance = formatTokenBalance(allBalances[k].balance, allTokens[k].decimals)
+          balance = formatTokenBalance(allBalances[k].balance, tokenListFromContext[k].decimals)
           usdBalance = usdAmounts[k]
         }
         return {
-          name: allTokens[k].name,
-          symbol: allTokens[k].symbol,
+          name: tokenListFromContext[k].name,
+          symbol: tokenListFromContext[k].symbol,
           address: k,
           balance: balance,
           usdBalance: usdBalance
         }
       })
-  }, [allBalances, allTokens, usdAmounts])
+  }, [allBalances, tokenListFromContext, usdAmounts])
 
   const filteredTokenList = useMemo(() => {
     return tokenList.filter(tokenEntry => {
