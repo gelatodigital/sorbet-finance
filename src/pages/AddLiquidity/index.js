@@ -9,18 +9,22 @@ import { useFetchAllBalances } from '../../contexts/AllBalances'
 import { useAddressBalance } from '../../contexts/Balances'
 //import { useGasPrice } from '../../contexts/GasPrice'
 import { useTokenDetails, WETH, DAI } from '../../contexts/Tokens'
-import { useTransactionAdder } from '../../contexts/Transactions'
+import { usePendingApproval, useTransactionAdder } from '../../contexts/Transactions'
 import { Button } from '../../theme'
 import { amountFormatter } from '../../utils'
-import { useGelatoMetapoolContract, usePoolV3Contract } from '../../hooks'
+import { useGelatoMetapoolContract, usePoolV3Contract, useTokenContract } from '../../hooks'
 //import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import { ReactComponent as Plus } from '../../assets/images/plus-blue.svg'
 import OversizedPanel from '../../components/OversizedPanel'
 import { BigNumber } from "bignumber.js";
+import ModeSelector from './ModeSelector'
+import { useGasPrice } from '../../contexts/GasPrice'
 
 /* eslint-disable-next-line */
 BigNumber.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
+
+const STATIC_GAS_MARGIN = ethers.BigNumber.from(20000)
 
 // returns the sqrt price as a 64x96
 function encodePriceSqrt(reserve1, reserve0) {
@@ -32,10 +36,8 @@ function encodePriceSqrt(reserve1, reserve0) {
     .toString();
 }
 
-let inputValue;
-
-const INPUT = 0
-const OUTPUT = 1
+const WETH_OP = 0
+const DAI_OP = 1
 
 const BlueSpan = styled.span`
   color: ${({ theme }) => theme.royalBlue};
@@ -90,174 +92,339 @@ const ColoredWrappedPlus = styled(WrappedPlus)`
   }
 `
 
-function getInitialAddLiquidityState() {
-    return {
-      independentValue: '', // this is a user input
-      dependentValue: '', // this is a calculated number
-      independentField: INPUT,
-      prevIndependentField: OUTPUT,
-    }
+function initialAddLiquidityState(state) {
+  return {
+    wethValue: '',
+    daiValue: '',
+    lastEditedField: WETH_OP,
   }
+}
   
-  function addLiquidityStateReducer(state, action) {
-    switch (action.type) {
-      case 'UPDATE_INDEPENDENT': {
-        const { field, value } = action.payload
-        const { dependentValue, independentValue, independentField, prevIndependentField } = state
-  
-        return {
-          ...state,
-          independentValue: value,
-          dependentValue: Number(value) === Number(independentValue) ? dependentValue : '',
-          independentField: field,
-          prevIndependentField: independentField === field ? prevIndependentField : independentField
-        }
-      }
-      case 'UPDATE_DEPENDENT': {
-        return {
-          ...state,
-          dependentValue: action.payload === null ? inputValue : action.payload
-        }
-      }
-      default: {
-        return getInitialAddLiquidityState()
+function addLiquidityStateReducer(state, action) {
+  switch (action.type) {
+    case 'UPDATE_VALUE': {
+      const { wethValue, daiValue } = state
+      const { field, value } = action.payload
+      return {
+        ...state,
+        wethValue: field === WETH_OP ? value : wethValue,
+        daiValue: field === DAI_OP ? value : daiValue,
+        lastEditedField: field
       }
     }
+    case 'UPDATE_DEPENDENT_VALUE': {
+      const { wethValue, daiValue } = state
+      const { field, value } = action.payload
+      return {
+        ...state,
+        inputValue: field === WETH_OP ? value : wethValue,
+        outputValue: field === DAI_OP ? value : daiValue
+      }
+    }
+    default: {
+      return initialAddLiquidityState()
+    }
   }
-  async function onAddLiquidity() {
-    console.log("AddinfLiquidity!!");
+}
+
+const getPoolCurrentInfo = async (poolV3, gelatoPool) => {
+  const {sqrtPriceX96, tick} = await poolV3.slot0()
+  const price = 1/(1.0001**Number(tick))
+  const lowerTick = await gelatoPool.currentLowerTick()
+  const upperPrice = 1/(1.0001**Number(lowerTick))
+  const sqrtUpperPriceX96 = encodePriceSqrt("1", upperPrice.toString())
+  const upperTick = await gelatoPool.currentUpperTick()
+  const lowerPrice = 1/(1.0001**Number(upperTick))
+  const sqrtLowerPriceX96 = encodePriceSqrt("1", lowerPrice.toString())
+  const totalSupply = await gelatoPool.totalSupply()
+  const {_liquidity: liquidity} = await poolV3.positions(await gelatoPool.getPositionID())
+  const {amount0, amount1} = await gelatoPool.getAmountsForLiquidity(sqrtPriceX96, sqrtLowerPriceX96, sqrtUpperPriceX96, liquidity)
+  return {
+    price: price,
+    sqrtPrice: sqrtPriceX96,
+    upperPrice: upperPrice,
+    lowerPrice: lowerPrice,
+    amount0: amount0,
+    amount1: amount1,
+    liquidity: liquidity,
+    totalSupply: totalSupply
   }
+};
+
+const getAllowance = async (token, account, spenderAddress) => {
+  return await token.allowance(account, spenderAddress)
+}
 
 export default function AddLiquidity() {
   const { t } = useTranslation()
   const { account, library, active, chainId } = useWeb3React()
 
   // core swap state
-  const [addLiquidityState, dispatchAddLiquidityState] = useReducer(addLiquidityStateReducer, null, getInitialAddLiquidityState)
+  const [addLiquidityState, dispatchAddLiquidityState] = useReducer(addLiquidityStateReducer, null, initialAddLiquidityState)
 
-  const inputCurrency = WETH[chainId]
-  const outputCurrency = DAI[chainId]
+  const wethAddress = WETH[chainId]
+  const daiAddress = DAI[chainId]
 
-  const { independentValue, independentField } = addLiquidityState
+  const { wethValue, daiValue, lastEditedField } = addLiquidityState
 
   const [confirmationPending, setConfirmationPending] = useState(false)
-  const [isInputApproved, setIsInputApproved] = useState(false)
-  const [isOutputApproved, setIsOutputApproved] = useState(false)
+  const [isWethApproved, setIsWethApproved] = useState(false)
+  const [isDaiApproved, setIsDaiApproved] = useState(false)
   const [marketRate, setMarketRate] = useState(null)
+  const [sqrtPrice, setSqrtPrice] = useState(null)
   const [lowerBoundRate, setLowerBoundRate] = useState(null)
   const [upperBoundRate, setUpperBoundRate] = useState(null)
-  const [balance0, setBalance0] = useState(null)
-  const [balance1, setBalance1] = useState(null)
+  const [metapoolBalanceWeth, setMetapoolBalanceWeth] = useState(null)
+  const [metapoolBalanceDai, setMetapoolBalanceDai] = useState(null)
+  const [wethValueFormatted, setWethValueFormatted] = useState(null)
+  const [daiValueFormatted, setDaiValueFormatted] = useState(null)
+  const [userLiquidityDelta, setUserLiquidityDelta] = useState(null)
+  const [userEstimatedMint, setUserEstimatedMint] = useState(null)
+  const [metapoolSupply, setMetapoolSupply] = useState(null)
+  const [metapoolLiquidity, setMetapoolLiquidity] = useState(null)
+  const [poolShare, setPoolShare] = useState(null)
 
 
   const addTransaction = useTransactionAdder()
+  const gasPrice = useGasPrice()
 
-  const [independentError, setIndependentError] = useState()
+  const [inputErrorDai, setInputErrorDai] = useState()
+  const [inputErrorWeth, setInputErrorWeth] = useState()
 
   //const [inputValueParsed, setInputValueParsed] = useState()
   //const [outputValueParsed, setOutputValueParsed] = useState()
-  const [inputError, setInputError] = useState()
   //const [outputError, setOutputError] = useState()
   //const [zeroDecimalError, setZeroDecimalError] = useState()
   //const [brokenTokenWarning, setBrokenTokenWarning] = useState()
 
-  // get decimals and exchange address for each of the currency types
-  const { symbol: inputSymbol, decimals: inputDecimals } = useTokenDetails(inputCurrency)
-  const { symbol: outputSymbol, decimals: outputDecimals } = useTokenDetails(outputCurrency)
+  // get symbols
+  const { symbol: wethSymbol } = useTokenDetails(wethAddress)
+  const { symbol: daiSymbol } = useTokenDetails(daiAddress)
 
   // get balances for each of the currency types
-  const inputBalance = useAddressBalance(account, inputCurrency)
-  const outputBalance = useAddressBalance(account, outputCurrency)
-  const inputBalanceFormatted = !!(inputBalance && Number.isInteger(inputDecimals))
-    ? amountFormatter(inputBalance, inputDecimals, Math.min(4, inputDecimals))
-    : ''
-  const outputBalanceFormatted = !!(outputBalance && Number.isInteger(outputDecimals))
-    ? amountFormatter(outputBalance, outputDecimals, Math.min(4, outputDecimals))
-    : ''
+  const wethBalance = useAddressBalance(account, wethAddress)
+  const daiBalance = useAddressBalance(account, daiAddress)
+  const wethBalanceFormatted = !!(wethBalance) ? Number(ethers.utils.formatEther(wethBalance)).toFixed(5) : ''
+  const daiBalanceFormatted = !!(daiBalance) ? Number(ethers.utils.formatEther(daiBalance)).toFixed(5) : ''
+
+  const poolV3 = usePoolV3Contract()
+  const gelatoPool = useGelatoMetapoolContract()
+  const wethContract = useTokenContract(wethAddress)
+  const daiContract = useTokenContract(daiAddress)
+
+  async function onAddLiquidity() {
+    getPoolCurrentInfo(poolV3, gelatoPool).then((result) => {
+      setMarketRate(result.price)
+      setUpperBoundRate(result.upperPrice)
+      setLowerBoundRate(result.lowerPrice)
+      setSqrtPrice(result.sqrtPrice)
+      setMetapoolBalanceWeth(result.amount1)
+      setMetapoolBalanceDai(result.amount0)
+      setMetapoolLiquidity(result.liquidity)
+      setMetapoolSupply(result.totalSupply)
+      console.log(wethValueFormatted, daiValueFormatted)
+      const parsedWeth = ethers.utils.parseUnits(wethValueFormatted, 18)
+      const parsedDai = ethers.utils.parseUnits(daiValueFormatted, 18)
+      if (((Number(daiValueFormatted)/Number(wethValueFormatted)) - (Number(ethers.utils.formatEther(result.amount0)/Number(ethers.utils.formatEther(result.amount1)))))**2 > Number(daiValue)/(Number(wethValue)*10)) {
+        console.log('error out of range');
+        return
+      }
+      const sqrtLowerPriceX96 = encodePriceSqrt("1", result.lowerPrice.toString())
+      const sqrtUpperPriceX96 = encodePriceSqrt("1", result.upperPrice.toString())
+      gelatoPool.getLiquidityForAmounts(result.sqrtPrice.toString(), sqrtLowerPriceX96.toString(), sqrtUpperPriceX96.toString(), parsedDai.toString(), parsedWeth.toString()).then((r2) => {
+        gelatoPool.estimateGas.mint(r2.toString()).then((estimatedGas) => {
+          gelatoPool.mint(r2.toString(), {/*gasPrice: gasPrice,*/ gasLimit: 400000}).then((tx) => {
+            tx.wait().then(() => {
+              console.log("complete!")
+            })
+          })
+        });
+      })
+    })
+  }
 
   // declare/get parsed and formatted versions of input/output values
   //const [independentValueParsed, setIndependentValueParsed] = useState()
-  //const inputValueParsed = independentField === INPUT ? independentValueParsed : inputValue
-  const inputValueFormatted =
-    independentField === INPUT ? independentValue : amountFormatter(inputValue, inputDecimals, inputDecimals, false)
+  //const inputValueParsed = independentField === WETH_OP ? independentValueParsed : inputValue
+  useEffect(() => {
+    setInputErrorDai(null)
+    setInputErrorWeth(null)
+    if (lowerBoundRate && upperBoundRate && metapoolBalanceDai && metapoolBalanceWeth) {
+      if (lastEditedField === WETH_OP) {
+        setWethValueFormatted(wethValue)
+        if (wethValue) {
+          if (Number(wethValue) > Number(wethBalanceFormatted)) {
+            setInputErrorWeth("Insufficient Balance!")
+            return
+          }
+          getPoolCurrentInfo(poolV3, gelatoPool).then((result) => {
+            setMarketRate(result.price)
+            setUpperBoundRate(result.upperPrice)
+            setLowerBoundRate(result.lowerPrice)
+            setSqrtPrice(result.sqrtPrice)
+            setMetapoolBalanceWeth(result.amount1)
+            setMetapoolBalanceDai(result.amount0)
+            setMetapoolLiquidity(result.liquidity)
+            setMetapoolSupply(result.totalSupply)
+            let currentLiquidity = result.liquidity
+            let supply = result.totalSupply
+            let parsedWeth = ethers.utils.parseUnits(wethValue, 18)
+            const factor = Number(ethers.utils.formatEther(result.amount0))/Number(ethers.utils.formatEther(result.amount1))
+            let daiEstimate = factor*Number(wethValue)*1.25
+            let parsedDai = ethers.utils.parseUnits(daiEstimate.toString(), 18)
+            let sqrtLowerPriceX96 = encodePriceSqrt("1", result.lowerPrice.toString())
+            let sqrtUpperPriceX96 = encodePriceSqrt("1", result.upperPrice.toString())
+            gelatoPool.getLiquidityForAmounts(sqrtPrice.toString(), sqrtLowerPriceX96.toString(), sqrtUpperPriceX96.toString(), parsedDai.toString(), parsedWeth.toString()).then((r2) => {
+              setUserLiquidityDelta(r2)
+              let amountToMint = Number(ethers.utils.formatEther(r2))*Number(ethers.utils.formatEther(supply))/Number(ethers.utils.formatEther(currentLiquidity))
+              setUserEstimatedMint(ethers.utils.parseEther(amountToMint.toString(), 18));
+              let percentage = (amountToMint/(Number(ethers.utils.formatEther(supply))+amountToMint))*100
+              setPoolShare(percentage)
+              gelatoPool.getAmountsForLiquidity(sqrtPrice.toString(), sqrtLowerPriceX96.toString(), sqrtUpperPriceX96.toString(), r2.toString()).then(({amount0, amount1}) => {
+                getAllowance(wethContract, account, gelatoPool.address).then((allowance) => {
+                  if (Number(ethers.utils.formatEther(allowance)) >= Number(ethers.utils.formatEther(amount1))) {
+                    setIsWethApproved(true);
+                  } else {
+                    setIsWethApproved(false)
+                  }
+                })
+                getAllowance(daiContract, account, gelatoPool.address).then((allowanceDai) => {
+                  if (Number(ethers.utils.formatEther(allowanceDai)) >= Number(ethers.utils.formatEther(amount0))) {
+                    setIsDaiApproved(true);
+                  } else {
+                    setIsDaiApproved(false)
+                  }
+                })
+                setDaiValueFormatted(Number(ethers.utils.formatEther(amount0)).toFixed(5))
+                if (Number(ethers.utils.formatEther(amount0)) > Number(daiBalanceFormatted)) {
+                  setInputErrorDai('Insufficient Balance!')
+                }
+              })
+            }).catch((error) => {
+              console.log(error);
+            })
+          })
+        } else {
+          setDaiValueFormatted('')
+        }
+      } else {
+        setDaiValueFormatted(daiValue)
+        if (daiValue) {
+          if (Number(daiValue) > Number(daiBalanceFormatted)) {
+            setInputErrorWeth("Insufficient Balance!")
+            return
+          }
+          getPoolCurrentInfo(poolV3, gelatoPool).then((result) => {
+            setMarketRate(result.price)
+            setUpperBoundRate(result.upperPrice)
+            setLowerBoundRate(result.lowerPrice)
+            setSqrtPrice(result.sqrtPrice)
+            setMetapoolBalanceWeth(result.amount1)
+            setMetapoolBalanceDai(result.amount0)
+            setMetapoolLiquidity(result.liquidity)
+            setMetapoolSupply(result.totalSupply)
+            let currentLiquidity = result.liquidity
+            let supply = result.totalSupply
+            let parsedDai = ethers.utils.parseUnits(daiValue, 18)
+            const factor = Number(ethers.utils.formatEther(result.amount0))/Number(ethers.utils.formatEther(result.amount1))
+            let wethEstimate = factor*Number(daiValue)*1.25
+            let parsedWeth = ethers.utils.parseUnits(wethEstimate.toString(), 18)
+            let sqrtLowerPriceX96 = encodePriceSqrt("1", result.lowerPrice.toString())
+            let sqrtUpperPriceX96 = encodePriceSqrt("1", result.upperPrice.toString())
+            gelatoPool.getLiquidityForAmounts(sqrtPrice.toString(), sqrtLowerPriceX96.toString(), sqrtUpperPriceX96.toString(), parsedDai.toString(), parsedWeth.toString()).then((r2) => {
+              setUserLiquidityDelta(r2)
+              let amountToMint = Number(ethers.utils.formatEther(r2))*Number(ethers.utils.formatEther(supply))/Number(ethers.utils.formatEther(currentLiquidity))
+              setUserEstimatedMint(ethers.utils.parseEther(amountToMint.toString(), 18));
+              let percentage = (amountToMint/(Number(ethers.utils.formatEther(supply))+amountToMint))*100
+              setPoolShare(percentage)
+              gelatoPool.getAmountsForLiquidity(sqrtPrice.toString(), sqrtLowerPriceX96.toString(), sqrtUpperPriceX96.toString(), r2.toString()).then(({amount0, amount1}) => {
+                getAllowance(wethContract, account, gelatoPool.address).then((allowance) => {
+                  if (Number(ethers.utils.formatEther(allowance)) >= Number(ethers.utils.formatEther(amount1))) {
+                    setIsWethApproved(true);
+                  } else {
+                    setIsWethApproved(false)
+                  }
+                })
+                getAllowance(daiContract, account, gelatoPool.address).then((allowanceDai) => {
+                  if (Number(ethers.utils.formatEther(allowanceDai)) >= Number(ethers.utils.formatEther(amount0))) {
+                    setIsDaiApproved(true);
+                  } else {
+                    setIsDaiApproved(false)
+                  }
+                })
+                setWethValueFormatted(Number(ethers.utils.formatEther(amount1)).toFixed(5))
+                if (Number(ethers.utils.formatEther(amount1)) > Number(wethBalanceFormatted)) {
+                  setInputErrorWeth('Insufficient Balance!')
+                }
+              })
+            }).catch((error) => {
+              console.log(error);
+            })
+          })
+        } else {
+          setWethValueFormatted('')
+        }
+      }
+    }
+  }, [wethValue, daiValue])
 
-  let outputValueFormatted;
   //let outputValueParsed;
   const allBalances = useFetchAllBalances()
 
   const isActive = active && account
 
-  const isValid = !inputError && !independentError && isInputApproved && isOutputApproved
+  const isValid = !inputErrorDai && !inputErrorWeth && isWethApproved && isDaiApproved && (Number(wethValue) > 0 || Number(daiValue) > 0)
 
   function formatBalance(value) {
     return `(${t('balance', { balanceInput: value })})`
   }
-
-  const poolV3 = usePoolV3Contract()
-
-  const gelatoPool = useGelatoMetapoolContract()
 
   const onApprove = async () => {
     console.log("Approving")
   }
 
   useEffect(() => {
-    let sqrtMidPrice;
-    poolV3.slot0().then(({sqrtPriceX96, tick}) => {
-      let price = 1/(1.0001**Number(tick))
-      sqrtMidPrice = sqrtPriceX96;
-      setMarketRate(price);
+    getPoolCurrentInfo(poolV3, gelatoPool).then((result) => {
+      setMarketRate(result.price)
+      setUpperBoundRate(result.upperPrice)
+      setLowerBoundRate(result.lowerPrice)
+      setSqrtPrice(result.sqrtPrice)
+      setMetapoolBalanceWeth(result.amount1)
+      setMetapoolBalanceDai(result.amount0)
+      setMetapoolLiquidity(result.liquidity)
+      setMetapoolSupply(result.totalSupply)
     })
-    let lowerTick;
-    let sqrtUpperPriceX96;
-    let sqrtLowerPriceX96;
-    gelatoPool.currentLowerTick().then((result) => {
-      lowerTick = Number(result)
-      gelatoPool.currentUpperTick().then((result) => {
-        let upperTick = Number(result)
-        let upperPrice = 1/(1.0001**Number(lowerTick))
-        let lowerPrice = 1/(1.0001**Number(upperTick))
-        sqrtUpperPriceX96 = encodePriceSqrt("1", upperPrice.toString())
-        sqrtLowerPriceX96 = encodePriceSqrt("1", lowerPrice.toString())
-        setLowerBoundRate(lowerPrice)
-        setUpperBoundRate(upperPrice)
-        console.log("sup")
-        gelatoPool.getPositionID().then((result) => {
-          console.log("POSITION ID", result)
-          poolV3.positions(result).then(({_liquidity}) => {
-            console.log("LIQUIDITY", _liquidity);
-            gelatoPool.getAmountsForLiquidity(sqrtMidPrice, sqrtLowerPriceX96, sqrtUpperPriceX96, _liquidity).then(({amount0, amount1}) => {
-              setBalance0(amount1)
-              setBalance1(amount0)
-            })
-          })
-        })
-      })
-    })
+    if (!daiValueFormatted) {
+      setIsDaiApproved(true);
+    }
+    if (!wethValueFormatted) {
+      setIsWethApproved(true);
+    }
   }, []);
 
   return <>
+      <ModeSelector />
       <CurrencyInputPanel
         title={t('deposit')}
         allBalances={allBalances}
-        extraText={inputBalanceFormatted && formatBalance(inputBalanceFormatted)}
+        extraText={wethBalanceFormatted && formatBalance(wethBalanceFormatted)}
         extraTextClickHander={() => {
-          if (inputBalance && inputDecimals) {
-            if (inputBalance.gt(ethers.constants.Zero)) {
+          if (wethBalance) {
+            if (wethBalance.gt(ethers.constants.Zero)) {
               dispatchAddLiquidityState({
-                type: 'UPDATE_INDEPENDENT',
-                payload: { value: amountFormatter(inputBalance, inputDecimals, inputDecimals, false), field: INPUT }
+                type: 'UPDATE_VALUE',
+                payload: { value: ethers.utils.formatEther(wethBalance), field: WETH_OP }
               })
             }
           }
         }}
-        onValueChange={inputValue => {
-          dispatchAddLiquidityState({ type: 'UPDATE_INDEPENDENT', payload: { value: inputValue, field: INPUT } })
+        onValueChange={wethValue => {
+          dispatchAddLiquidityState({ type: 'UPDATE_VALUE', payload: { value: wethValue, field: WETH_OP } })
         }}
-        selectedTokens={[inputCurrency, outputCurrency]}
-        selectedTokenAddress={inputCurrency}
-        value={inputValueFormatted}
-        errorMessage={inputError ? inputError : independentField === INPUT ? independentError : ''}
+        selectedTokens={[wethAddress, daiAddress]}
+        selectedTokenAddress={wethAddress}
+        value={wethValueFormatted}
+        errorMessage={inputErrorWeth ? inputErrorWeth : ''}
         disableTokenSelect
         disableUnlock
       />
@@ -269,14 +436,14 @@ export default function AddLiquidity() {
       <CurrencyInputPanel
         title={t('deposit')}
         allBalances={allBalances}
-        extraText={outputBalanceFormatted && formatBalance(outputBalanceFormatted)}
-        onValueChange={outputValue => {
-          dispatchAddLiquidityState({ type: 'UPDATE_INDEPENDENT', payload: { value: outputValue, field: OUTPUT } })
+        extraText={daiBalanceFormatted && formatBalance(daiBalanceFormatted)}
+        onValueChange={daiValue => {
+          dispatchAddLiquidityState({ type: 'UPDATE_VALUE', payload: { value: daiValue, field: DAI_OP } })
         }}
-        selectedTokens={[inputCurrency, outputCurrency]}
-        selectedTokenAddress={outputCurrency}
-        value={outputValueFormatted}
-        errorMessage={independentField === OUTPUT ? independentError : ''}
+        selectedTokens={[wethAddress, daiAddress]}
+        selectedTokenAddress={daiAddress}
+        value={daiValueFormatted}
+        errorMessage={inputErrorDai ? inputErrorDai : ''}
         disableTokenSelect
         disableUnlock
       />
@@ -284,29 +451,37 @@ export default function AddLiquidity() {
         <SummaryPanel>
           <ExchangeRateWrapper>
             <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
-            {<span>{marketRate  ? `1 ${inputSymbol} = ${marketRate.toFixed(5)} ${outputSymbol}` : ' - '}</span>}
+            {<span>{marketRate  ? `1 ${wethSymbol} = ${marketRate.toFixed(3)} ${daiSymbol}` : ' - '}</span>}
           </ExchangeRateWrapper>
           <ExchangeRateWrapper>
-            <ExchangeRate>{'Gelato Pool Position'}</ExchangeRate>
+            <ExchangeRate>{'Gelato Pool Position Range'}</ExchangeRate>
             {<span>
               {lowerBoundRate && upperBoundRate
-                ? `${lowerBoundRate.toFixed(3)} ${outputSymbol} - ${upperBoundRate.toFixed(3)} ${outputSymbol}`
+                ? `${lowerBoundRate.toFixed(3)} ${daiSymbol} <---> ${upperBoundRate.toFixed(3)} ${daiSymbol}`
               : ' - '}
               </span>}
           </ExchangeRateWrapper>
           <ExchangeRateWrapper>
-            <ExchangeRate>{'Gelato Pool Reserves'}</ExchangeRate>
+            <ExchangeRate>{'Gelato Pool Position Amounts'}</ExchangeRate>
             {<span>
-              {(balance0 && balance1)
-                ? `${amountFormatter(balance0, 18, 4)} ${inputSymbol} + ${amountFormatter(balance1, 18, 4)} ${outputSymbol}`
+              {(metapoolBalanceWeth && metapoolBalanceDai)
+                ? `${Number(ethers.utils.formatEther(metapoolBalanceWeth)).toFixed(3)} ${wethSymbol} + ${Number(ethers.utils.formatEther(metapoolBalanceDai)).toFixed(3)} ${daiSymbol}`
+              : ' - '}
+              </span>}
+          </ExchangeRateWrapper>
+          <ExchangeRateWrapper>
+            <ExchangeRate>{'Gelato Pool Token Supply'}</ExchangeRate>
+            {<span>
+              {(metapoolSupply)
+                ? `${Number(ethers.utils.formatEther(metapoolSupply))} gUNIV3`
               : ' - '}
               </span>}
           </ExchangeRateWrapper>
           <ExchangeRateWrapper>
             <ExchangeRate>
-              {t('yourPoolShare')} ({/*amountFormatter(poolTokenPercentage, 16, 2)*/}%)
+              {t('yourPoolShare')} ({poolShare ? poolShare.toFixed(5) : '-'}%)
             </ExchangeRate>
-            <span>{'-'}</span>
+            <span>{userEstimatedMint ? Number(ethers.utils.formatEther(userEstimatedMint)).toFixed(5)+' gUNIV3' : '-'}</span>
             {/*<span>
               {ethShare && tokenShare
                 ? `${amountFormatter(ethShare, 18, 4)} ETH + ${amountFormatter(
@@ -319,17 +494,17 @@ export default function AddLiquidity() {
           </ExchangeRateWrapper>
         </SummaryPanel>
       </OversizedPanel>
-      {!isInputApproved && (
+      {!isWethApproved && (
         <Flex>
           <Button onClick={onApprove}>
-            {`Approve ${inputSymbol}`}
+            {`Approve ${wethSymbol}`}
           </Button>
         </Flex>
       )}
-      {!isOutputApproved && (
+      {!isDaiApproved && (
         <Flex>
           <Button onClick={onApprove}>
-            {`Approve ${outputSymbol}`}
+            {`Approve ${daiSymbol}`}
           </Button>
         </Flex>
       )}

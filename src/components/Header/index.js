@@ -55,7 +55,7 @@ export default function Header() {
       <HeaderElement>
         <Title>
           {/* <Link id="link" href="https://limit-orders-ui.vercel.app/order"> */}
-            <h1 id="title"><span>{'🍧'}</span>Uniswap Limit Orders</h1>
+            <h1 id="title"><span>{'🍧'}</span>Sorbet Finance</h1>
           {/* </Link> */}
         </Title>
       </HeaderElement>
