@@ -144,4 +144,4 @@ export const PLATFORM_WALLET = {
   [ChainId.GÖRLI]: '0xAabB54394E8dd61Dd70897E9c80be8de7C64A895'
 }
 
-export const ALL_INTERVALS = ["10 minutes", "1 hour", "1 day", "1 week"]
+export const ALL_INTERVALS = ["1 hour", "1 day", "1 week"]

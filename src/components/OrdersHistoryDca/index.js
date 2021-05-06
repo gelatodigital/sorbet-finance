@@ -23,7 +23,7 @@ function usePastOrders(account, chainId) {
 
   const fetchOrdersAndSetState = () => {
     if (account && isAddress(account)) {
-      fetchUserPastOrders(account, chainId).then(orders => {
+      fetchUserPastDcaOrders(account, chainId).then(orders => {
         console.log(`Past User Orders`)
         console.log(orders)
         if (orders) console.log(`Fetched ${orders.length} past orders from the graph`)
@@ -46,7 +46,7 @@ function usePastOrders(account, chainId) {
   return state
 }
 
-async function fetchUserPastOrders(account, chainId) {
+export async function fetchUserPastDcaOrders(account, chainId) {
   const query = `
   query GetOrdersByOwner($userAddress: String) {
     trades(

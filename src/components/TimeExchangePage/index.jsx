@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
 import SVGDiv from '../../assets/svg/SVGDiv'
-import { DCA_ORDER_THRESHOLD, ETH_ADDRESS, GELATO_DCA, GENERIC_GAS_LIMIT_ORDER_EXECUTE, PLATFORM_WALLET } from '../../constants'
+import { ALL_INTERVALS, DCA_ORDER_THRESHOLD, ETH_ADDRESS, GELATO_DCA, GENERIC_GAS_LIMIT_ORDER_EXECUTE, PLATFORM_WALLET } from '../../constants'
 import { useFetchAllBalances } from '../../contexts/AllBalances'
 import { useAddressAllowance } from '../../contexts/Allowances'
 import { useAddressBalance } from '../../contexts/Balances'
@@ -88,12 +88,6 @@ const ExchangeRateWrapper = styled.div`
   padding: 0.5rem 1rem;
 `
 
-const ExchangeRate = styled.span`
-  flex: 1 1 auto;
-  width: 0;
-  color: ${({ theme }) => theme.doveGray};
-`
-
 const Flex = styled.div`
   display: flex;
   justify-content: center;
@@ -156,7 +150,7 @@ function getInitialSwapState(outputCurrency) {
     rateOp: RATE_OP_MULT,
     inputRateValue: '',
     numTrades: 3,
-    interval: "10 minutes"
+    interval: ALL_INTERVALS[0]
   }
 }
 
@@ -249,8 +243,6 @@ function swapStateReducer(state, action) {
 // export const ALL_INTERVALS = ["10 minutes", "1 hour", "1 day", "1 week"]
 function getIntervalSeconds(interval) {
   switch(interval) {
-    case("10 minutes"): 
-      return 10 * 60;
     case("1 hour"): 
       return 60 * 60;
     case("1 day"): 

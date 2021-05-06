@@ -2,39 +2,25 @@ import Tooltip from '@reach/tooltip'
 import '@reach/tooltip/styles.css'
 import { BigNumber } from '@uniswap/sdk'
 import escapeStringRegex from 'escape-string-regexp'
-import { ethers } from 'ethers'
 import { darken, transparentize } from 'polished'
 import React, { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
+import ClockIcon from '../../assets/images/clock.svg'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import { ReactComponent as Close } from '../../assets/images/x.svg'
 import { ALL_INTERVALS } from "../../constants"
 import { useUSDPrice } from '../../contexts/Application'
 import { useAllTokenDetails, useTokenDetails } from '../../contexts/Tokens'
-import { useTransactionAdder } from '../../contexts/Transactions'
 import { BorderlessInput, Spinner } from '../../theme'
 import { formatEthBalance, formatTokenBalance, isAddress } from '../../utils'
 import Modal from '../Modal'
-import TokenLogo from '../TokenLogo'
 
-
-const GAS_MARGIN = ethers.BigNumber.from("1000")
-
-const SubCurrencySelect = styled.button`
-  ${({ theme }) => theme.flexRowNoWrap}
-  padding: 4px 50px 4px 15px;
-  margin-right: -40px;
-  line-height: 0;
-  height: 2rem;
-  align-items: center;
-  border-radius: 2.5rem;
-  outline: none;
-  cursor: pointer;
-  user-select: none;
-  background: ${({ theme }) => theme.zumthorBlue};
-  border: 1px solid ${({ theme }) => theme.primary1};
-  color: ${({ theme }) => theme.primary1};
+const Clock =  styled.img`
+  width: ${({ size }) => size};
+  height: ${({ size }) => size};
+  background-color: white;
+  border-radius: 1rem;
 `
 
 const InputRow = styled.div`
@@ -256,6 +242,14 @@ const SpinnerWrapper = styled(Spinner)`
   opacity: 0.6;
 `
 
+const TimeClock = () => 
+  { return (
+    <Clock
+    src={ClockIcon}
+    size={"2rem"}
+  />)
+}
+
 export default function TimeIntervalInputPancel({
   onValueChange = () => {},
   allBalances,
@@ -273,13 +267,8 @@ export default function TimeIntervalInputPancel({
   value,
   showCurrencySelector = true
 }) {
-  const { t } = useTranslation()
 
   const [modalIsOpen, setModalIsOpen] = useState(false)
-
-  const addTransaction = useTransactionAdder()
-
-  const allTokens = useAllTokenDetails()
 
   function _renderInput() {
     if (typeof renderInput === 'function') {
@@ -499,7 +488,7 @@ function TimeSelectModal({ isOpen, onDismiss, onIntervalSelect, allBalances }) {
       return (
         <TokenModalRow key={interval} onClick={() => _onTokenSelect(interval)}>
           <TokenRowLeft>
-            <TokenLogo address={"0x6b175474e89094c44da98b954eedeac495271d0f"} size={'2rem'} />
+            <TimeClock/>
             <TokenSymbolGroup>
               <span id="symbol">{interval}</span>
               <TokenFullName>{interval}</TokenFullName>
