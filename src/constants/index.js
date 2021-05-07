@@ -35,7 +35,7 @@ const WETH_ONLY = {
 }
 
 export const GELATO_METAPOOL = {
-  3: '0xd26133af3a606480916BEbEA9fFE94Cbeb4D05c2',
+  3: '0x29644532D6C36fCFCAD43F50fe55Fd99f178241c',
 };
 
 export const ETH_DAI_POOL_V3 = {

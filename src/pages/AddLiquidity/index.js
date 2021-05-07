@@ -225,10 +225,10 @@ export default function AddLiquidity() {
       console.log(wethValueFormatted, daiValueFormatted)
       const parsedWeth = ethers.utils.parseUnits(wethValueFormatted, 18)
       const parsedDai = ethers.utils.parseUnits(daiValueFormatted, 18)
-      if (((Number(daiValueFormatted)/Number(wethValueFormatted)) - (Number(ethers.utils.formatEther(result.amount0)/Number(ethers.utils.formatEther(result.amount1)))))**2 > Number(daiValue)/(Number(wethValue)*10)) {
+      /*if (((Number(daiValueFormatted)/Number(wethValueFormatted)) - (Number(ethers.utils.formatEther(result.amount0)/Number(ethers.utils.formatEther(result.amount1)))))**2 > Number(daiValue)/(Number(wethValue)*10)) {
         console.log('error out of range');
         return
-      }
+      }*/
       const sqrtLowerPriceX96 = encodePriceSqrt("1", result.lowerPrice.toString())
       const sqrtUpperPriceX96 = encodePriceSqrt("1", result.upperPrice.toString())
       gelatoPool.getLiquidityForAmounts(result.sqrtPrice.toString(), sqrtLowerPriceX96.toString(), sqrtUpperPriceX96.toString(), parsedDai.toString(), parsedWeth.toString()).then((r2) => {
@@ -527,14 +527,14 @@ export default function AddLiquidity() {
       </OversizedPanel>
       {!isWethApproved && (
         <Flex>
-          <Button disabled={isApproveWethPending || isApproveDaiPending} onClick={onApproveWeth}>
+          <Button disabled={isApproveWethPending} onClick={onApproveWeth}>
           {isApproveWethPending ? `Pending...` : `Approve ${wethSymbol}`}
           </Button>
         </Flex>
       )}
       {!isDaiApproved && (
         <Flex>
-          <Button disabled={isApproveDaiPending || isApproveWethPending} onClick={onApproveDai}>
+          <Button disabled={isApproveDaiPending} onClick={onApproveDai}>
             {isApproveDaiPending ? `Pending...` : `Approve ${daiSymbol}`}
           </Button>
         </Flex>
