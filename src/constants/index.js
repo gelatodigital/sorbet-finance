@@ -41,7 +41,7 @@ const WETH_ONLY = {
 
 // Min order size PER trade
 export const DCA_ORDER_THRESHOLD = {
-  [ChainId.MAINNET]: "0.1",
+  [ChainId.MAINNET]: "0.2",
   [ChainId.ROPSTEN]: "0.00001"
 }
 
@@ -132,8 +132,8 @@ export const MULTICALL_NETWORKS = {
 }
 
 export const GELATO_DCA = {
-  [ChainId.MAINNET]: '0x78A65BC2DEc250E3256a09ED455eBbf8dFb18F43',
-  [ChainId.ROPSTEN]: '0x301E130DAA16B2F8FAeB21E1a328EAB0d606AC12',
+  [ChainId.MAINNET]: '0x1338548a1a6Ec68277496a710815D76A02838216',
+  [ChainId.ROPSTEN]: '0x8E9918Fc02826aa2283f890F6cE439085c615665',
 }
 
 export const PLATFORM_WALLET = {
@@ -145,3 +145,7 @@ export const PLATFORM_WALLET = {
 }
 
 export const ALL_INTERVALS = ["1 hour", "1 day", "1 week"]
+
+export const KYBER = 0
+export const UNI = 1
+export const SUSHI = 2

@@ -1,4 +1,5 @@
 {
+  "insufficientNumTrades": "Split order in at least 2 trades",
   "noWallet": "No Ethereum wallet found",
   "wrongNetwork": "You are on the wrong network",
   "switchNetwork": "Please switch to {{ correctNetwork }}",

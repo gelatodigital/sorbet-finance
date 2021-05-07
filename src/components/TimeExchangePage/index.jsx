@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
 import SVGDiv from '../../assets/svg/SVGDiv'
-import { ALL_INTERVALS, DCA_ORDER_THRESHOLD, ETH_ADDRESS, GELATO_DCA, PLATFORM_WALLET } from '../../constants'
+import { ALL_INTERVALS, DCA_ORDER_THRESHOLD, ETH_ADDRESS, GELATO_DCA, PLATFORM_WALLET, UNI } from '../../constants'
 import { useFetchAllBalances } from '../../contexts/AllBalances'
 import { useAddressAllowance } from '../../contexts/Allowances'
 import { useAddressBalance } from '../../contexts/Balances'
@@ -26,7 +26,30 @@ import OversizedPanel from '../OversizedPanel'
 import TimeIntervalInputPancel from '../TimeIntervalInputPancel'
 import './TimeExchangePage.css'
 
+// const getUniswapSwapData = async (inTokenAddress, inTokenDecimals, outTokenAddress, outTokenDecimals, chainId, amountIn) => {
 
+//   if(inTokenAddress === ETH_ADDRESS) inTokenAddress = WETH[chainId]
+//   if(outTokenAddress === ETH_ADDRESS) outTokenAddress = WETH[chainId]
+  
+//   const inToken = new Token(chainId, inTokenAddress, inTokenDecimals)
+//   const outToken = new Token(chainId, outTokenAddress, outTokenDecimals)
+
+//   // note that you may want/need to handle this async code differently,
+//   // for example if top-level await is not an option
+//   const pair = await Fetcher.fetchPairData(inToken, outToken)
+
+//   const route = new Route([pair], UNI_WETH[chainId])
+
+//   // amountIn should be string
+//   const trade = new Trade(route, new TokenAmount(inToken, amountIn), TradeType.EXACT_INPUT)
+//   console.log(trade)
+
+
+//   const amountOutMin = trade.minimumAmountOut(slippageTolerance).raw // needs to be converted to e.g. hex
+//   const path = [inToken.address, outToken.address]
+//   return {path, amountOutMin}
+
+// }
 
 // Use to detach input from output
 let inputValue
@@ -339,7 +362,8 @@ export default function TimeExchangePage({ initialCurrency }) {
   const isLOBtwEthAndWeth =
     (inputCurrency === 'ETH' && outputCurrency.toLocaleLowerCase() === WETH[chainId]) ||
     (outputCurrency === 'ETH' && inputCurrency.toLocaleLowerCase() === WETH[chainId])
-  
+
+  const insufficientNumTrades = !numTrades || numTradesBn.lt(2) ? true : false
 
   useEffect(() => {
     if (independentValue && (independentDecimals || independentDecimals === 0)) {
@@ -363,13 +387,15 @@ export default function TimeExchangePage({ initialCurrency }) {
     }
   }, [independentValue, independentDecimals, t])
 
-  
+  const [showUnlock, setShowUnlock] = useState(false)
   useEffect(() => {
     if (inputValue && inputAllowance) {
-      // console.log(`Input Value: ${inputValue.toString()}`)
-      // console.log(`Input Allowance: ${inputAllowance.toString()}`)
+      console.log(outputSymbol)
+      console.log(`Input Value: ${inputValue.toString()}`)
+      console.log(`Input Allowance: ${inputAllowance.toString()}`)
       if (inputAllowance.lt(inputValue)) {
         // Approval of user insufficient
+        console.log("Hello")
         setShowUnlock(true)
       } else {
         setInputError(null)
@@ -379,7 +405,6 @@ export default function TimeExchangePage({ initialCurrency }) {
   }, [inputBalance, inputCurrency, t, inputValueParsed, inputAllowance])
   
   // validate input balance
-  const [showUnlock, setShowUnlock] = useState(false)
   useEffect(() => {
     const inputValueCalculation = inputValueParsed
     if (inputBalance && inputValueCalculation) {
@@ -387,7 +412,6 @@ export default function TimeExchangePage({ initialCurrency }) {
         setInputError(t('insufficientBalance'))
       } else {
         setInputError(null)
-        setShowUnlock(false)
       }
     }
   }, [inputBalance, inputCurrency, t, inputValueParsed])
@@ -407,6 +431,7 @@ export default function TimeExchangePage({ initialCurrency }) {
   function formatBalance(value) {
     return `Balance: ${value}`
   }
+
 
   async function onPlace() {
     let fromCurrency, toCurrency, inputAmount, amountPerTrade, value
@@ -439,10 +464,27 @@ export default function TimeExchangePage({ initialCurrency }) {
       numTrades: numTradesBn.toString(),
       minSlippage: 1000,
       maxSlippage: 9999,
+      // delay: 120,
       delay: getIntervalSeconds(interval),
       platformWallet: PLATFORM_WALLET[chainId],
-      platformFeeBps: 50
+      platformFeeBps: 0
     }
+
+    const path = bestTradeExactIn.route.path.map(token => {
+      return token.address
+    })
+    if(ethers.utils.getAddress(path[0]) === ethers.utils.getAddress(WETH[chainId]) && fromCurrency === ETH_ADDRESS) path[0] = ETH_ADDRESS
+    if(ethers.utils.getAddress(path[path.length - 1]) === ethers.utils.getAddress(WETH[chainId]) && toCurrency === ETH_ADDRESS) path[path.length - 1] = ETH_ADDRESS
+
+    const [minOutAmountUni, ] = await gelatoDcaContract.getExpectedReturnUniswap(
+      await gelatoDcaContract.uniRouterV2(),
+      amountPerTrade.mul(numTradesBn),
+      path,
+      0
+    )
+    const minOutAmountUniWithSlippage = minOutAmountUni.sub(minOutAmountUni.mul(ethers.BigNumber.from("100")).div(ethers.BigNumber.from("10000")))
+    // console.log(outputValueWithSlippage.toString())
+    // console.log(minOutAmountUniWithSlippage.toString())
 
     try {
       // Prefix Hex for secret message
@@ -453,21 +495,33 @@ export default function TimeExchangePage({ initialCurrency }) {
       const { privateKey, address } = new ethers.Wallet(fullSecret)
       const witness = address.toLowerCase()
 
+      // Get Uniswap Rate
+      // HOW ARE WE CALCULATING TEH TRADE ON EXCHANGE PAGE
+      
+      // console.log(`Private key: ${privateKey}`)
+      // console.log(privateKey.length)
+      // console.log(`Witness: ${witness}`)
+      // console.log(witness.length)
 
       const abiCoder = new AbiCoder()
-      const funcSig = gelatoDcaContract.interface.getSighash("submit")
+      const funcSig = gelatoDcaContract.interface.getSighash("submitAndExec")
       // console.log(funcSig)
-      let submitData = abiCoder.encode(['tuple(address inToken, address outToken, uint256 amountPerTrade, uint256 numTrades, uint256 minSlippage, uint256 maxSlippage, uint256 delay, address platformWallet, uint256 platformFeeBps)', 'bool submitAndExec', 'address witness'], [order, false, witness]);
+      /* 
+        Dex _protocol,
+        uint256 _minReturnOrRate,
+        address[] calldata _tradePath
+      */
+      
+      let submitData = abiCoder.encode(['tuple(address inToken, address outToken, uint256 amountPerTrade, uint256 numTrades, uint256 minSlippage, uint256 maxSlippage, uint256 delay, address platformWallet, uint256 platformFeeBps)', 'uint8 _protocol', 'uint256 _minReturnOrRate', 'address[] _tradePath', 'bytes32 privateKey', 'address witness'], [order, UNI, minOutAmountUniWithSlippage, path,  privateKey, witness]);
       submitData = "0x" + funcSig.substring(2, funcSig.length) + submitData.substring(2, submitData.length)
 
-
-
-      // const indexOf = submitData.indexOf(witness.substring(2, witness.length))
-      // const witnessCut = submitData.substring(indexOf, indexOf + 64)
-      // console.log(indexOf)
+      // const indexOfSecret = submitData.indexOf(privateKey.substring(2, privateKey.length))
+      // const indexOfWitness = submitData.indexOf(witness.substring(2, witness.length))
+      // const witnessCut = submitData.substring(indexOfWitness, indexOfWitness + 40)
+      // console.log(`Secret Index: ${indexOfSecret}`)
+      // console.log(`Witness Index: ${indexOfWitness}`)
       // console.log(witnessCut)
       // console.log(witness === ("0x" + witnessCut))
-      // console.log(witnessHash)
       
 
       const provider = new ethers.providers.Web3Provider(library.provider)
@@ -484,7 +538,12 @@ export default function TimeExchangePage({ initialCurrency }) {
       const submissionDate = (Math.floor(Date.now() / 1000)).toString()
       const currentId = await gelatoDcaContract.taskId()
       for(let i = 0; i < numTrades; i++) {
-        const estimatedExecutionDate = ((order.delay * (i + 1)) + Math.floor(Date.now() / 1000)).toString()
+        let estimatedExecutionDate;
+        if(i === 0) {
+          estimatedExecutionDate = Math.floor(Date.now() / 1000)
+        } else {
+          estimatedExecutionDate = ((order.delay * i) + Math.floor(Date.now() / 1000)).toString()
+        }
         const nTradesLeft = order.numTrades.sub(ethers.BigNumber.from(i.toString())).toString()
         const index = (numTrades - i).toString()
         const witnessHash = witness + i.toString()
@@ -633,7 +692,7 @@ export default function TimeExchangePage({ initialCurrency }) {
       </OversizedPanel>
       <Flex>
         <Button
-          disabled={showUnlock || !account || !isValid || customSlippageError === 'invalid' || numTradesIsZero || executionRateWarning || isLOBtwEthAndWeth || !outputSymbol}
+          disabled={showUnlock || !account || !isValid || customSlippageError === 'invalid' || numTradesIsZero || executionRateWarning || isLOBtwEthAndWeth || !outputSymbol || insufficientNumTrades}
           onClick={onPlace}
           warning={ executionRateWarning || customSlippageError === 'warning'}
         >
@@ -654,6 +713,14 @@ export default function TimeExchangePage({ initialCurrency }) {
             ⚠️
           </span>
           {t('ethToWethLOWng')}
+        </div>
+      )}
+      {insufficientNumTrades && (
+        <div className="slippage-warning">
+          <span role="img" aria-label="warning">
+            ⚠️
+          </span>
+          {t('insufficientNumTrades')}
         </div>
       )}
     </>

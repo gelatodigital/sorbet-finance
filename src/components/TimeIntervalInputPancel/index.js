@@ -282,7 +282,7 @@ export default function TimeIntervalInputPancel({
           min="0"
           error={!!errorMessage}
           placeholder=""
-          step="0.000000000000000001"
+          step="1"
           onChange={e => onValueChange(e.target.value)}
           onKeyPress={e => {
             const charCode = e.which ? e.which : e.keyCode

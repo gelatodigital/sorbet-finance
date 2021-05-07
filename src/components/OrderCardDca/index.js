@@ -95,7 +95,7 @@ export function OrderCardDca(props) {
     if(distance > 0) {
       return `${days}d: ${hours}h: ${minutes}m`
     } else {
-      return `pending ...`
+      return `now`
     }
     
   }

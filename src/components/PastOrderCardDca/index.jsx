@@ -56,15 +56,15 @@ export function PastOrderCardDca(props) {
   order.outToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.outToken)
   
   let feeToken;
-  if (executed) feeToken = order.feeToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.feeToken)
+  if (executed && order.feeToken) feeToken = order.feeToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.feeToken)
 
   const { symbol: fromSymbol, decimals: fromDecimals } = useTokenDetails(inputToken)
   const { symbol: toSymbol, decimals: toDecimals } = useTokenDetails(outputToken)
   const { symbol: feeSymbol, decimals: feeDcimals } = useTokenDetails(feeToken)
 
   
-  const bought = ethers.BigNumber.from(executed ? order.amountReceived : 0)
-  const fee = ethers.BigNumber.from(executed ? order.executorFee : 0)
+  const bought = ethers.BigNumber.from(executed && order.amountReceived ? order.amountReceived : 0)
+  const fee = ethers.BigNumber.from(executed && order.executorFee ? order.executorFee : 0)
   
   const inputAmount = ethers.BigNumber.from(
     order.amount

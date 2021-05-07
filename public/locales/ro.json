@@ -1,4 +1,5 @@
 {
+  "insufficientNumTrades": "Împărțiți ordinea în cel puțin 2 tranzacții",
   "noWallet": "Niciun portofel Ethereum găsit",
   "wrongNetwork": "Nu ești conectat la rețeaua corectă",
   "switchNetwork": "Conectează-te te rog la {{ correctNetwork }}",

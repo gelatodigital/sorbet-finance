@@ -1,4 +1,5 @@
 {
+  "insufficientNumTrades": "Разделить ордер минимум на 2 сделки",
   "noWallet": "Кошелек эфира не найден",
   "wrongNetwork": "Некорректная сеть",
   "switchNetwork": "Пожалуйста, перейдите в {{ correctNetwork }}",

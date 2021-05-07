@@ -1,4 +1,5 @@
 {
+  "insufficientNumTrades": "Orden dividida en al menos 2 operaciones",
   "noWallet": "No se ha encontrado billetera de Ethereum",
   "wrongNetwork": "Se encuentra en la red equivocada",
   "switchNetwork": "Por favor cambie a {{ correctNetwork }}",
