@@ -191,8 +191,6 @@ export default function OrdersDca() {
     // eslint-disable-next-line
   }, [local.allOrders.length, local.openOrders.length, graph.allOrders.length, graph.openOrders.length, pendingOrders.length])
 
-  console.log(orders)
-
   return (
     <>
       {account && (
