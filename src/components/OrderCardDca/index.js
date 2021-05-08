@@ -100,6 +100,8 @@ export function OrderCardDca(props) {
     
   }
 
+  const gasPriceAlert = gasPrice > 80000000000 ? true : false
+
   async function onCancel(cycle, id, pending) {
     gelatoDcaContract
       .cancel(
@@ -155,6 +157,10 @@ export function OrderCardDca(props) {
       <p>{`Status: ${order.status === "awaitingExec" ? "pending" : order.status}`}</p>
       <p>{`Time to Exec: ${getTimerText(order.estExecutionDate)}`}</p>
       <p>{`Estimated Exec Date: ${getTimeAndDate(order.estExecutionDate)}`}</p>
+      {gasPriceAlert && (
+        <p>{`Gas Price ${ethers.utils.formatUnits(gasPrice, "gwei")} Gwei: Execution maybe delayed`}</p>
+            
+      )}
       {/* <Tooltip
         label={tooltipText}
         style={{

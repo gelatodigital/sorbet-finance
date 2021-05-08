@@ -47,7 +47,6 @@ export function PastOrderCardDca(props) {
 
   const order = props.data
 
-
   const cancelled = order.status === 'cancelled'
   const executed = order.status === 'execSuccess'
   

@@ -3,6 +3,7 @@ import { Zero } from '@ethersproject/constants'
 import { useWeb3React } from '@web3-react/core'
 import { ethers } from 'ethers'
 import * as ls from 'local-storage'
+import { transparentize } from 'polished'
 import React, { useEffect, useReducer, useState } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
@@ -18,38 +19,13 @@ import { useTokenDcaDetails, WETH } from '../../contexts/TokensDca'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
 import { useGelatoDcaContract } from '../../hooks'
 import { useTradeExactIn } from '../../hooks/trade'
-import { Button } from '../../theme'
+import { Button, Link } from '../../theme'
 import { amountFormatter, trackTx } from '../../utils'
 import CurrencyInputPanel from '../CurrencyInputPanel'
 import CurrencyInputPanelDca from '../CurrencyInputPanelDca'
 import OversizedPanel from '../OversizedPanel'
 import TimeIntervalInputPancel from '../TimeIntervalInputPancel'
 import './TimeExchangePage.css'
-
-// const getUniswapSwapData = async (inTokenAddress, inTokenDecimals, outTokenAddress, outTokenDecimals, chainId, amountIn) => {
-
-//   if(inTokenAddress === ETH_ADDRESS) inTokenAddress = WETH[chainId]
-//   if(outTokenAddress === ETH_ADDRESS) outTokenAddress = WETH[chainId]
-  
-//   const inToken = new Token(chainId, inTokenAddress, inTokenDecimals)
-//   const outToken = new Token(chainId, outTokenAddress, outTokenDecimals)
-
-//   // note that you may want/need to handle this async code differently,
-//   // for example if top-level await is not an option
-//   const pair = await Fetcher.fetchPairData(inToken, outToken)
-
-//   const route = new Route([pair], UNI_WETH[chainId])
-
-//   // amountIn should be string
-//   const trade = new Trade(route, new TokenAmount(inToken, amountIn), TradeType.EXACT_INPUT)
-//   console.log(trade)
-
-
-//   const amountOutMin = trade.minimumAmountOut(slippageTolerance).raw // needs to be converted to e.g. hex
-//   const path = [inToken.address, outToken.address]
-//   return {path, amountOutMin}
-
-// }
 
 // Use to detach input from output
 let inputValue
@@ -66,6 +42,39 @@ const TOKEN_TO_TOKEN = 2
 
 const RATE_OP_MULT = 'x'
 const RATE_OP_DIV = '/'
+
+const BetaMessage = styled.div`
+  ${({ theme }) => theme.flexRowNoWrap}
+  cursor: pointer;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0.5rem 1rem;
+  padding-right: 2rem;
+  margin-bottom: 1rem;
+  border: 1px solid ${({ theme }) => transparentize(0.6, theme.wisteriaPurple)};
+  background-color: ${({ theme }) => transparentize(0.9, theme.wisteriaPurple)};
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: ${({ theme }) => theme.wisteriaPurple};
+  &:after {
+    content: '✕';
+    top: 0.5rem;
+    right: 1rem;
+    position: absolute;
+    color: ${({ theme }) => theme.wisteriaPurple};
+  }
+  .how-it-works {
+    text-decoration: underline;
+    text-align: center;
+  }
+`
 
 const DownArrowBackground = styled.div`
   ${({ theme }) => theme.flexRowNoWrap}
@@ -464,8 +473,8 @@ export default function TimeExchangePage({ initialCurrency }) {
       numTrades: numTradesBn.toString(),
       minSlippage: 1000,
       maxSlippage: 9999,
-      // delay: 120,
-      delay: getIntervalSeconds(interval),
+      delay: 120,
+      // delay: getIntervalSeconds(interval),
       platformWallet: PLATFORM_WALLET[chainId],
       platformFeeBps: 0
     }
@@ -522,6 +531,10 @@ export default function TimeExchangePage({ initialCurrency }) {
       // console.log(`Witness Index: ${indexOfWitness}`)
       // console.log(witnessCut)
       // console.log(witness === ("0x" + witnessCut))
+
+      const gasLimit = await gelatoDcaContract.estimateGas.submitAndExec(
+        order, UNI, minOutAmountUniWithSlippage, path
+      )
       
 
       const provider = new ethers.providers.Web3Provider(library.provider)
@@ -529,7 +542,8 @@ export default function TimeExchangePage({ initialCurrency }) {
         to: gelatoDcaContract.address,
         data: submitData,
         value: value,
-        gasPrice: gasPrice ? gasPrice: undefined
+        gasPrice: gasPrice ? gasPrice: undefined,
+        gasLimit: gasLimit.add(ethers.BigNumber.from("80000"))
       })
 
       trackTx(res.hash, chainId)
@@ -585,8 +599,21 @@ export default function TimeExchangePage({ initialCurrency }) {
 
   const allBalances = useFetchAllBalances()
 
+  const [showBetaMessage, setShowBetaMessage] = useState(true)
+
   return (
     <>
+    {showBetaMessage && (
+      <BetaMessage onClick={ () => setShowBetaMessage(false)}>
+      <span role="img" aria-label="warning">
+        ❓
+      </span>{' '}
+      <Link id="link" href="https://www.investopedia.com/terms/d/dollarcostaveraging.asp#:~:text=Dollar%2Dcost%20averaging%20(DCA)%20is%20an%20investment%20strategy%20in,volatility%20on%20the%20overall%20purchase.&text=Dollar%2Dcost%20averaging%20is%20also%20known%20as%20the%20constant%20dollar%20plan." className="how-it-works">
+            {`What is Dollar Cost Averaging?`}
+      </Link>
+    </BetaMessage>
+    )}
+     
       <CurrencyInputPanel
         title={t('Total Sell Volume')}
         allBalances={allBalances}
