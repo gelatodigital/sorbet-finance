@@ -54,6 +54,12 @@ const SummaryPanel = styled.div`
   padding: 1rem 0;
 `
 
+const CenteredHeader = styled.div`
+  text-align: center;
+  font-family: Inter, sans-serif;
+  font-weight: 600;
+`
+
 const ExchangeRateWrapper = styled.div`
   ${({ theme }) => theme.flexRowNoWrap};
   align-items: center;
@@ -109,15 +115,6 @@ function addLiquidityStateReducer(state, action) {
         lastEditedField: field
       }
     }
-    case 'UPDATE_DEPENDENT_VALUE': {
-      const { wethValue, daiValue } = state
-      const { field, value } = action.payload
-      return {
-        ...state,
-        inputValue: field === WETH_OP ? value : wethValue,
-        outputValue: field === DAI_OP ? value : daiValue
-      }
-    }
     default: {
       return initialAddLiquidityState()
     }
@@ -136,6 +133,7 @@ const getPoolCurrentInfo = async (poolV3, gelatoPool) => {
   const totalSupply = await gelatoPool.totalSupply()
   const {_liquidity: liquidity} = await poolV3.positions(await gelatoPool.getPositionID())
   const {amount0, amount1} = await gelatoPool.getAmountsForLiquidity(sqrtPriceX96, sqrtLowerPriceX96, sqrtUpperPriceX96, liquidity)
+  const totalDollarValue = Number(ethers.utils.formatEther(amount0)) + price*Number(ethers.utils.formatEther(amount1))
   return {
     price: price,
     sqrtPrice: sqrtPriceX96,
@@ -144,7 +142,8 @@ const getPoolCurrentInfo = async (poolV3, gelatoPool) => {
     amount0: amount0,
     amount1: amount1,
     liquidity: liquidity,
-    totalSupply: totalSupply
+    totalSupply: totalSupply,
+    totalDollarValue: totalDollarValue
   }
 };
 
@@ -175,6 +174,7 @@ export default function AddLiquidity() {
   const [metapoolBalanceDai, setMetapoolBalanceDai] = useState(null)
   const [wethValueFormatted, setWethValueFormatted] = useState(null)
   const [daiValueFormatted, setDaiValueFormatted] = useState(null)
+  const [totalDollarValue, setTotalDollarValue] = useState(null)
   const [userLiquidityDelta, setUserLiquidityDelta] = useState(null)
   const [userEstimatedMint, setUserEstimatedMint] = useState(null)
   const [metapoolSupply, setMetapoolSupply] = useState(null)
@@ -204,8 +204,8 @@ export default function AddLiquidity() {
   // get balances for each of the currency types
   const wethBalance = useAddressBalance(account, wethAddress)
   const daiBalance = useAddressBalance(account, daiAddress)
-  const wethBalanceFormatted = !!(wethBalance) ? Number(ethers.utils.formatEther(wethBalance)).toFixed(5) : ''
-  const daiBalanceFormatted = !!(daiBalance) ? Number(ethers.utils.formatEther(daiBalance)).toFixed(5) : ''
+  const wethBalanceFormatted = !!(wethBalance) ? ethers.utils.formatEther(wethBalance) : ''
+  const daiBalanceFormatted = !!(daiBalance) ? ethers.utils.formatEther(daiBalance) : ''
 
   const poolV3 = usePoolV3Contract()
   const gelatoPool = useGelatoMetapoolContract()
@@ -222,13 +222,10 @@ export default function AddLiquidity() {
       setMetapoolBalanceDai(result.amount0)
       setMetapoolLiquidity(result.liquidity)
       setMetapoolSupply(result.totalSupply)
+      setTotalDollarValue(result.totalDollarValue)
       console.log(wethValueFormatted, daiValueFormatted)
       const parsedWeth = ethers.utils.parseUnits(wethValueFormatted, 18)
       const parsedDai = ethers.utils.parseUnits(daiValueFormatted, 18)
-      /*if (((Number(daiValueFormatted)/Number(wethValueFormatted)) - (Number(ethers.utils.formatEther(result.amount0)/Number(ethers.utils.formatEther(result.amount1)))))**2 > Number(daiValue)/(Number(wethValue)*10)) {
-        console.log('error out of range');
-        return
-      }*/
       const sqrtLowerPriceX96 = encodePriceSqrt("1", result.lowerPrice.toString())
       const sqrtUpperPriceX96 = encodePriceSqrt("1", result.upperPrice.toString())
       gelatoPool.getLiquidityForAmounts(result.sqrtPrice.toString(), sqrtLowerPriceX96.toString(), sqrtUpperPriceX96.toString(), parsedDai.toString(), parsedWeth.toString()).then((r2) => {
@@ -240,6 +237,7 @@ export default function AddLiquidity() {
               setIsAddLiquidityPending(false)
               setDaiValueFormatted('')
               setWethValueFormatted('')
+              window.location.href = '/remove-liquidity'
             })
           }).catch((error) => {
             console.log("error adding liquidity!", error)
@@ -256,6 +254,8 @@ export default function AddLiquidity() {
   useEffect(() => {
     setInputErrorDai(null)
     setInputErrorWeth(null)
+    setPoolShare('')
+    setUserEstimatedMint('')
     if (lowerBoundRate && upperBoundRate && metapoolBalanceDai && metapoolBalanceWeth) {
       if (lastEditedField === WETH_OP) {
         setWethValueFormatted(wethValue)
@@ -273,11 +273,12 @@ export default function AddLiquidity() {
             setMetapoolBalanceDai(result.amount0)
             setMetapoolLiquidity(result.liquidity)
             setMetapoolSupply(result.totalSupply)
+            setTotalDollarValue(result.totalDollarValue)
             let currentLiquidity = result.liquidity
             let supply = result.totalSupply
             let parsedWeth = ethers.utils.parseUnits(wethValue, 18)
             const factor = Number(ethers.utils.formatEther(result.amount0))/Number(ethers.utils.formatEther(result.amount1))
-            let daiEstimate = factor*Number(wethValue)*1.25
+            let daiEstimate = factor*Number(wethValue)*.999
             let parsedDai = ethers.utils.parseUnits(daiEstimate.toString(), 18)
             let sqrtLowerPriceX96 = encodePriceSqrt("1", result.lowerPrice.toString())
             let sqrtUpperPriceX96 = encodePriceSqrt("1", result.upperPrice.toString())
@@ -302,7 +303,7 @@ export default function AddLiquidity() {
                     setIsDaiApproved(false)
                   }
                 })
-                setDaiValueFormatted(Number(ethers.utils.formatEther(amount0)).toFixed(5))
+                setDaiValueFormatted(ethers.utils.formatEther(amount0))
                 if (Number(ethers.utils.formatEther(amount0)) > Number(daiBalanceFormatted)) {
                   setInputErrorDai('Insufficient Balance!')
                 }
@@ -311,8 +312,6 @@ export default function AddLiquidity() {
               console.log(error);
             })
           })
-        } else {
-          setDaiValueFormatted('')
         }
       } else {
         setDaiValueFormatted(daiValue)
@@ -359,7 +358,7 @@ export default function AddLiquidity() {
                     setIsDaiApproved(false)
                   }
                 })
-                setWethValueFormatted(Number(ethers.utils.formatEther(amount1)).toFixed(5))
+                setWethValueFormatted(ethers.utils.formatEther(amount1))
                 if (Number(ethers.utils.formatEther(amount1)) > Number(wethBalanceFormatted)) {
                   setInputErrorWeth('Insufficient Balance!')
                 }
@@ -368,8 +367,6 @@ export default function AddLiquidity() {
               console.log(error);
             })
           })
-        } else {
-          setWethValueFormatted('')
         }
       }
     }
@@ -424,6 +421,7 @@ export default function AddLiquidity() {
       setMetapoolBalanceDai(result.amount0)
       setMetapoolLiquidity(result.liquidity)
       setMetapoolSupply(result.totalSupply)
+      setTotalDollarValue(result.totalDollarValue)
     })
     if (!daiValueFormatted) {
       setIsDaiApproved(true);
@@ -434,115 +432,145 @@ export default function AddLiquidity() {
   }, []);
 
   return <>
-      <ModeSelector />
-      <CurrencyInputPanel
-        title={t('deposit')}
-        allBalances={allBalances}
-        extraText={wethBalanceFormatted && formatBalance(wethBalanceFormatted)}
-        extraTextClickHander={() => {
-          if (wethBalance) {
-            if (wethBalance.gt(ethers.constants.Zero)) {
-              dispatchAddLiquidityState({
-                type: 'UPDATE_VALUE',
-                payload: { value: ethers.utils.formatEther(wethBalance), field: WETH_OP }
-              })
-            }
-          }
-        }}
-        onValueChange={wethValue => {
-          dispatchAddLiquidityState({ type: 'UPDATE_VALUE', payload: { value: wethValue, field: WETH_OP } })
-        }}
-        selectedTokens={[wethAddress, daiAddress]}
-        selectedTokenAddress={wethAddress}
-        value={wethValueFormatted}
-        errorMessage={inputErrorWeth ? inputErrorWeth : ''}
-        disableTokenSelect
-        disableUnlock
-      />
-      <OversizedPanel>
-        <DownArrowBackground>
-          <ColoredWrappedPlus active={isActive} alt="plus" />
-        </DownArrowBackground>
-      </OversizedPanel>
-      <CurrencyInputPanel
-        title={t('deposit')}
-        allBalances={allBalances}
-        extraText={daiBalanceFormatted && formatBalance(daiBalanceFormatted)}
-        onValueChange={daiValue => {
-          dispatchAddLiquidityState({ type: 'UPDATE_VALUE', payload: { value: daiValue, field: DAI_OP } })
-        }}
-        selectedTokens={[wethAddress, daiAddress]}
-        selectedTokenAddress={daiAddress}
-        value={daiValueFormatted}
-        errorMessage={inputErrorDai ? inputErrorDai : ''}
-        disableTokenSelect
-        disableUnlock
-      />
-      <OversizedPanel hideBottom>
-        <SummaryPanel>
-          <ExchangeRateWrapper>
-            <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
-            {<span>{marketRate  ? `1 ${wethSymbol} = ${marketRate.toFixed(3)} ${daiSymbol}` : ' - '}</span>}
-          </ExchangeRateWrapper>
-          <ExchangeRateWrapper>
-            <ExchangeRate>{'Gelato Pool Position Range'}</ExchangeRate>
-            {<span>
-              {lowerBoundRate && upperBoundRate
-                ? `${lowerBoundRate.toFixed(3)} ${daiSymbol} <---> ${upperBoundRate.toFixed(3)} ${daiSymbol}`
-              : ' - '}
-              </span>}
-          </ExchangeRateWrapper>
-          <ExchangeRateWrapper>
-            <ExchangeRate>{'Gelato Pool Position Amounts'}</ExchangeRate>
-            {<span>
-              {(metapoolBalanceWeth && metapoolBalanceDai)
-                ? `${Number(ethers.utils.formatEther(metapoolBalanceWeth)).toFixed(3)} ${wethSymbol} + ${Number(ethers.utils.formatEther(metapoolBalanceDai)).toFixed(3)} ${daiSymbol}`
-              : ' - '}
-              </span>}
-          </ExchangeRateWrapper>
-          <ExchangeRateWrapper>
-            <ExchangeRate>{'Gelato Pool Token Supply'}</ExchangeRate>
-            {<span>
-              {(metapoolSupply)
-                ? `${Number(ethers.utils.formatEther(metapoolSupply)).toFixed(5)} gUNIV3`
-              : ' - '}
-              </span>}
-          </ExchangeRateWrapper>
-          <ExchangeRateWrapper>
-            <ExchangeRate>
-              {t('yourPoolShare')} ({poolShare ? poolShare.toFixed(5) : '-'}%)
-            </ExchangeRate>
-            <span>{userEstimatedMint ? Number(ethers.utils.formatEther(userEstimatedMint)).toFixed(5)+' gUNIV3' : '-'}</span>
-            {/*<span>
-              {ethShare && tokenShare
-                ? `${amountFormatter(ethShare, 18, 4)} ETH + ${amountFormatter(
-                    tokenShare,
-                    decimals,
-                    Math.min(4, decimals)
-                  )} ${symbol}`
-                : ' - '}
-                </span>*/}
-          </ExchangeRateWrapper>
-        </SummaryPanel>
-      </OversizedPanel>
-      {!isWethApproved && (
-        <Flex>
-          <Button disabled={isApproveWethPending} onClick={onApproveWeth}>
-          {isApproveWethPending ? `Pending...` : `Approve ${wethSymbol}`}
-          </Button>
-        </Flex>
-      )}
-      {!isDaiApproved && (
-        <Flex>
-          <Button disabled={isApproveDaiPending} onClick={onApproveDai}>
-            {isApproveDaiPending ? `Pending...` : `Approve ${daiSymbol}`}
-          </Button>
-        </Flex>
-      )}
-      <Flex>
-        <Button disabled={!isValid || isAddLiquidityPending } onClick={onAddLiquidity}>
-          {!isAddLiquidityPending ? t('addLiquidity') : "Pending..."}
-        </Button>
-      </Flex>
+      { gelatoPool ?
+        <>
+          <OversizedPanel hideBottom>
+            <SummaryPanel>
+              <CenteredHeader>
+                Gelato's Uniswap V3 WETH/DAI Automated LP
+                <br></br>
+                <ExchangeRateWrapper><ExchangeRate>
+                  An ERC20 aggregating V3 LPs to passively earn competitive yeild
+                  <br></br>
+                  <a href="https://www.google.com">Learn More</a>
+                </ExchangeRate></ExchangeRateWrapper>
+              </CenteredHeader>
+            </SummaryPanel>
+          </OversizedPanel>
+          <ModeSelector />
+          <CurrencyInputPanel
+            title={t('deposit')}
+            allBalances={allBalances}
+            extraText={wethBalanceFormatted && formatBalance(Number(wethBalanceFormatted).toFixed(5))}
+            extraTextClickHander={() => {
+              if (wethBalance) {
+                if (wethBalance.gt(ethers.constants.Zero)) {
+                  dispatchAddLiquidityState({
+                    type: 'UPDATE_VALUE',
+                    payload: { value: ethers.utils.formatEther(wethBalance), field: WETH_OP }
+                  })
+                }
+              }
+            }}
+            onValueChange={wethValue => {
+              dispatchAddLiquidityState({ type: 'UPDATE_VALUE', payload: { value: wethValue, field: WETH_OP } })
+            }}
+            selectedTokens={[wethAddress, daiAddress]}
+            selectedTokenAddress={wethAddress}
+            value={wethValueFormatted}
+            errorMessage={inputErrorWeth ? inputErrorWeth : ''}
+            disableTokenSelect
+            disableUnlock
+          />
+          <OversizedPanel>
+            <DownArrowBackground>
+              <ColoredWrappedPlus active={isActive} alt="plus" />
+            </DownArrowBackground>
+          </OversizedPanel>
+          <CurrencyInputPanel
+            title={t('deposit')}
+            allBalances={allBalances}
+            extraText={daiBalanceFormatted && formatBalance(Number(daiBalanceFormatted).toFixed(5))}
+            extraTextClickHander={() => {
+              if (daiBalance) {
+                if (daiBalance.gt(ethers.constants.Zero)) {
+                  dispatchAddLiquidityState({
+                    type: 'UPDATE_VALUE',
+                    payload: { value: ethers.utils.formatEther(daiBalance), field: DAI_OP }
+                  })
+                }
+              }
+            }}
+            onValueChange={daiValue => {
+              dispatchAddLiquidityState({ type: 'UPDATE_VALUE', payload: { value: daiValue, field: DAI_OP } })
+            }}
+            selectedTokens={[wethAddress, daiAddress]}
+            selectedTokenAddress={daiAddress}
+            value={daiValueFormatted}
+            errorMessage={inputErrorDai ? inputErrorDai : ''}
+            disableTokenSelect
+            disableUnlock
+          />
+          <OversizedPanel hideBottom>
+            <SummaryPanel>
+              <ExchangeRateWrapper>
+                <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
+                {<span>{marketRate  ? `1 ${wethSymbol} = ${marketRate.toFixed(3)} ${daiSymbol}` : ' - '}</span>}
+              </ExchangeRateWrapper>
+              <ExchangeRateWrapper>
+                <ExchangeRate>{'Gelato Pool Position Range'}</ExchangeRate>
+                {<span>
+                  {lowerBoundRate && upperBoundRate
+                    ? `${lowerBoundRate.toFixed(3)} ${daiSymbol} <---> ${upperBoundRate.toFixed(3)} ${daiSymbol}`
+                  : ' - '}
+                  </span>}
+              </ExchangeRateWrapper>
+              <ExchangeRateWrapper>
+                <ExchangeRate>{'Gelato Pool Position Amounts'}</ExchangeRate>
+                {<span>
+                  {(metapoolBalanceWeth && metapoolBalanceDai && totalDollarValue)
+                    ? `${Number(ethers.utils.formatEther(metapoolBalanceWeth)).toFixed(3)} ${wethSymbol} + ${Number(ethers.utils.formatEther(metapoolBalanceDai)).toFixed(3)} ${daiSymbol} (~ $${totalDollarValue.toFixed(2)})`
+                  : ' - '}
+                  </span>}
+              </ExchangeRateWrapper>
+              <ExchangeRateWrapper>
+                <ExchangeRate>{'Pool Token Supply Before'}</ExchangeRate>
+                {<span>
+                  {metapoolSupply
+                    ? `${Number(ethers.utils.formatEther(metapoolSupply)).toFixed(5)} gUNIV3`
+                  : ' - '}
+                  </span>}
+              </ExchangeRateWrapper>
+              <ExchangeRateWrapper>
+                <ExchangeRate>
+                  {'Pool Tokens to Mint'} ({poolShare ? poolShare.toFixed(5) : '-'}%)
+                </ExchangeRate>
+                <span>{userEstimatedMint ? Number(ethers.utils.formatEther(userEstimatedMint)).toFixed(5)+' gUNIV3' : '-'}</span>
+              </ExchangeRateWrapper>
+              <ExchangeRateWrapper>
+                <ExchangeRate>
+                  {'Pool Token Supply After'}
+                </ExchangeRate>
+                <span>{(userEstimatedMint && metapoolSupply) ? (Number(ethers.utils.formatEther(userEstimatedMint))+Number(ethers.utils.formatEther(metapoolSupply))).toFixed(5)+' gUNIV3' : '-'}</span>
+              </ExchangeRateWrapper>
+            </SummaryPanel>
+          </OversizedPanel>
+          {!isWethApproved && (
+            <Flex>
+              <Button disabled={isApproveWethPending} onClick={onApproveWeth}>
+              {isApproveWethPending ? `Pending...` : `Approve ${wethSymbol}`}
+              </Button>
+            </Flex>
+          )}
+          {!isDaiApproved && (
+            <Flex>
+              <Button disabled={isApproveDaiPending} onClick={onApproveDai}>
+                {isApproveDaiPending ? `Pending...` : `Approve ${daiSymbol}`}
+              </Button>
+            </Flex>
+          )}
+          <Flex>
+            <Button disabled={!isValid || isAddLiquidityPending } onClick={onAddLiquidity}>
+              {!isAddLiquidityPending ? t('addLiquidity') : "Pending..."}
+            </Button>
+          </Flex>
+        </>
+      :
+        <>
+          <OversizedPanel hideBottom>
+            <SummaryPanel>Network not Supported</SummaryPanel>
+          </OversizedPanel>
+        </>
+      }
   </>
 }
