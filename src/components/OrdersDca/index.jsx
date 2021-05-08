@@ -182,27 +182,10 @@ export default function OrdersDca() {
 
   // Define orders to show as openOrders + pending orders
   useEffect(() => {
-    // Aggregate graph and local orders, graph orders have priority
-    const allOrders = graph.allOrders.concat(
-      local.allOrders.filter(o => !graph.allOrders.find(c => c.witness === o.witness))
-    )
-    console.log("### BEGIN")
-    console.log(graph.allOrders)
-    console.log(graph.openOrders)
-    console.log(local.openOrders)
+    
     const openOrders = graph.openOrders.concat(
       local.openOrders.filter(o => !graph.allOrders.find(c => c.witness === o.witness))
     )
-    
-    
-    // const allOrders = local.allOrders.concat(
-    //   graph.allOrders.filter(o => !local.allOrders.find(c => c.secret === o.secret))
-    // )
-    // const openOrders = local.openOrders.concat(
-    //   graph.openOrders.filter(o => !local.allOrders.find(c => c.secret === o.secret))
-    // )
-    console.log(openOrders)
-    console.log("### END")
     setOrders(openOrders)
     
     // eslint-disable-next-line

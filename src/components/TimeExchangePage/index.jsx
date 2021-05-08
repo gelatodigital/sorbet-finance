@@ -399,12 +399,8 @@ export default function TimeExchangePage({ initialCurrency }) {
   const [showUnlock, setShowUnlock] = useState(false)
   useEffect(() => {
     if (inputValue && inputAllowance) {
-      console.log(outputSymbol)
-      console.log(`Input Value: ${inputValue.toString()}`)
-      console.log(`Input Allowance: ${inputAllowance.toString()}`)
       if (inputAllowance.lt(inputValue)) {
         // Approval of user insufficient
-        console.log("Hello")
         setShowUnlock(true)
       } else {
         setInputError(null)
