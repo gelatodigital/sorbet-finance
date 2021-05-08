@@ -469,8 +469,8 @@ export default function TimeExchangePage({ initialCurrency }) {
       numTrades: numTradesBn.toString(),
       minSlippage: 1000,
       maxSlippage: 9999,
-      delay: 120,
-      // delay: getIntervalSeconds(interval),
+      // delay: 120,
+      delay: getIntervalSeconds(interval),
       platformWallet: PLATFORM_WALLET[chainId],
       platformFeeBps: 0
     }
