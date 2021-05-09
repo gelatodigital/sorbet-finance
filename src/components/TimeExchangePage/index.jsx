@@ -597,18 +597,33 @@ export default function TimeExchangePage({ initialCurrency }) {
 
   const [showBetaMessage, setShowBetaMessage] = useState(true)
 
+  const [showWhatIsDca, setShowWhatIsDca] = useState(true)
+
   return (
     <>
     {showBetaMessage && (
+      
       <BetaMessage onClick={ () => setShowBetaMessage(false)}>
-      <span role="img" aria-label="warning">
-        ❓
-      </span>{' '}
-      <Link id="link" href="https://www.investopedia.com/terms/d/dollarcostaveraging.asp#:~:text=Dollar%2Dcost%20averaging%20(DCA)%20is%20an%20investment%20strategy%20in,volatility%20on%20the%20overall%20purchase.&text=Dollar%2Dcost%20averaging%20is%20also%20known%20as%20the%20constant%20dollar%20plan." className="how-it-works">
-            {`What is Dollar Cost Averaging?`}
-      </Link>
-    </BetaMessage>
+        <span role="img" aria-label="warning">
+        🚨
+        </span>{' '}
+        <Link id="link"  className="how-it-works">
+              {`Experimental - Use at own risk`}
+        </Link>
+      </BetaMessage>
     )}
+    {showWhatIsDca && (
+      <BetaMessage onClick={ () => setShowWhatIsDca(false)}>
+        <span role="img" aria-label="warning">
+          ❓
+        </span>{' '}
+        <Link id="link" href="https://www.investopedia.com/terms/d/dollarcostaveraging.asp#:~:text=Dollar%2Dcost%20averaging%20(DCA)%20is%20an%20investment%20strategy%20in,volatility%20on%20the%20overall%20purchase.&text=Dollar%2Dcost%20averaging%20is%20also%20known%20as%20the%20constant%20dollar%20plan." className="how-it-works">
+              {`What is Dollar Cost Averaging?`}
+        </Link>
+      </BetaMessage>
+    )}
+
+
      
       <CurrencyInputPanel
         title={t('Total Sell Volume')}
