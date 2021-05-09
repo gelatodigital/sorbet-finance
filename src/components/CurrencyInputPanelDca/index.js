@@ -1,7 +1,6 @@
 import Tooltip from '@reach/tooltip'
 import '@reach/tooltip/styles.css'
 import { BigNumber } from '@uniswap/sdk'
-import { useWeb3React } from '@web3-react/core'
 import escapeStringRegex from 'escape-string-regexp'
 import { ethers } from 'ethers'
 import { darken, transparentize } from 'polished'
@@ -20,12 +19,12 @@ import { useAllTokenDcaDetails, useTokenDcaDetails } from '../../contexts/Tokens
 import { usePendingApproval, useTransactionAdder } from '../../contexts/Transactions'
 import { useTokenContract } from '../../hooks'
 import { BorderlessInput, Spinner } from '../../theme'
-import { calculateGasMargin, formatEthBalance, formatTokenBalance, formatToUsd, isAddress, trackTx } from '../../utils'
+import { calculateGasMargin, formatEthBalance, formatTokenBalance, formatToUsd, isAddress } from '../../utils'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
 
 
-const GAS_MARGIN = ethers.BigNumber.from(1000)
+const GAS_MARGIN = ethers.BigNumber.from("1000")
 
 const SubCurrencySelect = styled.button`
   ${({ theme }) => theme.flexRowNoWrap}
@@ -117,7 +116,7 @@ const Container = styled.div`
 
   background-color: ${({ theme }) => theme.inputBackground};
   :focus-within {
-    border: 1px solid ${({ theme }) => theme.malibuPurple};
+    border: 1px solid ${({ theme }) => theme.royalPurple};
   }
 `
 
@@ -262,7 +261,7 @@ const SpinnerWrapper = styled(Spinner)`
   opacity: 0.6;
 `
 
-export default function CurrencyInputPanel({
+export default function CurrencyInputPanelDca({
   onValueChange = () => {},
   allBalances,
   renderInput,
@@ -278,18 +277,16 @@ export default function CurrencyInputPanel({
   showUnlock,
   value,
   showCurrencySelector = true,
-  addressToApprove,
-  searchDisabled = false
+  searchDisabled = true
 }) {
   const { t } = useTranslation()
 
   const gasPrice = useGasPrice()
 
-  const { chainId } = useWeb3React()
-
   const [modalIsOpen, setModalIsOpen] = useState(false)
 
   const tokenContract = useTokenContract(selectedTokenAddress)
+  const { exchangeAddress: selectedTokenExchangeAddress } = useTokenDetails(selectedTokenAddress)
 
   const pendingApproval = usePendingApproval(selectedTokenAddress)
 
@@ -299,8 +296,12 @@ export default function CurrencyInputPanel({
   const allDcaTokens = useAllTokenDcaDetails()
 
   let tokenListFromContext;
-  if(window.location.pathname === "/limit-order") tokenListFromContext = allTokens
-  if(window.location.pathname === "/dca") tokenListFromContext = allDcaTokens
+  if(window.location.pathname === "/limit-order") {
+    tokenListFromContext = allTokens
+  }
+  if(window.location.pathname === "/dca") {
+    tokenListFromContext = allDcaTokens
+  }
 
   function renderUnlockButton() {
     if (disableUnlock || !showUnlock || selectedTokenAddress === 'ETH' || !selectedTokenAddress) {
@@ -310,17 +311,16 @@ export default function CurrencyInputPanel({
         return (
           <SubCurrencySelect
             onClick={async () => {
-              const estimatedGas = await tokenContract.estimateGas.approve(
-                addressToApprove,
+              const estimatedGas = await tokenContract.estimate.approve(
+                selectedTokenExchangeAddress,
                 ethers.constants.MaxUint256
               )
               tokenContract
-                .approve(addressToApprove, ethers.constants.MaxUint256, {
+                .approve(selectedTokenExchangeAddress, ethers.constants.MaxUint256, {
                   gasLimit: calculateGasMargin(estimatedGas, GAS_MARGIN),
                   gasPrice: gasPrice ? gasPrice : undefined
                 })
                 .then(response => {
-                  trackTx(response.hash, chainId)
                   addTransaction(response, { approval: selectedTokenAddress })
                 })
             }}
@@ -345,8 +345,9 @@ export default function CurrencyInputPanel({
           type="number"
           min="0"
           error={!!errorMessage}
-          placeholder="0.0"
+          placeholder=""
           step="0.000000000000000001"
+          disabled
           onChange={e => onValueChange(e.target.value)}
           onKeyPress={e => {
             const charCode = e.which ? e.which : e.keyCode
@@ -436,6 +437,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
   const { t } = useTranslation()
 
   const [searchQuery, setSearchQuery] = useState('')
+  
   const { nameLimit } = useTokenDetails(searchQuery)
   const { nameDca } = useTokenDcaDetails(searchQuery)
 

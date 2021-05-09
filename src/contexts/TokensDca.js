@@ -1,8 +1,8 @@
+import GELATO_TOKEN_LIST from "@gelatonetwork/default-token-list"
 import { useWeb3React } from '@web3-react/core'
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from 'react'
 import { ChainId } from 'uniswap-v2-sdk'
 import { getTokenDecimals, getTokenName, getTokenSymbol, isAddress, safeAccess } from '../utils'
-import { DEFAULT_TOKENS_EXTRA, DISABLED_TOKENS } from './DefaultTokens'
 
 const NAME = 'name'
 const SYMBOL = 'symbol'
@@ -37,10 +37,10 @@ const EMPTY_LIST = {
   [ChainId.MAINNET]: {}
 }
 
-const TokensContext = createContext()
+const TokensDcaContext = createContext()
 
 function useTokensContext() {
-  return useContext(TokensContext)
+  return useContext(TokensDcaContext)
 }
 
 function reducer(state, { type, payload }) {
@@ -72,33 +72,27 @@ export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, EMPTY_LIST)
 
   useEffect(() => {
-    fetch(DEFAULT_TOKEN_LIST_URL)
-    .then(res =>
-      res.json().then(list => {
-        const tokenList = list.tokens
-          .filter(token => !DISABLED_TOKENS[token.symbol])
-          .concat(DEFAULT_TOKENS_EXTRA)
-          .reduce(
-            (tokenMap, token) => {
-              if (tokenMap[token.chainId][token.address] !== undefined) {
-                console.warn('Duplicate tokens.')
-                return tokenMap
-              }
+    const tokenList = GELATO_TOKEN_LIST.tokens
+      .reduce(
+        (tokenMap, token) => {
+          if (tokenMap[token.chainId][token.address] !== undefined) {
+            console.warn('Duplicate tokens.')
+            return tokenMap
+          }
 
-              return {
-                ...tokenMap,
-                [token.chainId]: {
-                  ...tokenMap[token.chainId],
-                  [token.address]: token
-                }
-              }
-            },
-            { ...EMPTY_LIST }
-          )
-          dispatch({ type: SET_LIST, payload: tokenList })
-      })
-    )
-    .catch(e => console.error(e.message))
+          return {
+            ...tokenMap,
+            [token.chainId]: {
+              ...tokenMap[token.chainId],
+              [token.address]: token
+            }
+          }
+        },
+        { ...EMPTY_LIST }
+      )
+      dispatch({ type: SET_LIST, payload: tokenList })
+    
+    
   }, [])
 
   const update = useCallback((chainId, tokenAddress, name, symbol, decimals) => {
@@ -106,13 +100,13 @@ export default function Provider({ children }) {
   }, [])
 
   return (
-    <TokensContext.Provider value={useMemo(() => [state, { update }], [state, update])}>
+    <TokensDcaContext.Provider value={useMemo(() => [state, { update }], [state, update])}>
       {children}
-    </TokensContext.Provider>
+    </TokensDcaContext.Provider>
   )
 }
 
-export function useTokenDetails(tokenAddress) {
+export function useTokenDcaDetails(tokenAddress) {
   const { chainId, library } = useWeb3React()
 
   const [state, { update }] = useTokensContext()
@@ -148,7 +142,7 @@ export function useTokenDetails(tokenAddress) {
   return { name, symbol, decimals, chainId }
 }
 
-export function useAllTokenDetails(r) {
+export function useAllTokenDcaDetails(r) {
   const { chainId } = useWeb3React()
 
   const [state] = useTokensContext()

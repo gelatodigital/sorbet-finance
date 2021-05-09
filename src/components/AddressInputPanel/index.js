@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react'
-import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
 import { useWeb3React } from '@web3-react/core'
 import { transparentize } from 'polished'
-
-import { isAddress } from '../../utils'
+import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import styled from 'styled-components'
 import { useDebounce } from '../../hooks'
+import { isAddress } from '../../utils'
+
 
 const InputPanel = styled.div`
   ${({ theme }) => theme.flexColumnNoWrap}

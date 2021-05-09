@@ -57,7 +57,7 @@ function useGraphOrders(account, chainId) {
     console.log(`Requesting load orders from the graph`)
     if (account && isAddress(account)) {
       fetchUserOrders(account, chainId).then(orders => {
-        console.log(`Fetched ${orders.allOrders.length} ${orders.openOrders.length} orders from the graph`)
+        // console.log(`Fetched ${orders.allOrders.length} ${orders.openOrders.length} orders from the graph`)
         setState(orders)
       })
     }

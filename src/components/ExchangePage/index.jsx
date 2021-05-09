@@ -17,7 +17,7 @@ import { useTokenDetails, WETH } from '../../contexts/Tokens'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
 import { useTradeExactIn } from '../../hooks/trade'
 import { Button } from '../../theme'
-import { amountFormatter } from '../../utils'
+import { amountFormatter, trackTx } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../CurrencyInputPanel'
 import OrderDetailModal from '../OrderDetailModal/OrderDetailModal'
@@ -437,6 +437,8 @@ export default function ExchangePage({ initialCurrency }) {
     (inputCurrency === 'ETH' && outputCurrency.toLocaleLowerCase() === WETH[chainId]) ||
     (outputCurrency === 'ETH' && inputCurrency.toLocaleLowerCase() === WETH[chainId])
 
+  const { exchangeAddress: selectedTokenExchangeAddress } = useTokenDetails(inputCurrency)
+
   function getWadNumber(nb, decimalsNb) {
     return nb.mul(ethers.utils.parseUnits('1', 18)).div(ethers.utils.parseUnits('1', decimalsNb))
   }
@@ -590,6 +592,7 @@ export default function ExchangePage({ initialCurrency }) {
       setConfirmationPending(false)
 
       if (res.hash) {
+        trackTx(res.hash, chainId)
         addTransaction(res, { action: ACTION_PLACE_ORDER, order: order })
       }
     } catch (e) {
@@ -652,6 +655,7 @@ export default function ExchangePage({ initialCurrency }) {
         selectedTokenAddress={inputCurrency}
         value={inputValueFormatted}
         errorMessage={inputError ? inputError : independentField === INPUT ? independentError : ''}
+        addressToApprove={selectedTokenExchangeAddress}
       />
       <OversizedPanel>
         <DownArrowBackground>
@@ -682,6 +686,7 @@ export default function ExchangePage({ initialCurrency }) {
         onValueChange={rateValue => {
           dispatchSwapState({ type: 'UPDATE_INDEPENDENT', payload: { value: rateValue, field: RATE } })
         }}
+        addressToApprove={selectedTokenExchangeAddress}
       />
       <OversizedPanel>
         <ExchangeRateWrapper
@@ -743,6 +748,7 @@ export default function ExchangePage({ initialCurrency }) {
         value={outputValueFormatted}
         errorMessage={independentField === OUTPUT ? independentError : ''}
         disableUnlock
+        addressToApprove={selectedTokenExchangeAddress}
       />
       <OversizedPanel hideBottom>
         <ExchangeRateWrapper

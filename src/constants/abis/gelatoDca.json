@@ -1,0 +1,1338 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "contract IKyberProxy",
+        "name": "_kyberProxy",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IUniswapV2Router02",
+        "name": "_uniRouterV2",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IUniswapV2Router02",
+        "name": "_sushiRouterV2",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_gelato",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "wallets",
+        "type": "address[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "address[]",
+        "name": "tokens",
+        "type": "address[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "claimer",
+        "type": "address"
+      }
+    ],
+    "name": "ClaimedPlatformFees",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "inToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountPerTrade",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nTradesLeft",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastExecutionTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "platformWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "platformFeeBps",
+            "type": "uint256"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct GelatoDCA.ExecOrder",
+        "name": "order",
+        "type": "tuple"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "outAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "LogDCATrade",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "taskId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "executor",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "postExecFee",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "rate",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "creditToken",
+        "type": "address"
+      }
+    ],
+    "name": "LogExecSuccess",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "inToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountPerTrade",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nTradesLeft",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastExecutionTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "platformWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "platformFeeBps",
+            "type": "uint256"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct GelatoDCA.ExecOrder",
+        "name": "order",
+        "type": "tuple"
+      }
+    ],
+    "name": "LogTaskCancelled",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "remover",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "taskHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "LogTaskRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "taskHash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "payload",
+        "type": "bytes"
+      }
+    ],
+    "name": "LogTaskStored",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "inToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountPerTrade",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nTradesLeft",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastExecutionTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "platformWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "platformFeeBps",
+            "type": "uint256"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct GelatoDCA.ExecOrder",
+        "name": "order",
+        "type": "tuple"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "isSubmitAndExec",
+        "type": "bool"
+      }
+    ],
+    "name": "LogTaskSubmitted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "inToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountPerTrade",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nTradesLeft",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastExecutionTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "platformWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "platformFeeBps",
+            "type": "uint256"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct GelatoDCA.ExecOrder",
+        "name": "order",
+        "type": "tuple"
+      }
+    ],
+    "name": "LogTaskUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "BPS",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "HINT",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "inToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountPerTrade",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nTradesLeft",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastExecutionTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "platformWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "platformFeeBps",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GelatoDCA.ExecOrder",
+        "name": "_order",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "cancel",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address[]",
+        "name": "_platformWallets",
+        "type": "address[]"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_tokens",
+        "type": "address[]"
+      }
+    ],
+    "name": "claimPlatformFees",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "inToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountPerTrade",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nTradesLeft",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastExecutionTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "platformWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "platformFeeBps",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GelatoDCA.ExecOrder",
+        "name": "_order",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum GelatoDCA.Dex",
+        "name": "_protocol",
+        "type": "uint8"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "swapRate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isOutToken",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct Fee",
+        "name": "_fee",
+        "type": "tuple"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_tradePath",
+        "type": "address[]"
+      }
+    ],
+    "name": "exec",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "gelato",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "_src",
+        "type": "address"
+      },
+      {
+        "internalType": "contract IERC20",
+        "name": "_dest",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_inAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_platformFee",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "_hint",
+        "type": "bytes"
+      }
+    ],
+    "name": "getExpectedReturnKyber",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "outAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "expectedRate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract IUniswapV2Router02",
+        "name": "_router",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_inAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_tradePath",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_platformFee",
+        "type": "uint256"
+      }
+    ],
+    "name": "getExpectedReturnUniswap",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "outAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "expectedRate",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "inToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountPerTrade",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nTradesLeft",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastExecutionTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "platformWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "platformFeeBps",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GelatoDCA.ExecOrder",
+        "name": "_order",
+        "type": "tuple"
+      }
+    ],
+    "name": "getMinReturn",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "minReturn",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum GelatoDCA.Dex",
+        "name": "_dex",
+        "type": "uint8"
+      }
+    ],
+    "name": "getProtocolAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_blob",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_taskId",
+        "type": "uint256"
+      }
+    ],
+    "name": "hashTask",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_inToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_outToken",
+        "type": "address"
+      }
+    ],
+    "name": "isSwapPossible",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "isPossible",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "inToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountPerTrade",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nTradesLeft",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastExecutionTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "platformWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "platformFeeBps",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GelatoDCA.ExecOrder",
+        "name": "_order",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "isTaskSubmitted",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "kyberProxy",
+    "outputs": [
+      {
+        "internalType": "contract IKyberProxy",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "platformWalletFees",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "inToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountPerTrade",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "numTrades",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "platformWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "platformFeeBps",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GelatoDCA.SubmitOrder",
+        "name": "_order",
+        "type": "tuple"
+      },
+      {
+        "internalType": "bool",
+        "name": "_isSubmitAndExec",
+        "type": "bool"
+      }
+    ],
+    "name": "submit",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "user",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "inToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountPerTrade",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "nTradesLeft",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastExecutionTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "platformWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "platformFeeBps",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GelatoDCA.ExecOrder",
+        "name": "order",
+        "type": "tuple"
+      },
+      {
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "inToken",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "outToken",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amountPerTrade",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "numTrades",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "minSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxSlippage",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "delay",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "platformWallet",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "platformFeeBps",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GelatoDCA.SubmitOrder",
+        "name": "_order",
+        "type": "tuple"
+      },
+      {
+        "internalType": "enum GelatoDCA.Dex",
+        "name": "_protocol",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_minReturnOrRate",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address[]",
+        "name": "_tradePath",
+        "type": "address[]"
+      }
+    ],
+    "name": "submitAndExec",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "sushiRouterV2",
+    "outputs": [
+      {
+        "internalType": "contract IUniswapV2Router02",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "taskId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "taskOwner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "uniRouterV2",
+    "outputs": [
+      {
+        "internalType": "contract IUniswapV2Router02",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "_bytes",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_id",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "verifyTask",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
+  }
+]

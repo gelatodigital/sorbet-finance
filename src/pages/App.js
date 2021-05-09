@@ -3,12 +3,14 @@ import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom'
 import styled from 'styled-components'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
+import NavigationTabs from '../components/NavigationTabs'
 import Web3ReactManager from '../components/Web3ReactManager'
 import { isAddress } from '../utils'
 
 
 
 const Swap = lazy(() => import('./Swap'))
+const Dca = lazy(() => import('./Dca'))
 
 const AppWrapper = styled.div`
   display: flex;
@@ -57,23 +59,36 @@ export default function App() {
               <Web3ReactManager>
                 <BrowserRouter>
                   {/* this Suspense is for route code-splitting */}
-                  {/* <NavigationTabs /> */}
+                  <NavigationTabs />
                   <Suspense fallback={null}>
                     <Switch>
-                      <Route exact strict path="/order" component={Swap} />
+                      <Route exact strict path="/limit-order" component={Swap} />
                       <Route
                         exact
                         strict
-                        path="/order/:tokenAddress?"
+                        path="/limit-order/:tokenAddress?"
                         render={({ match }) => {
                           if (isAddress(match.params.tokenAddress)) {
                             return <Swap initialCurrency={isAddress(match.params.tokenAddress)} />
                           } else {
-                            return <Redirect to={{ pathname: '/order' }} />
+                            return <Redirect to={{ pathname: '/limit-order' }} />
                           }
                         }}
                       />
-                      <Redirect to="/order" />
+                      <Route exact strict path="/dca" component={Dca} />
+                      <Route
+                        exact
+                        strict
+                        path="/dca/:tokenAddress?"
+                        render={({ match }) => {
+                          if (isAddress(match.params.tokenAddress)) {
+                            return <Dca initialCurrency={isAddress(match.params.tokenAddress)} />
+                          } else {
+                            return <Redirect to={{ pathname: '/dca' }} />
+                          }
+                        }}
+                      />
+                      <Redirect to="/limit-order" />
                     </Switch>
                   </Suspense>
                 </BrowserRouter>

@@ -6,8 +6,9 @@ import Confetti from 'react-confetti'
 import styled from 'styled-components'
 import GelatoMainLogo from '../../assets/svg/GelatoMainLogo.svg'
 import { Button } from '../../theme'
-import Modal from '../Modal'
 import { deviceDown, deviceUp } from '../../theme/components'
+import Modal from '../Modal'
+import { fetchUserPastDcaOrders } from '../OrdersHistoryDca'
 
 const CustomButton = styled(Button)`
   @media ${deviceDown.laptop} {
@@ -72,9 +73,19 @@ export default function SupriseModal() {
 
   useEffect(() => {
     async function getAllExecutedOrdersAsync() {
-      if (chainId !== 1) return
+      if (chainId !== 1) return;
+      if (ls.get(lsKey(LS_GIFT, account, chainId))) return;
+      
       const allExecOrder = await getAllExecutedOrders(account, chainId)
-      setIsOpen(allExecOrder.length > 0 && !ls.get(lsKey(LS_GIFT, account, chainId)))
+      if (allExecOrder.length > 0) {
+        setIsOpen(true);
+        return;
+      }
+      const allDcaPastOrders = await fetchUserPastDcaOrders()
+      if (allDcaPastOrders.length > 0) {
+        setIsOpen(true)
+        return
+      }
     }
 
     if (!isOpen) {

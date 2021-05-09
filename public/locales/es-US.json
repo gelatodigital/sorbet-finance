@@ -1,4 +1,5 @@
 {
+  "insufficientNumTrades": "Orden dividida en al menos 2 operaciones",
   "noWallet": "No se ha encontrado billetera de Ethereum",
   "wrongNetwork": "Se encuentra en la red equivocada",
   "switchNetwork": "Por favor cambie a {{ correctNetwork }}",
@@ -91,6 +92,6 @@
   "notExecuted": "Tu orden no se ejecutará",
   "mayNotExecuted": "Tu orden puede no ejecutarse",
   "orderWarning": "Orden demasiado pequeña, tasa de ejecución extrema",
-  "ethToWethLOWng": "No se permiten órdenes limitadas entre ETH y WETH",
+  "ethToWethLOWng": "No se permiten órdenes entre ETH y WETH",
   "executionRate": "Tasa de ejecución a {{ gasPrice }} GWEI"
 }

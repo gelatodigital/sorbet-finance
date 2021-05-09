@@ -62,6 +62,13 @@ export const DEFAULT_TOKENS_EXTRA = [
     address: '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984',
     decimals: 18,
     chainId: 1
+  },
+  {
+    name: 'WETH 2',
+    symbol: 'WETH2',
+    address: '0xbca556c912754bc8e7d4aad20ad69a1b1444f42d',
+    decimals: 18,
+    chainId: 3
   }
 ]
 

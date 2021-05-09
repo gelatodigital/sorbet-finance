@@ -1,4 +1,5 @@
 {
+  "insufficientNumTrades": "Wähle mindestens 2 Trades oder mehr aus",
   "noWallet": "Keine Ethereum-Wallet gefunden",
   "wrongNetwork": "Du bist auf dem falschen Netzwerk.",
   "switchNetwork": "Bitte wechsle zum {{ correctNetwork }}",
@@ -92,6 +93,6 @@
   "notExecuted": "Ihre Bestellung wird nicht ausgeführt werden",
   "mayNotExecuted": "Ihre Bestellung kann nicht ausgeführt werden",
   "orderWarning": "Bestellung zu klein, extreme Ausführungsrate",
-  "ethToWethLOWng": "Limit Orders zwischen ETH und WETH sind nicht erlaubt",
+  "ethToWethLOWng": "Orders zwischen ETH und WETH sind nicht erlaubt",
   "executionRate": "Ausführungsrate bei {{ gasPrice }} GWEI"
 }

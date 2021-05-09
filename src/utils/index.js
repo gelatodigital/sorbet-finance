@@ -1,13 +1,16 @@
-import { ethers } from 'ethers'
-import { Contract } from '@ethersproject/contracts'
-import { AddressZero } from '@ethersproject/constants'
+import { AddressZero } from '@ethersproject/constants';
+import { Contract } from '@ethersproject/contracts';
+import { formatFixed } from '@uniswap/sdk';
+import Notify from "bnc-notify";
+import { ethers } from 'ethers';
+import { GELATO_DCA, UNISWAPEX_ADDRESSES } from '../constants';
+import ERC20_ABI from '../constants/abis/erc20';
+import ERC20_BYTES32_ABI from '../constants/abis/erc20_bytes32';
+import GELATO_DCA_ABI from '../constants/abis/gelatoDca';
+import PAIR_ABI from '../constants/abis/pair.json';
+import UNISWAPEX_ABI from '../constants/abis/uniswapEX';
 
-import ERC20_ABI from '../constants/abis/erc20'
-import ERC20_BYTES32_ABI from '../constants/abis/erc20_bytes32'
-import UNISWAPEX_ABI from '../constants/abis/uniswapEX'
-import PAIR_ABI from '../constants/abis/pair.json'
-import { UNISWAPEX_ADDRESSES} from '../constants'
-import { formatFixed } from '@uniswap/sdk'
+
 
 export const ERROR_CODES = ['TOKEN_NAME', 'TOKEN_SYMBOL', 'TOKEN_DECIMALS'].reduce(
   (accumulator, currentValue, currentIndex) => {
@@ -70,6 +73,15 @@ export function getNetworkName(chainId) {
   }
 }
 
+export const getTimeAndDate = (estimatedExecTime) => {
+  return `${new Date(estimatedExecTime * 1000)
+    .toTimeString()
+    .toString()
+    .substring(0, 8)} ${new Date(estimatedExecTime * 1000)
+    .toLocaleDateString()
+    .toString()}`;
+};
+
 export function shortenAddress(address, digits = 4) {
   if (!isAddress(address)) {
     throw Error(`Invalid 'address' parameter '${address}'.`)
@@ -116,6 +128,10 @@ export function getContract(address, ABI, library, account) {
 // account is optional
 export function getUniswapExContract(chainId, library, account) {
   return getContract(UNISWAPEX_ADDRESSES[chainId], UNISWAPEX_ABI, library, account)
+}
+
+export function getGelatoDcaContract(chainId, library, account) {
+  return getContract(GELATO_DCA[chainId], GELATO_DCA_ABI, library, account)
 }
 
 export function getPairContract(address, library, account) {
@@ -295,3 +311,14 @@ export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, 
     }
   }
 }
+
+export const trackTx = (hash, chainId) => {
+  if (process.env.REACT_APP_BLOCK_NATIVE) {
+    const notify = Notify({
+      dappId: process.env.REACT_APP_BLOCK_NATIVE, // [String] The API key created by step one above
+      networkId: chainId, // [Integer] The Ethereum network ID your Dapp uses.
+    });
+    // Track Tx progress
+    notify.hash(hash);
+  }
+};

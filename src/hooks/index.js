@@ -8,9 +8,7 @@ import { MULTICALL_NETWORKS, NetworkContextName } from '../constants';
 import ERC20_ABI from '../constants/abis/erc20';
 import MULTICALL_ABI from '../constants/abis/multicall';
 import {
-  getContract, getExchangeContract, getFactoryContract, getUniswapExContract,
-  getUniswapV2Contracts,
-  isAddress
+  getContract, getGelatoDcaContract, getUniswapExContract, isAddress
 } from '../utils';
 
 const safeMultisigConnector = new SafeAppConnector();
@@ -93,6 +91,19 @@ export function useUniswapExContract(withSignerIfPossible = true) {
   return useMemo(() => {
     try {
       return getUniswapExContract(chainId, library, withSignerIfPossible ? account : undefined)
+    } catch (e) {
+      return null
+    }
+  }, [chainId, library, withSignerIfPossible, account])
+}
+
+// returns null on errors
+export function useGelatoDcaContract(withSignerIfPossible = true) {
+  const { chainId, library, account } = useActiveWeb3React()
+
+  return useMemo(() => {
+    try {
+      return getGelatoDcaContract(chainId, library, withSignerIfPossible ? account : undefined)
     } catch (e) {
       return null
     }

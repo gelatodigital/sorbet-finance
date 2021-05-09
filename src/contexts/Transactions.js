@@ -1,10 +1,10 @@
-import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react'
 import { useWeb3React } from '@web3-react/core'
-
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from 'react'
 import { safeAccess } from '../utils'
 import { useBlockNumber } from './Application'
 
 const RESPONSE = 'response'
+const CONFIRMATIONS = 'confirmations'
 const CUSTOM_DATA = 'CUSTOM_DATA'
 const BLOCK_NUMBER_CHECKED = 'BLOCK_NUMBER_CHECKED'
 const RECEIPT = 'receipt'
@@ -211,6 +211,22 @@ export function useOrderPendingState(order) {
 
   return {
     state: allTransactions[last][RESPONSE][CUSTOM_DATA].action,
+    last: allTransactions[last]
+  }
+}
+
+export function useOrderPendingStateDca() {
+  const allTransactions = useAllTransactions()
+
+  const last = Object.keys(allTransactions).find(
+    hash =>
+      allTransactions[hash][RESPONSE] &&
+      allTransactions[hash][RESPONSE][CONFIRMATIONS]=== 0 &&
+      !allTransactions[hash][RECEIPT]
+  )
+
+  return {
+    state: ACTION_PLACE_ORDER,
     last: allTransactions[last]
   }
 }

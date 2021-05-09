@@ -1,4 +1,5 @@
 {
+  "insufficientNumTrades": "Împărțiți ordinea în cel puțin 2 tranzacții",
   "noWallet": "Niciun portofel Ethereum găsit",
   "wrongNetwork": "Nu ești conectat la rețeaua corectă",
   "switchNetwork": "Conectează-te te rog la {{ correctNetwork }}",
@@ -91,6 +92,6 @@
   "notExecuted": "Comanda ta va fi să nu fie executat",
   "mayNotExecuted": "Comanda dvs. poate să nu fie executat",
   "orderWarning": "Comandați o rată de execuție extrem de mică",
-  "ethToWethLOWng": "Ordinea limită între ETH și WETH nu este permisă",
+  "ethToWethLOWng": "Ordinea între ETH și WETH nu este permisă",
   "executionRate": "Rata de execuție la {{ gasPrice }} GWEI"
 }
