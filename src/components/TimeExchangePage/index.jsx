@@ -529,7 +529,10 @@ export default function TimeExchangePage({ initialCurrency }) {
       // console.log(witness === ("0x" + witnessCut))
 
       const gasLimit = await gelatoDcaContract.estimateGas.submitAndExec(
-        order, UNI, minOutAmountUniWithSlippage, path
+        order, UNI, minOutAmountUniWithSlippage, path, 
+        {
+          value: value
+        }
       )
       
 
