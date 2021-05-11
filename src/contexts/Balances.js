@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useMemo, useCallback, use
 import { useWeb3React } from '@web3-react/core'
 
 import { safeAccess, isAddress, getEtherBalance, getTokenBalance } from '../utils'
+import { NATIVE_TOKEN_TICKER } from '../constants/networks'
 import { useBlockNumber } from './Application'
 
 const UPDATE = 'UPDATE'
@@ -61,13 +62,13 @@ export function useAddressBalance(address, tokenAddress) {
   useEffect(() => {
     if (
       isAddress(address) &&
-      (tokenAddress === 'ETH' || isAddress(tokenAddress)) &&
+      (tokenAddress === NATIVE_TOKEN_TICKER[chainId] || isAddress(tokenAddress)) &&
       (value === undefined || blockNumber !== globalBlockNumber) &&
       (chainId || chainId === 0) &&
       library
     ) {
       let stale = false
-      ;(tokenAddress === 'ETH' ? getEtherBalance(address, library) : getTokenBalance(tokenAddress, address, library))
+      ;(tokenAddress === NATIVE_TOKEN_TICKER[chainId] ? getEtherBalance(address, library) : getTokenBalance(tokenAddress, address, library))
         .then(value => {
           if (!stale) {
             update(chainId, address, tokenAddress, value, globalBlockNumber)

@@ -7,6 +7,7 @@ import { ethers } from 'ethers'
 import { darken, transparentize } from 'polished'
 import React, { useMemo, useRef, useState } from 'react'
 import { isMobile } from 'react-device-detect'
+import * as ls from 'local-storage'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import Circle from '../../assets/images/circle-grey.svg'
@@ -20,6 +21,7 @@ import { useAllTokenDcaDetails, useTokenDcaDetails } from '../../contexts/Tokens
 import { usePendingApproval, useTransactionAdder } from '../../contexts/Transactions'
 import { useTokenContract } from '../../hooks'
 import { BorderlessInput, Spinner } from '../../theme'
+import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
 import { calculateGasMargin, formatEthBalance, formatTokenBalance, formatToUsd, isAddress, trackTx } from '../../utils'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
@@ -290,7 +292,6 @@ export default function CurrencyInputPanel({
   const [modalIsOpen, setModalIsOpen] = useState(false)
 
   const tokenContract = useTokenContract(selectedTokenAddress)
-
   const pendingApproval = usePendingApproval(selectedTokenAddress)
 
   const addTransaction = useTransactionAdder()
@@ -303,7 +304,7 @@ export default function CurrencyInputPanel({
   if(window.location.pathname === "/dca") tokenListFromContext = allDcaTokens
 
   function renderUnlockButton() {
-    if (disableUnlock || !showUnlock || selectedTokenAddress === 'ETH' || !selectedTokenAddress) {
+    if (disableUnlock || !showUnlock || selectedTokenAddress === NATIVE_TOKEN_TICKER[chainId] || !selectedTokenAddress) {
       return null
     } else {
       if (!pendingApproval) {
@@ -410,6 +411,7 @@ export default function CurrencyInputPanel({
                 marginTop: '-64px'
               }}
             >
+              {/* (Balance: X) */}
               <span>{extraText}</span>
             </Tooltip>
           </ErrorSpan>
@@ -434,7 +436,6 @@ export default function CurrencyInputPanel({
 
 function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, searchDisabled }) {
   const { t } = useTranslation()
-
   const [searchQuery, setSearchQuery] = useState('')
   const { nameLimit } = useTokenDetails(searchQuery)
   const { nameDca } = useTokenDcaDetails(searchQuery)
@@ -481,14 +482,15 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
     )
 
   const tokenList = useMemo(() => {
+    const chainId = ls.get("chainId")
     return Object.keys(tokenListFromContext)
       .filter(k => tokenListFromContext[k].symbol)
       .sort((a, b) => {
         const aSymbol = tokenListFromContext[a].symbol.toLowerCase()
         const bSymbol = tokenListFromContext[b].symbol.toLowerCase()
-
-        if (aSymbol === 'ETH'.toLowerCase() || bSymbol === 'ETH'.toLowerCase()) {
-          return aSymbol === bSymbol ? 0 : aSymbol === 'ETH'.toLowerCase() ? -1 : 1
+      
+        if (aSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase() || bSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase()) {
+          return aSymbol === bSymbol ? 0 : aSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase() ? -1 : 1
         }
 
         if (aSymbol === 'WETH'.toLowerCase() || bSymbol === 'WETH'.toLowerCase()) {
@@ -520,7 +522,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
         let balance
         let usdBalance
         // only update if we have data
-        if (k === 'ETH' && allBalances && allBalances[k]) {
+        if (k === NATIVE_TOKEN_TICKER[chainId] && allBalances && allBalances[k]) {
           balance = formatEthBalance(allBalances[k].balance)
           usdBalance = usdAmounts[k]
         } else if (allBalances && allBalances[k]) {

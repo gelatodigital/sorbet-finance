@@ -5,6 +5,7 @@ import { PortisConnector } from '@web3-react/portis-connector'
 
 import { FortmaticConnector } from './Fortmatic'
 import { NetworkConnector } from './NetworkConnector'
+import { ChainId } from '../constants/networks'
 
 const POLLING_INTERVAL = 12500
 const NETWORK_URL = process.env.REACT_APP_NETWORK_URL
@@ -15,21 +16,37 @@ if (typeof NETWORK_URL === 'undefined') {
   throw new Error(`REACT_APP_NETWORK_URL must be a defined environment variable`)
 }
 
+
+const RPC = {
+  [ChainId.MAINNET]: 'https://eth-mainnet.alchemyapi.io/v2/q1gSNoSMEzJms47Qn93f9-9Xg5clkmEC',
+  [ChainId.ROPSTEN]: 'https://eth-ropsten.alchemyapi.io/v2/cidKix2Xr-snU3f6f6Zjq_rYdalKKHmW',
+  [ChainId.MATIC]: 'https://rpc-mainnet.maticvigil.com',
+}
+
+
 export const network = new NetworkConnector({
-  urls: { [Number(process.env.REACT_APP_CHAIN_ID)]: NETWORK_URL }
+  defaultChainId: 1,
+  urls: RPC
 })
 
 export const injected = new InjectedConnector({
-  supportedChainIds: [1, 3, 4, 5, 42]
+  supportedChainIds: [
+      1, // mainnet
+      3, // ropsten
+      137, // matic
+  ]
 })
 
-// mainnet only
+
 export const walletconnect = new WalletConnectConnector({
-  rpc: { 1: NETWORK_URL },
+  rpc: {
+      [ChainId.MAINNET]: RPC[ChainId.MAINNET]
+  },
   bridge: 'https://bridge.walletconnect.org',
   qrcode: true,
-  pollingInterval: POLLING_INTERVAL
+  pollingInterval: 15000
 })
+
 
 // mainnet only
 export const fortmatic = new FortmaticConnector({

@@ -4,6 +4,8 @@ import { useWeb3React } from '@web3-react/core'
 
 import { safeAccess, isAddress, getEtherBalance, getTokenBalance } from '../utils'
 import { useAllTokenDetails } from './Tokens'
+import { NATIVE_TOKEN_TICKER } from '../constants/networks'
+
 
 const ONE = new BigNumber(1)
 
@@ -67,8 +69,8 @@ export function useFetchAllBalances() {
           let balance = null
           let ethRate = null
 
-          if (isAddress(k) || k === 'ETH') {
-            if (k === 'ETH') {
+          if (isAddress(k) || k === NATIVE_TOKEN_TICKER[chainId]) {
+            if (k === NATIVE_TOKEN_TICKER[chainId]) {
               balance = await getEtherBalance(account, library).catch(() => null)
               ethRate = ONE
             } else {

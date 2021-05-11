@@ -17,6 +17,7 @@ import { useTokenDetails, WETH } from '../../contexts/Tokens'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
 import { useTradeExactIn } from '../../hooks/trade'
 import { Button } from '../../theme'
+import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
 import { amountFormatter, trackTx } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../CurrencyInputPanel'
@@ -125,13 +126,13 @@ function saveOrder(account, orderData, chainId) {
 // ///
 // Helpers
 // ///
-
 function getSwapType(inputCurrency, outputCurrency) {
+  const chainIdStored = ls.get("chainId")
   if (!inputCurrency || !outputCurrency) {
     return null
-  } else if (inputCurrency === 'ETH') {
+  } else if (inputCurrency === NATIVE_TOKEN_TICKER[chainIdStored]) {
     return ETH_TO_TOKEN
-  } else if (outputCurrency === 'ETH') {
+  } else if (outputCurrency === NATIVE_TOKEN_TICKER[chainIdStored]) {
     return TOKEN_TO_ETH
   } else {
     return TOKEN_TO_TOKEN
@@ -139,12 +140,13 @@ function getSwapType(inputCurrency, outputCurrency) {
 }
 
 function getInitialSwapState(outputCurrency) {
+  const chainIdStored = ls.get("chainId")
   return {
     independentValue: '', // this is a user input
     dependentValue: '', // this is a calculated number
     independentField: INPUT,
     prevIndependentField: OUTPUT,
-    inputCurrency: 'ETH',
+    inputCurrency: NATIVE_TOKEN_TICKER[chainIdStored],
     outputCurrency: outputCurrency ? outputCurrency : '',
     rateOp: RATE_OP_MULT,
     inputRateValue: ''
@@ -309,6 +311,7 @@ export default function ExchangePage({ initialCurrency }) {
   // get balances for each of the currency types
   const inputBalance = useAddressBalance(account, inputCurrency)
   const outputBalance = useAddressBalance(account, outputCurrency)
+
   const inputBalanceFormatted = !!(inputBalance && Number.isInteger(inputDecimals))
     ? amountFormatter(inputBalance, inputDecimals, Math.min(4, inputDecimals))
     : ''
@@ -403,10 +406,10 @@ export default function ExchangePage({ initialCurrency }) {
   const gasLimit = GENERIC_GAS_LIMIT_ORDER_EXECUTE
   const requiredGas = gasPrice?.mul(gasLimit)
 
-  const gasInInputTokens = useTradeExactIn('ETH', amountFormatter(requiredGas, 18, 18), inputCurrency)
+  const gasInInputTokens = useTradeExactIn(NATIVE_TOKEN_TICKER[chainId], amountFormatter(requiredGas, 18, 18), inputCurrency)
 
   let usedInput
-  if (inputSymbol === 'ETH') {
+  if (inputSymbol === NATIVE_TOKEN_TICKER[chainId]) {
     usedInput = requiredGas
   } else if (gasInInputTokens) {
     usedInput = ethers.utils.parseUnits(gasInInputTokens.outputAmount.toExact(), inputDecimals)
@@ -565,8 +568,11 @@ export default function ExchangePage({ initialCurrency }) {
         toCurrency,
         inputAmount,
         minimumReturn,
-        account.toLowerCase()
+        account.toLowerCase(),
+        provider
       )
+      console.log("fromCurrency", fromCurrency)
+      console.log("transactionDataWithSecret", transactionDataWithSecret)
 
       const order = {
         inputAmount: inputAmount.toString(),
@@ -582,6 +588,8 @@ export default function ExchangePage({ initialCurrency }) {
         witness: transactionDataWithSecret.witness.toLowerCase()
       }
 
+      console.log("order", order)
+
       saveOrder(account, order, chainId)
 
       const res = await provider.getSigner().sendTransaction({
@@ -596,6 +604,7 @@ export default function ExchangePage({ initialCurrency }) {
         addTransaction(res, { action: ACTION_PLACE_ORDER, order: order })
       }
     } catch (e) {
+      console.log("ERROR", e)
       setConfirmationPending(false)
       console.log('Error on place order', e.message)
     }
@@ -612,6 +621,7 @@ export default function ExchangePage({ initialCurrency }) {
   const [customSlippageError] = useState('')
 
   const allBalances = useFetchAllBalances()
+
 
   return (
     <>
@@ -635,7 +645,7 @@ export default function ExchangePage({ initialCurrency }) {
         extraText={inputBalanceFormatted && formatBalance(inputBalanceFormatted)}
         extraTextClickHander={() => {
           if (inputBalance && inputDecimals) {
-            const valueToSet = inputCurrency === 'ETH' ? inputBalance.sub(ethers.utils.parseEther('.1')) : inputBalance
+            const valueToSet = inputCurrency === NATIVE_TOKEN_TICKER[chainId] ? inputBalance.sub(ethers.utils.parseEther('.1')) : inputBalance
             if (valueToSet.gt(ethers.constants.Zero)) {
               dispatchSwapState({
                 type: 'UPDATE_INDEPENDENT',

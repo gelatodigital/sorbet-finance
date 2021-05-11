@@ -1,13 +1,16 @@
 import { ethers } from 'ethers'
-import { ChainId, Token, WETH } from 'uniswap-v2-sdk'
+import { Token as UniswapToken, WETH } from 'uniswap-v2-sdk'
+import { Token as QuickswapToken, WETH as WMATIC } from 'quickswap-sdk'
+import { ChainId } from './networks'
 // @TODO: we should test walletconnect, walletlink before adding
-import { fortmatic, injected, portis } from '../connectors'
+import { fortmatic, injected, portis, walletconnect } from '../connectors'
 
 export const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
 export const UNISWAPEX_ADDRESSES = {
   [ChainId.MAINNET]: '0x36049D479A97CdE1fC6E2a5D2caE30B666Ebf92B',
   [ChainId.ROPSTEN]: '0x0e5096D201Fe2985f5C26432A76f145D6e5D1453',
+  [ChainId.MATIC]: '0x38c4092b28dAB7F3d98eE6524549571c283cdfA5',
 }
 
 export const DCA_GRAPH = {
@@ -19,24 +22,32 @@ export const DCA_GRAPH = {
 export const LIMIT_ORDER_MODULE_ADDRESSES = {
   [ChainId.MAINNET]: '0x037fc8e71445910e1E0bBb2a0896d5e9A7485318',
   [ChainId.ROPSTEN]: '0x3f3C13b09B601fb6074124fF8D779d2964caBf8B',
+  [ChainId.MATIC]: '0x5A36178E38864F5E724A2DaF5f9cD9bA473f7903'
 }
 
 export const GENERIC_GAS_LIMIT_ORDER_EXECUTE = ethers.BigNumber.from(400000)
 
 export const ROUTER_ADDRESS = '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D'
 
-export const DAI = new Token(ChainId.MAINNET, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'Dai Stablecoin')
-export const USDC = new Token(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC', 'USD//C')
-export const USDT = new Token(ChainId.MAINNET, '0xdAC17F958D2ee523a2206206994597C13D831ec7', 6, 'USDT', 'Tether USD')
-export const COMP = new Token(ChainId.MAINNET, '0xc00e94Cb662C3520282E6f5717214004A7f26888', 18, 'COMP', 'Compound')
-export const MKR = new Token(ChainId.MAINNET, '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2', 18, 'MKR', 'Maker')
+export const DAI_MAINNET = new UniswapToken(ChainId.MAINNET, '0x6B175474E89094C44Da98b954EedeAC495271d0F', 18, 'DAI', 'Dai Stablecoin')
+export const USDC_MAINNET = new UniswapToken(ChainId.MAINNET, '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', 6, 'USDC', 'USD//C')
+export const USDT_MAINNET = new UniswapToken(ChainId.MAINNET, '0xdAC17F958D2ee523a2206206994597C13D831ec7', 6, 'USDT', 'Tether USD')
+export const COMP_MAINNET = new UniswapToken(ChainId.MAINNET, '0xc00e94Cb662C3520282E6f5717214004A7f26888', 18, 'COMP', 'Compound')
+export const MKR_MAINNET = new UniswapToken(ChainId.MAINNET, '0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2', 18, 'MKR', 'Maker')
+
+
+
+
+export const USDC_MATIC  = new QuickswapToken(ChainId.MATIC , '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174', 6, 'USDC', 'USD//C')
+export const DAI_MATIC = new QuickswapToken(ChainId.MATIC , '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', 18, 'DAI', 'Dai Stablecoin')
+export const USDT_MATIC  = new QuickswapToken(ChainId.MATIC , '0x3813e82e6f7098b9583FC0F33a962D02018B6803', 6, 'USDT', 'Tether USD')
+export const WETH_MATIC  = new QuickswapToken(ChainId.MATIC , '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619', 18, 'WETH', 'Wrapped ETH')
+
 
 const WETH_ONLY = {
   [ChainId.MAINNET]: [WETH[ChainId.MAINNET]],
   [ChainId.ROPSTEN]: [WETH[ChainId.ROPSTEN]],
-  [ChainId.RINKEBY]: [WETH[ChainId.RINKEBY]],
-  [ChainId.GÖRLI]: [WETH[ChainId.GÖRLI]],
-  [ChainId.KOVAN]: [WETH[ChainId.KOVAN]]
+  [ChainId.MATIC]: [WETH_MATIC],
 }
 
 // Min order size PER trade
@@ -48,7 +59,8 @@ export const DCA_ORDER_THRESHOLD = {
 // used to construct intermediary pairs for trading
 export const BASES_TO_CHECK_TRADES_AGAINST = {
   ...WETH_ONLY,
-  [ChainId.MAINNET]: [...WETH_ONLY[ChainId.MAINNET], DAI, USDC, USDT, COMP, MKR]
+  [ChainId.MAINNET]: [...WETH_ONLY[ChainId.MAINNET], DAI_MAINNET, USDC_MAINNET, USDT_MAINNET, COMP_MAINNET, MKR_MAINNET],
+  [ChainId.MATIC]: [...WETH_ONLY[ChainId.MATIC], DAI_MATIC , USDC_MATIC , USDT_MATIC, WMATIC ]
 }
 
 export const NetworkContextName = 'NETWORK'
@@ -119,6 +131,15 @@ export const SUPPORTED_WALLETS = {
       href: null,
       color: '#6748FF',
       mobile: true
+    },    
+    WALLET_CONNECT: {
+      connector: walletconnect,
+      name: 'Wallet Connect',
+      iconName: 'walletConnectIcon.svg',
+      description: 'Login using Wallet Connect',
+      href: null,
+      color: '#6748FF',
+      mobile: true
     }
   }
 }
@@ -126,9 +147,7 @@ export const SUPPORTED_WALLETS = {
 export const MULTICALL_NETWORKS = {
   [ChainId.MAINNET]: '0xeefBa1e63905eF1D7ACbA5a8513c70307C1cE441',
   [ChainId.ROPSTEN]: '0x53C43764255c17BD724F74c4eF150724AC50a3ed',
-  [ChainId.KOVAN]: '0x2cc8688C5f75E365aaEEb4ea8D6a480405A48D2A',
-  [ChainId.RINKEBY]: '0x42Ad527de7d4e9d9d011aC45B31D8551f8Fe9821',
-  [ChainId.GÖRLI]: '0x77dCa2C955b15e9dE4dbBCf1246B4B85b651e50e'
+  [ChainId.MATIC]: '0x95028E5B8a734bb7E2071F96De89BABe75be9C8E',
 }
 
 export const GELATO_DCA = {

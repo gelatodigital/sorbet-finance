@@ -2,6 +2,7 @@ import { darken } from 'polished';
 import React from 'react';
 import styled from 'styled-components';
 import Web3Status from '../Web3Status';
+import Web3Network from '../Web3Network';
 
 const HeaderFrame = styled.div`
   display: flex;
@@ -58,6 +59,9 @@ export default function Header() {
             <h1 id="title"><span>{'🍧'}</span>Sorbet Finance</h1>
           {/* </Link> */}
         </Title>
+      </HeaderElement>
+      <HeaderElement>
+        <Web3Network />
       </HeaderElement>
       <HeaderElement>
         <Web3Status />

@@ -2,6 +2,7 @@ import { darken, transparentize } from 'polished'
 import React, { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, withRouter } from 'react-router-dom'
+import { useActiveWeb3React } from '../../hooks'
 import styled from 'styled-components'
 import { useBodyKeyDown } from '../../hooks'
 
@@ -123,6 +124,9 @@ const StyledNavLink = styled(NavLink).attrs({
 `
 
 function NavigationTabs({ location: { pathname }, history }) {
+  const { chainId } = useActiveWeb3React()
+  
+
   const { t } = useTranslation()
 
   // const [showBetaMessage, dismissBetaMessage] = useBetaMessageManager()
@@ -147,10 +151,17 @@ function NavigationTabs({ location: { pathname }, history }) {
   useBodyKeyDown('ArrowLeft', navigateLeft)
 
 
+
+  let tabOrderToShow = tabOrder
+  if(chainId !== 1 && chainId !==3){
+    tabOrderToShow = tabOrder.filter(tab => tab.textKey !== "DCA")
+  }
+
+
   return (
     <>
       <Tabs>
-        {tabOrder.map(({ path, textKey, regex }) => (
+        {tabOrderToShow.map(({ path, textKey, regex }) => (
           <StyledNavLink key={path} to={path} isActive={(_, { pathname }) => pathname.match(regex)}>
             {t(textKey)}
           </StyledNavLink>

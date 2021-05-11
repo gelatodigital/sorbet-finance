@@ -37,11 +37,13 @@ function getSavedOrders(account, chainId) {
 
 async function fetchUserOrders(account, chainId) {
   try {
+    const openOrders = await getAllOpenOrders(account, chainId)
     return {
       allOrders: [],
-      openOrders: await getAllOpenOrders(account, chainId)
+      openOrders,
     }
   } catch (e) {
+    console.log("ERROR", e)
     console.warn('Error loading orders from TheGraph', e)
     return {
       allOrders: [],
