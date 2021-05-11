@@ -7,10 +7,10 @@ import NavigationTabs from '../components/NavigationTabs'
 import Web3ReactManager from '../components/Web3ReactManager'
 import { isAddress } from '../utils'
 
-
-
 const Swap = lazy(() => import('./Swap'))
 const Dca = lazy(() => import('./Dca'))
+const AddLiquidity = lazy(() => import('./AddLiquidity'))
+const RemoveLiquidity = lazy(() => import('./RemoveLiquidity'))
 
 const AppWrapper = styled.div`
   display: flex;
@@ -88,6 +88,8 @@ export default function App() {
                           }
                         }}
                       />
+                      <Route exact strict path="/add-liquidity" component={AddLiquidity} />
+                      <Route exact strict path="/remove-liquidity" component={RemoveLiquidity} />
                       <Redirect to="/limit-order" />
                     </Switch>
                   </Suspense>
