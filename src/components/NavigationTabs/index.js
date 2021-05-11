@@ -19,7 +19,7 @@ const tabOrder = [
   {
       path: '/add-liquidity',
       textKey: 'Pool V3',
-      regex: /\/add-liquidity/
+      regex: /\/add-liquidity|\/remove-liquidity/
   }
 ]
 

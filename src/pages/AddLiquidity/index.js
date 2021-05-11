@@ -10,8 +10,9 @@ import { useAddressBalance } from '../../contexts/Balances'
 //import { useGasPrice } from '../../contexts/GasPrice'
 import { useTokenDetails } from '../../contexts/Tokens'
 import { WETH, DAI } from '../../contexts/TokensDca'
+import { BetaMessage } from '../../components/TimeExchangePage'
 import { usePendingApproval, useTransactionAdder } from '../../contexts/Transactions'
-import { Button } from '../../theme'
+import { Button, Link } from '../../theme'
 import { useGelatoMetapoolContract, usePoolV3Contract, useTokenContract } from '../../hooks'
 //import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
@@ -164,6 +165,7 @@ export default function AddLiquidity() {
 
   const { wethValue, daiValue, lastEditedField } = addLiquidityState
 
+  const [showBetaMessage, setShowBetaMessage] = useState(true)
   const [confirmationPending, setConfirmationPending] = useState(false)
   const [isWethApproved, setIsWethApproved] = useState(false)
   const [isDaiApproved, setIsDaiApproved] = useState(false)
@@ -413,28 +415,40 @@ export default function AddLiquidity() {
   }
 
   useEffect(() => {
-    getPoolCurrentInfo(poolV3, gelatoPool).then((result) => {
-      setMarketRate(result.price)
-      setUpperBoundRate(result.upperPrice)
-      setLowerBoundRate(result.lowerPrice)
-      setSqrtPrice(result.sqrtPrice)
-      setMetapoolBalanceWeth(result.amount1)
-      setMetapoolBalanceDai(result.amount0)
-      setMetapoolLiquidity(result.liquidity)
-      setMetapoolSupply(result.totalSupply)
-      setTotalDollarValue(result.totalDollarValue)
-    })
-    if (!daiValueFormatted) {
-      setIsDaiApproved(true);
+    if (poolV3 && gelatoPool) {
+      getPoolCurrentInfo(poolV3, gelatoPool).then((result) => {
+        setMarketRate(result.price)
+        setUpperBoundRate(result.upperPrice)
+        setLowerBoundRate(result.lowerPrice)
+        setSqrtPrice(result.sqrtPrice)
+        setMetapoolBalanceWeth(result.amount1)
+        setMetapoolBalanceDai(result.amount0)
+        setMetapoolLiquidity(result.liquidity)
+        setMetapoolSupply(result.totalSupply)
+        setTotalDollarValue(result.totalDollarValue)
+      })
+      if (!daiValueFormatted) {
+        setIsDaiApproved(true);
+      }
+      if (!wethValueFormatted) {
+        setIsWethApproved(true);
+      }
     }
-    if (!wethValueFormatted) {
-      setIsWethApproved(true);
-    }
-  }, []);
+  }, [poolV3, gelatoPool]);
 
   return <>
       { gelatoPool ?
         <>
+          {showBetaMessage && (
+            <BetaMessage onClick={ () => setShowBetaMessage(false)}>
+              <span role="img" aria-label="warning">
+              🚨
+              </span>{' '}
+              <Link id="link"  className="how-it-works">
+                    {`Experimental - Use at own risk`}
+              </Link>
+            </BetaMessage>
+          )}
           <OversizedPanel hideBottom>
             <SummaryPanel>
               <CenteredHeader>
@@ -443,11 +457,12 @@ export default function AddLiquidity() {
                 <ExchangeRateWrapper><ExchangeRate>
                   An ERC20 aggregating V3 LPs to passively earn competitive yeild
                   <br></br>
-                  <a href="https://www.google.com">Learn More</a>
+                  <a href="https://gelato-1.gitbook.io/sorbet-finance/">Learn More</a>
                 </ExchangeRate></ExchangeRateWrapper>
               </CenteredHeader>
             </SummaryPanel>
           </OversizedPanel>
+          <br></br>
           <ModeSelector />
           <CurrencyInputPanel
             title={t('deposit')}

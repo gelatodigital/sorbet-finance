@@ -248,11 +248,12 @@ export default function RemoveLiquidity() {
                 <ExchangeRateWrapper><ExchangeRate>
                   An ERC20 aggregating V3 LPs to passively earn competitive yeild
                   <br></br>
-                  <a href="https://www.google.com">Learn More</a>
+                  <a href="https://gelato-1.gitbook.io/sorbet-finance/">Learn More</a>
                 </ExchangeRate></ExchangeRateWrapper>
               </CenteredHeader>
             </SummaryPanel>
           </OversizedPanel>
+          <br></br>
           <ModeSelector />
           <CurrencyInputPanel
             title={'Burn'}

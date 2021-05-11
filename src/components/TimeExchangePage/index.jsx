@@ -43,7 +43,7 @@ const TOKEN_TO_TOKEN = 2
 const RATE_OP_MULT = 'x'
 const RATE_OP_DIV = '/'
 
-const BetaMessage = styled.div`
+export const BetaMessage = styled.div`
   ${({ theme }) => theme.flexRowNoWrap}
   cursor: pointer;
   flex: 1 0 auto;
