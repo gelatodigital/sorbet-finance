@@ -21,7 +21,7 @@ import { useAllTokenDcaDetails, useTokenDcaDetails } from '../../contexts/Tokens
 import { usePendingApproval, useTransactionAdder } from '../../contexts/Transactions'
 import { useTokenContract } from '../../hooks'
 import { BorderlessInput, Spinner } from '../../theme'
-import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
+import { NATIVE_TOKEN_TICKER, NATIVE_WRAPPED_TOKEN_TICKER } from '../../constants/networks'
 import { calculateGasMargin, formatEthBalance, formatTokenBalance, formatToUsd, isAddress, trackTx } from '../../utils'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
@@ -493,8 +493,8 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
           return aSymbol === bSymbol ? 0 : aSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase() ? -1 : 1
         }
 
-        if (aSymbol === 'WETH'.toLowerCase() || bSymbol === 'WETH'.toLowerCase()) {
-          return aSymbol === bSymbol ? 0 : aSymbol === 'WETH'.toLowerCase() ? -1 : 1
+        if (aSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase() || bSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase()) {
+          return aSymbol === bSymbol ? 0 : aSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase() ? -1 : 1
         }
 
         if (allBalances) {

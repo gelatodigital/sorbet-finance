@@ -30,6 +30,13 @@ export const NATIVE_TOKEN_TICKER = {
     [ChainId.MATIC]: 'MATIC',
 }
 
+export const NATIVE_WRAPPED_TOKEN_TICKER = {
+    [ChainId.MAINNET]: 'WETH',
+    [ChainId.ROPSTEN]: 'WETH',
+    [ChainId.MATIC]: 'WMATIC',
+}
+
+
 export const NATIVE_TOKEN_NAME = {
     [ChainId.MAINNET]: 'Ether',
     [ChainId.ROPSTEN]: 'Ether',

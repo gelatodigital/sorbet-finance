@@ -5,6 +5,7 @@ import escapeStringRegex from 'escape-string-regexp'
 import { ethers } from 'ethers'
 import { darken, transparentize } from 'polished'
 import React, { useMemo, useRef, useState } from 'react'
+import { useWeb3React } from '@web3-react/core'
 import { isMobile } from 'react-device-detect'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -22,6 +23,8 @@ import { BorderlessInput, Spinner } from '../../theme'
 import { calculateGasMargin, formatEthBalance, formatTokenBalance, formatToUsd, isAddress } from '../../utils'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
+import { NATIVE_TOKEN_TICKER, NATIVE_WRAPPED_TOKEN_TICKER } from '../../constants/networks'
+
 
 
 const GAS_MARGIN = ethers.BigNumber.from("1000")
@@ -283,6 +286,8 @@ export default function CurrencyInputPanelDca({
 
   const gasPrice = useGasPrice()
 
+  const { chainId } = useWeb3React()
+
   const [modalIsOpen, setModalIsOpen] = useState(false)
 
   const tokenContract = useTokenContract(selectedTokenAddress)
@@ -302,6 +307,7 @@ export default function CurrencyInputPanelDca({
   if(window.location.pathname === "/dca") {
     tokenListFromContext = allDcaTokens
   }
+
 
   function renderUnlockButton() {
     if (disableUnlock || !showUnlock || selectedTokenAddress === 'ETH' || !selectedTokenAddress) {
@@ -436,6 +442,8 @@ export default function CurrencyInputPanelDca({
 function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, searchDisabled }) {
   const { t } = useTranslation()
 
+  const { chainId } = useWeb3React()
+
   const [searchQuery, setSearchQuery] = useState('')
   
   const { nameLimit } = useTokenDetails(searchQuery)
@@ -489,12 +497,12 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
         const aSymbol = tokenListFromContext[a].symbol.toLowerCase()
         const bSymbol = tokenListFromContext[b].symbol.toLowerCase()
 
-        if (aSymbol === 'ETH'.toLowerCase() || bSymbol === 'ETH'.toLowerCase()) {
-          return aSymbol === bSymbol ? 0 : aSymbol === 'ETH'.toLowerCase() ? -1 : 1
+        if (aSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase() || bSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase()) {
+          return aSymbol === bSymbol ? 0 : aSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase() ? -1 : 1
         }
 
-        if (aSymbol === 'WETH'.toLowerCase() || bSymbol === 'WETH'.toLowerCase()) {
-          return aSymbol === bSymbol ? 0 : aSymbol === 'WETH'.toLowerCase() ? -1 : 1
+        if (aSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase() || bSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase()) {
+          return aSymbol === bSymbol ? 0 : aSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase() ? -1 : 1
         }
 
         if (allBalances) {
