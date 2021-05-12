@@ -177,10 +177,7 @@ export default function NetworkModal({ toggleNetworkModal, isOpen }) {
                     )
                 })}
                 <Blurb>
-              
-              If you are having troubles switching networks please switch manually via MetaMask.
-     
-     
+              If you are having trouble switching networks please switch manually via MetaMask.
           </Blurb>
           </ContentWrapper>
           

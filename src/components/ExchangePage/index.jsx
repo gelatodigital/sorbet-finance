@@ -571,8 +571,6 @@ export default function ExchangePage({ initialCurrency }) {
         account.toLowerCase(),
         provider
       )
-      console.log("fromCurrency", fromCurrency)
-      console.log("transactionDataWithSecret", transactionDataWithSecret)
 
       const order = {
         inputAmount: inputAmount.toString(),
@@ -587,8 +585,6 @@ export default function ExchangePage({ initialCurrency }) {
         outputToken: toCurrency.toLowerCase(),
         witness: transactionDataWithSecret.witness.toLowerCase()
       }
-
-      console.log("order", order)
 
       saveOrder(account, order, chainId)
 

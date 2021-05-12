@@ -18,6 +18,7 @@ import { getExchangeRate } from '../../utils/rate'
 import { Aligner, CurrencySelect, StyledTokenName } from '../CurrencyInputPanel'
 import TokenLogo from '../TokenLogo'
 import './OrderCard.css'
+import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
 
 
 const CancelButton = styled.div`
@@ -62,9 +63,9 @@ export function OrderCard(props) {
 
   const order = props.data
 
-  const inputToken = order.inputToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.inputToken)
+  const inputToken = order.inputToken === ETH_ADDRESS.toLowerCase() ? NATIVE_TOKEN_TICKER[chainId] : ethers.utils.getAddress(order.inputToken)
   const outputToken =
-    order.outputToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.outputToken)
+    order.outputToken === ETH_ADDRESS.toLowerCase() ? NATIVE_TOKEN_TICKER[chainId] : ethers.utils.getAddress(order.outputToken)
 
   const { symbol: fromSymbol, decimals: fromDecimals } = useTokenDetails(inputToken)
   const { symbol: toSymbol, decimals: toDecimals } = useTokenDetails(outputToken)
@@ -79,7 +80,7 @@ export function OrderCard(props) {
 
     const { inputToken, outputToken, minReturn, owner, witness } = order
 
-    const transactionData = await getCancelLimitOrderPayload(chainId, inputToken, outputToken, minReturn, owner, witness)
+    const transactionData = await getCancelLimitOrderPayload(chainId, inputToken, outputToken, minReturn, owner, witness, new ethers.providers.Web3Provider(library.provider))
     const res = await (new ethers.providers.Web3Provider(library.provider)).getSigner().sendTransaction({
       to: transactionData.to,
       data: transactionData.data,
@@ -109,7 +110,7 @@ export function OrderCard(props) {
   const gasLimit = GENERIC_GAS_LIMIT_ORDER_EXECUTE
   const requiredGas = gasPrice?.mul(gasLimit)
 
-  const gasInInputTokens = useTradeExactIn('ETH', amountFormatter(requiredGas, 18, 18), inputToken)
+  const gasInInputTokens = useTradeExactIn(NATIVE_TOKEN_TICKER[chainId], amountFormatter(requiredGas, 18, 18), inputToken)
 
   let tooltipText = ''
   let executionRateText = ''
@@ -121,7 +122,7 @@ export function OrderCard(props) {
       let usedInput
 
       try {
-        if (inputToken === 'ETH') {
+        if (inputToken === NATIVE_TOKEN_TICKER[chainId]) {
           usedInput = requiredGas
         } else if (!gasInInputTokens || !requiredGas) {
           return [undefined, undefined]
@@ -136,7 +137,7 @@ export function OrderCard(props) {
       } catch {
         return [undefined, undefined]
       }
-    }, [fromDecimals, inputAmount, minReturn, requiredGas, toDecimals, inputToken, gasInInputTokens, gasPrice])
+    }, [fromDecimals, inputAmount, minReturn, requiredGas, toDecimals, inputToken, gasInInputTokens, gasPrice, chainId])
 
     if (virtualRateFromTo?.gt(ethers.constants.Zero)) {
       executionRateText = `Execution rate: ${

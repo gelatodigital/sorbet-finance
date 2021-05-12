@@ -30,14 +30,12 @@ export function safeAccess(object, path) {
 }
 
 const ETHERSCAN_PREFIXES = {
-  1: '',
-  3: 'ropsten.',
-  4: 'rinkeby.',
-  5: 'goerli.',
-  42: 'kovan.'
+  1: 'https://etherscan.io',
+  3: 'https://ropsten.etherscan.io',
+  137: 'https://explorer-mainnet.maticvigil.com'
 }
 export function getEtherscanLink(chainId, data, type) {
-  const prefix = `https://${ETHERSCAN_PREFIXES[chainId] || ETHERSCAN_PREFIXES[1]}etherscan.io`
+  const prefix = ETHERSCAN_PREFIXES[chainId] 
 
   switch (type) {
     case 'transaction': {

@@ -18,8 +18,7 @@ if (typeof NETWORK_URL === 'undefined') {
 
 
 const RPC = {
-  [ChainId.MAINNET]: 'https://eth-mainnet.alchemyapi.io/v2/q1gSNoSMEzJms47Qn93f9-9Xg5clkmEC',
-  [ChainId.ROPSTEN]: 'https://eth-ropsten.alchemyapi.io/v2/cidKix2Xr-snU3f6f6Zjq_rYdalKKHmW',
+  [ChainId.MAINNET]: NETWORK_URL,
   [ChainId.MATIC]: 'https://rpc-mainnet.maticvigil.com',
 }
 
@@ -44,7 +43,7 @@ export const walletconnect = new WalletConnectConnector({
   },
   bridge: 'https://bridge.walletconnect.org',
   qrcode: true,
-  pollingInterval: 15000
+  pollingInterval: POLLING_INTERVAL
 })
 
 
