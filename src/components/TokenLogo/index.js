@@ -32,7 +32,7 @@ export default function TokenLogo({ address, size = '1rem', ...rest }) {
   const [error, setError] = useState(false)
   const allTokens = useAllTokenDetails()
 
-  const logoURI = address ? allTokens[address].logoURI : undefined
+  const logoURI = address ? allTokens[address]?.logoURI : undefined
  
 
   let path = ''
