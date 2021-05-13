@@ -6,7 +6,6 @@ import { safeAccess, isAddress, getEtherBalance, getTokenBalance } from '../util
 import { useAllTokenDetails } from './Tokens'
 import { NATIVE_TOKEN_TICKER } from '../constants/networks'
 
-
 const ONE = new BigNumber(1)
 
 const UPDATE = 'UPDATE'
@@ -27,9 +26,9 @@ function reducer(state, { type, payload }) {
           ...(safeAccess(state, [chainId]) || {}),
           [address]: {
             ...(safeAccess(state, [chainId, address]) || {}),
-            allBalanceData
-          }
-        }
+            allBalanceData,
+          },
+        },
       }
     }
     default: {
@@ -65,7 +64,7 @@ export function useFetchAllBalances() {
     if (!!library && !!account) {
       const newBalances = {}
       await Promise.all(
-        Object.keys(allTokens).map(async k => {
+        Object.keys(allTokens).map(async (k) => {
           let balance = null
           let ethRate = null
 
@@ -74,7 +73,7 @@ export function useFetchAllBalances() {
               balance = await getEtherBalance(account, library).catch(() => null)
               ethRate = ONE
             } else {
-              balance = await getTokenBalance(k, account, library).catch(e => {
+              balance = await getTokenBalance(k, account, library).catch((e) => {
                 console.error(e.message)
                 return null
               })

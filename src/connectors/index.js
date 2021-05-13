@@ -16,47 +16,43 @@ if (typeof NETWORK_URL === 'undefined') {
   throw new Error(`REACT_APP_NETWORK_URL must be a defined environment variable`)
 }
 
-
 const RPC = {
   [ChainId.MAINNET]: NETWORK_URL,
   [ChainId.MATIC]: 'https://rpc-mainnet.maticvigil.com',
 }
 
-
 export const network = new NetworkConnector({
   defaultChainId: 1,
-  urls: RPC
+  urls: RPC,
 })
 
 export const injected = new InjectedConnector({
   supportedChainIds: [
-      1, // mainnet
-      3, // ropsten
-      137, // matic
-  ]
+    1, // mainnet
+    3, // ropsten
+    137, // matic
+  ],
 })
-
 
 export const walletconnect = new WalletConnectConnector({
   rpc: {
-      1: RPC[ChainId.MAINNET]
+    1: RPC[ChainId.MAINNET],
   },
   bridge: 'https://bridge.walletconnect.org',
   qrcode: true,
-  pollingInterval: POLLING_INTERVAL
+  pollingInterval: POLLING_INTERVAL,
 })
-
 
 // mainnet only
 export const fortmatic = new FortmaticConnector({
   apiKey: FORMATIC_KEY ? FORMATIC_KEY : '',
-  chainId: 1
+  chainId: 1,
 })
 
 // mainnet only
 export const portis = new PortisConnector({
   dAppId: PORTIS_ID ? PORTIS_ID : '',
-  networks: [1]
+  networks: [1],
 })
 
 // mainnet only
@@ -64,5 +60,5 @@ export const walletlink = new WalletLinkConnector({
   url: NETWORK_URL,
   appName: 'Uniswap',
   appLogoUrl:
-    'https://mpng.pngfly.com/20181202/bex/kisspng-emoji-domain-unicorn-pin-badges-sticker-unicorn-tumblr-emoji-unicorn-iphoneemoji-5c046729264a77.5671679315437924251569.jpg'
+    'https://mpng.pngfly.com/20181202/bex/kisspng-emoji-domain-unicorn-pin-badges-sticker-unicorn-tumblr-emoji-unicorn-iphoneemoji-5c046729264a77.5671679315437924251569.jpg',
 })

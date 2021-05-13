@@ -11,11 +11,10 @@ function useGasContext() {
 }
 
 export const GAS_STATION = {
-  [ChainId.MAINNET]: "https://www.gasnow.org/api/v3/gas/price?utm_source=sorbet-finance",
+  [ChainId.MAINNET]: 'https://www.gasnow.org/api/v3/gas/price?utm_source=sorbet-finance',
   [ChainId.ROPSTEN]: undefined,
   [ChainId.MATIC]: 'https://gasstation-mainnet.matic.network',
 }
-
 
 export const ADD_BUFFER = {
   [ChainId.MAINNET]: true,
@@ -24,28 +23,30 @@ export const ADD_BUFFER = {
 }
 
 export const parseGasPrice = (data, chainId) => {
-    const buffer = ADD_BUFFER[chainId] ? ethers.utils.parseUnits("5", "gwei") : ethers.utils.parseUnits("0", "gwei")
-    const gasPriceWithBuffer = data.fast ? ethers.utils.parseUnits(data.fast.toString(), "gwei") : ethers.BigNumber.from(data.data.fast).add(buffer)
-    return gasPriceWithBuffer
+  const buffer = ADD_BUFFER[chainId] ? ethers.utils.parseUnits('5', 'gwei') : ethers.utils.parseUnits('0', 'gwei')
+  const gasPriceWithBuffer = data.fast
+    ? ethers.utils.parseUnits(data.fast.toString(), 'gwei')
+    : ethers.BigNumber.from(data.data.fast).add(buffer)
+  return gasPriceWithBuffer
 }
-
 
 export default function Provider({ children }) {
   const [gasPrice, setGasPrice] = useState()
 
   const globalBlockNumber = useBlockNumber()
 
-  const chainId = ls.get("chainId")
+  const chainId = ls.get('chainId')
 
   useEffect(() => {
-    GAS_STATION[chainId] ? fetch(GAS_STATION[chainId]).then((res) => {
-      res.json().then(gasInfo => {
-        try {
-          setGasPrice(parseGasPrice(gasInfo, chainId))
-        } catch {}
-
-      })
-    }):       setGasPrice(ethers.utils.parseUnits("5", "gwei"))
+    GAS_STATION[chainId]
+      ? fetch(GAS_STATION[chainId]).then((res) => {
+          res.json().then((gasInfo) => {
+            try {
+              setGasPrice(parseGasPrice(gasInfo, chainId))
+            } catch {}
+          })
+        })
+      : setGasPrice(ethers.utils.parseUnits('5', 'gwei'))
   }, [globalBlockNumber, chainId])
 
   return (

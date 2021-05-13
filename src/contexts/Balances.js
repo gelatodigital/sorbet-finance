@@ -25,10 +25,10 @@ function reducer(state, { type, payload }) {
             ...(safeAccess(state, [chainId, address]) || {}),
             [tokenAddress]: {
               value,
-              blockNumber
-            }
-          }
-        }
+              blockNumber,
+            },
+          },
+        },
       }
     }
     default: {
@@ -68,8 +68,11 @@ export function useAddressBalance(address, tokenAddress) {
       library
     ) {
       let stale = false
-      ;(tokenAddress === NATIVE_TOKEN_TICKER[chainId] ? getEtherBalance(address, library) : getTokenBalance(tokenAddress, address, library))
-        .then(value => {
+      ;(tokenAddress === NATIVE_TOKEN_TICKER[chainId]
+        ? getEtherBalance(address, library)
+        : getTokenBalance(tokenAddress, address, library)
+      )
+        .then((value) => {
           if (!stale) {
             update(chainId, address, tokenAddress, value, globalBlockNumber)
           }

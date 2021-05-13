@@ -5,14 +5,11 @@ import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import Circle from '../../assets/images/circle.svg'
 import { DCA_GRAPH } from '../../constants'
-import {
-  useAllPendingCancelOrders, useAllPendingOrders
-} from '../../contexts/Transactions'
+import { useAllPendingCancelOrders, useAllPendingOrders } from '../../contexts/Transactions'
 import { Spinner } from '../../theme'
 import { isAddress } from '../../utils'
 import { OrderCardDca } from '../OrderCardDca'
 import { OrdersHistoryDca } from '../OrdersHistoryDca'
-
 
 const SpinnerWrapper = styled(Spinner)`
   margin: 0 0.25rem 0 0.25rem;
@@ -34,7 +31,6 @@ function getSavedOrders(account, chainId) {
   const raw = ls.get(lsKey(LS_DCA_ORDERS, account, chainId))
   return raw == null ? [] : raw
 }
-
 
 async function fetchUserOrders(account, chainId) {
   const query = `
@@ -90,21 +86,21 @@ async function fetchUserOrders(account, chainId) {
     const res = await fetch(DCA_GRAPH[chainId], {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, variables: { userAddress: account.toLowerCase() } })
+      body: JSON.stringify({ query, variables: { userAddress: account.toLowerCase() } }),
     })
 
-     //   allOrders.map((o, i) => (o.amount = ethers.BigNumber.from(amounts[i]).toString()))
+    //   allOrders.map((o, i) => (o.amount = ethers.BigNumber.from(amounts[i]).toString()))
 
     const { data } = await res.json()
     return {
       allOrders: data.trades,
-      openOrders: data.trades.filter(trade => trade.status === "awaitingExec")
+      openOrders: data.trades.filter((trade) => trade.status === 'awaitingExec'),
     }
   } catch (e) {
     console.warn('Error loading orders from TheGraph', e)
     return {
       allOrders: [],
-      openOrders: []
+      openOrders: [],
     }
   }
 }
@@ -114,14 +110,17 @@ function useGraphOrders(account, chainId) {
 
   const fetchOrdersAndSetState = () => {
     if (account && isAddress(account)) {
-      fetchUserOrders(account, chainId).then(orders => {
-        // console.log(`Fetched a total of ${orders.allOrders.length} orders. ${orders.openOrders.length} of those are OPEN orders from the graph`)
-        setState(orders)
-      })
-      .catch(error => {console.log(error)})
+      fetchUserOrders(account, chainId)
+        .then((orders) => {
+          // console.log(`Fetched a total of ${orders.allOrders.length} orders. ${orders.openOrders.length} of those are OPEN orders from the graph`)
+          setState(orders)
+        })
+        .catch((error) => {
+          console.log(error)
+        })
     }
   }
-  
+
   useEffect(() => {
     fetchOrdersAndSetState()
   }, [account, chainId])
@@ -129,13 +128,12 @@ function useGraphOrders(account, chainId) {
   useEffect(() => {
     const interval = setInterval(() => {
       fetchOrdersAndSetState()
-    }, 20000);
-    return () => clearInterval(interval);
-  }, []);
+    }, 20000)
+    return () => clearInterval(interval)
+  }, [])
 
   return state
 }
-
 
 function useSavedOrders(account, chainId, deps = []) {
   const [state, setState] = useState({ allOrders: [], openOrders: [] })
@@ -147,10 +145,10 @@ function useSavedOrders(account, chainId, deps = []) {
       if (allOrders.length > 0) {
         // balancesOfOrders(allOrders, uniswapEXContract, multicallContract).then(amounts => {
         //   allOrders.map((o, i) => (o.amount = ethers.BigNumber.from(amounts[i]).toString()))
-          setState({
-            allOrders: allOrders,
-            openOrders: allOrders.filter(trade => trade.status === 'awaitingExec')
-          })
+        setState({
+          allOrders: allOrders,
+          openOrders: allOrders.filter((trade) => trade.status === 'awaitingExec'),
+        })
         // })
       }
     }
@@ -174,22 +172,24 @@ export default function OrdersDca() {
   const pendingCancelOrders = useAllPendingCancelOrders()
 
   // Get locally saved orders and the graph orders
-  const local = useSavedOrders(account, chainId, [
-    pendingOrders.length,
-    pendingCancelOrders.length
-  ])
+  const local = useSavedOrders(account, chainId, [pendingOrders.length, pendingCancelOrders.length])
   const graph = useGraphOrders(account, chainId)
 
   // Define orders to show as openOrders + pending orders
   useEffect(() => {
-    
     const openOrders = graph.openOrders.concat(
-      local.openOrders.filter(o => !graph.allOrders.find(c => c.witness === o.witness))
+      local.openOrders.filter((o) => !graph.allOrders.find((c) => c.witness === o.witness))
     )
     setOrders(openOrders)
-    
+
     // eslint-disable-next-line
-  }, [local.allOrders.length, local.openOrders.length, graph.allOrders.length, graph.openOrders.length, pendingOrders.length])
+  }, [
+    local.allOrders.length,
+    local.openOrders.length,
+    graph.allOrders.length,
+    graph.openOrders.length,
+    pendingOrders.length,
+  ])
 
   return (
     <>
@@ -207,7 +207,7 @@ export default function OrdersDca() {
             {orders.length === 0 && !loading && <p>{t('noOpenOrders')}</p>}
             {
               <div>
-                {orders.map(order => (
+                {orders.map((order) => (
                   <OrderCardDca key={order.id} data={order} />
                 ))}
               </div>

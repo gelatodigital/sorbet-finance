@@ -8,7 +8,7 @@ import { transparentize } from 'polished'
 const AnimatedDialogOverlay = animated(DialogOverlay)
 const WrappedDialogOverlay = ({ suppressClassNameWarning, ...rest }) => <AnimatedDialogOverlay {...rest} />
 const StyledDialogOverlay = styled(WrappedDialogOverlay).attrs({
-  suppressClassNameWarning: true
+  suppressClassNameWarning: true,
 })`
   &[data-reach-dialog-overlay] {
     z-index: 2;
@@ -63,7 +63,7 @@ export default function Modal({ isOpen, onDismiss, minHeight = false, initialFoc
     config: { duration: 150 },
     from: { opacity: 0 },
     enter: { opacity: 1 },
-    leave: { opacity: 0 }
+    leave: { opacity: 0 },
   })
 
   return transitions.map(

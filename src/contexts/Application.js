@@ -24,8 +24,8 @@ function reducer(state, { type, payload }) {
         ...state,
         [BLOCK_NUMBER]: {
           ...(safeAccess(state, [BLOCK_NUMBER]) || {}),
-          [chainId]: blockNumber
-        }
+          [chainId]: blockNumber,
+        },
       }
     }
     case UPDATE_USD_PRICE: {
@@ -34,8 +34,8 @@ function reducer(state, { type, payload }) {
         ...state,
         [USD_PRICE]: {
           ...(safeAccess(state, [USD_PRICE]) || {}),
-          [chainId]: USDPrice
-        }
+          [chainId]: USDPrice,
+        },
       }
     }
     default: {
@@ -47,7 +47,7 @@ function reducer(state, { type, payload }) {
 export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, {
     [BLOCK_NUMBER]: {},
-    [USD_PRICE]: {}
+    [USD_PRICE]: {},
   })
 
   const updateBlockNumber = useCallback((chainId, blockNumber) => {
@@ -112,7 +112,7 @@ export function Updater() {
       function update() {
         library
           .getBlockNumber()
-          .then(blockNumber => {
+          .then((blockNumber) => {
             if (!stale) {
               updateBlockNumber(chainId, blockNumber)
             }

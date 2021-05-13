@@ -6,7 +6,7 @@ const CHAIN_ID_NETWORK_ARGUMENT = {
   1: undefined,
   3: 'ropsten',
   4: 'rinkeby',
-  42: 'kovan'
+  42: 'kovan',
 }
 
 export class FortmaticConnector extends FortmaticConnectorCore {
@@ -23,7 +23,7 @@ export class FortmaticConnector extends FortmaticConnectorCore {
 
     const provider = this.fortmatic.getProvider()
 
-    const pollForOverlayReady = new Promise(resolve => {
+    const pollForOverlayReady = new Promise((resolve) => {
       const interval = setInterval(() => {
         if (provider.overlayReady) {
           clearInterval(interval)
@@ -33,7 +33,7 @@ export class FortmaticConnector extends FortmaticConnectorCore {
       }, 200)
     })
 
-    const [account] = await Promise.all([provider.enable().then(accounts => accounts[0]), pollForOverlayReady])
+    const [account] = await Promise.all([provider.enable().then((accounts) => accounts[0]), pollForOverlayReady])
 
     return { provider: this.fortmatic.getProvider(), chainId: this.chainId, account }
   }

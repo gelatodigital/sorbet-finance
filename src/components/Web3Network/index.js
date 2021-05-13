@@ -2,9 +2,11 @@ import React, { useState } from 'react'
 import { useWeb3React } from '@web3-react/core'
 import styled from 'styled-components'
 import { darken, lighten } from 'polished'
-import { NETWORK_LABEL, NETWORK_ICON } from '../../constants/networks'
+import { NETWORK_LABEL } from '../../constants/networks'
 import NetworkModal from '../NetworkModal'
 import { ButtonSecondary } from '../Button'
+import TokenLogo from '../TokenLogo'
+import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
 
 const Web3StatusGeneric = styled(ButtonSecondary)`
   ${({ theme }) => theme.flexRowNoWrap}
@@ -56,41 +58,37 @@ const IconWrapper = styled.div`
 `
 
 function Web3Network() {
-    const { chainId } = useWeb3React()
+  const { chainId } = useWeb3React()
 
-    const [showNetworkModal, setToggleNetworkModal] = useState(false)
+  const [showNetworkModal, setToggleNetworkModal] = useState(false)
 
-    function toggleNetworkModal() {
-      setToggleNetworkModal(!showNetworkModal)
-    }
+  function toggleNetworkModal() {
+    setToggleNetworkModal(!showNetworkModal)
+  }
 
-    if (!chainId) return null
+  if (!chainId) return null
 
-
-    function getNetwork() {
-        if (chainId) {
-          return (
-            <Web3StatusConnected id="web3-status-connected" onClick={toggleNetworkModal}>
+  function getNetwork() {
+    if (chainId) {
+      return (
+        <Web3StatusConnected id="web3-status-connected" onClick={toggleNetworkModal}>
           <>
-          <IconWrapper size={16}>
-                             <img src={NETWORK_ICON[chainId]} alt={''} />
-                            </IconWrapper>
+            <IconWrapper size={16}>
+              <TokenLogo address={NATIVE_TOKEN_TICKER[chainId]} />
+            </IconWrapper>
             <Text>{NETWORK_LABEL[chainId]}</Text>
           </>
         </Web3StatusConnected>
-          )
-        } 
-      } 
-    
-  
+      )
+    }
+  }
 
-return (
+  return (
     <>
-     {getNetwork()}
-        <NetworkModal isOpen={showNetworkModal} toggleNetworkModal={toggleNetworkModal} />
+      {getNetwork()}
+      <NetworkModal isOpen={showNetworkModal} toggleNetworkModal={toggleNetworkModal} />
     </>
   )
-
 }
 
 export default Web3Network

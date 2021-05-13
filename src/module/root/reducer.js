@@ -5,10 +5,10 @@ const initialState = {
   blockNumber: {},
   popupList: [],
   walletModalOpen: false,
-  settingsMenuOpen: false
+  settingsMenuOpen: false,
 }
 
-export default createReducer(initialState, builder =>
+export default createReducer(initialState, (builder) =>
   builder
     .addCase(updateBlockNumber, (state, action) => {
       const { chainId, blockNumber } = action.payload
@@ -18,23 +18,23 @@ export default createReducer(initialState, builder =>
         state.blockNumber[chainId] = Math.max(blockNumber, state.blockNumber[chainId])
       }
     })
-    .addCase(toggleWalletModal, state => {
+    .addCase(toggleWalletModal, (state) => {
       state.walletModalOpen = !state.walletModalOpen
     })
-    .addCase(toggleSettingsMenu, state => {
+    .addCase(toggleSettingsMenu, (state) => {
       state.settingsMenuOpen = !state.settingsMenuOpen
     })
     .addCase(addPopup, (state, { payload: { content, key } }) => {
-      state.popupList = (key ? state.popupList.filter(popup => popup.key !== key) : state.popupList).concat([
+      state.popupList = (key ? state.popupList.filter((popup) => popup.key !== key) : state.popupList).concat([
         {
           key: key || nanoid(),
           show: true,
-          content
-        }
+          content,
+        },
       ])
     })
     .addCase(removePopup, (state, { payload: { key } }) => {
-      state.popupList.forEach(p => {
+      state.popupList.forEach((p) => {
         if (p.key === key) {
           p.show = false
         }

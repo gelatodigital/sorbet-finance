@@ -8,7 +8,7 @@ import React, { useEffect, useReducer, useState } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
-import { Redirect } from 'react-router-dom';
+import { Redirect } from 'react-router-dom'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
 import SVGDiv from '../../assets/svg/SVGDiv'
 import { ALL_INTERVALS, DCA_ORDER_THRESHOLD, ETH_ADDRESS, GELATO_DCA, PLATFORM_WALLET, UNI } from '../../constants'
@@ -179,7 +179,7 @@ function getInitialSwapState(outputCurrency) {
     rateOp: RATE_OP_MULT,
     inputRateValue: '',
     numTrades: 3,
-    interval: ALL_INTERVALS[0]
+    interval: ALL_INTERVALS[0],
   }
 }
 
@@ -194,7 +194,7 @@ function swapStateReducer(state, action) {
         independentValue: '',
         inputRateValue: '',
         inputCurrency: outputCurrency,
-        outputCurrency: inputCurrency
+        outputCurrency: inputCurrency,
       }
     }
     case 'FLIP_RATE_OP': {
@@ -206,7 +206,7 @@ function swapStateReducer(state, action) {
       return {
         ...state,
         inputRateValue: flipped,
-        rateOp: rateOp === RATE_OP_DIV ? RATE_OP_MULT : RATE_OP_DIV
+        rateOp: rateOp === RATE_OP_DIV ? RATE_OP_MULT : RATE_OP_DIV,
       }
     }
     case 'SELECT_CURRENCY': {
@@ -220,13 +220,13 @@ function swapStateReducer(state, action) {
         return {
           ...state,
           inputCurrency: field === INPUT ? currency : '',
-          outputCurrency: field === OUTPUT ? currency : ''
+          outputCurrency: field === OUTPUT ? currency : '',
         }
       } else {
         return {
           ...state,
           inputCurrency: newInputCurrency,
-          outputCurrency: newOutputCurrency
+          outputCurrency: newOutputCurrency,
         }
       }
     }
@@ -240,27 +240,27 @@ function swapStateReducer(state, action) {
         dependentValue: Number(value) === Number(independentValue) ? dependentValue : '',
         independentField: field,
         inputRateValue: field === RATE ? value : inputRateValue,
-        prevIndependentField: independentField === field ? prevIndependentField : independentField
+        prevIndependentField: independentField === field ? prevIndependentField : independentField,
       }
     }
     case 'UPDATE_DEPENDENT': {
       return {
         ...state,
-        dependentValue: action.payload === null ? inputValue : action.payload
+        dependentValue: action.payload === null ? inputValue : action.payload,
       }
     }
     case 'UPDATE_NUM_TRADES': {
-      const {value} = action.payload
+      const { value } = action.payload
       return {
         ...state,
-        numTrades: value === '' ? 0 : value
+        numTrades: value === '' ? 0 : value,
       }
     }
     case 'UPDATE_INTERVAL': {
-      const {value} = action.payload
+      const { value } = action.payload
       return {
         ...state,
-        interval: value
+        interval: value,
       }
     }
     default: {
@@ -271,15 +271,15 @@ function swapStateReducer(state, action) {
 
 // export const ALL_INTERVALS = ["10 minutes", "1 hour", "1 day", "1 week"]
 function getIntervalSeconds(interval) {
-  switch(interval) {
-    case("1 hour"): 
-      return 60 * 60;
-    case("1 day"): 
-      return 24 * 60 * 60;
-    case("1 week"): 
-      return 7 * 24 * 60 * 60;
-    default: 
-      throw Error("Smth went wrong in getIntervalSeconds")
+  switch (interval) {
+    case '1 hour':
+      return 60 * 60
+    case '1 day':
+      return 24 * 60 * 60
+    case '1 week':
+      return 7 * 24 * 60 * 60
+    default:
+      throw Error('Smth went wrong in getIntervalSeconds')
   }
 }
 
@@ -340,35 +340,35 @@ export default function TimeExchangePage({ initialCurrency }) {
   )
 
   if (bestTradeExactIn) {
-    inputValue = ethers.BigNumber.from(
-      ethers.utils.parseUnits(bestTradeExactIn.inputAmount.toExact(), inputDecimals)
-    )
+    inputValue = ethers.BigNumber.from(ethers.utils.parseUnits(bestTradeExactIn.inputAmount.toExact(), inputDecimals))
   } else if (independentField === INPUT && independentValue) {
     inputValue = ethers.BigNumber.from(ethers.utils.parseUnits(independentValue, inputDecimals))
   }
 
   // load required gas
   const gasPrice = useGasPrice()
-  
+
   // validate + parse independent value
   const [independentError, setIndependentError] = useState()
-  
 
   // Calc minimum order size
   const orderThresholdInEth = DCA_ORDER_THRESHOLD[chainId ? chainId : 3]
   let minOrderSize
 
-  const minOrderSizeTrade =  useTradeExactIn('ETH', orderThresholdInEth, inputCurrency)
-  if(inputCurrency === 'ETH' && orderThresholdInEth) {
+  const minOrderSizeTrade = useTradeExactIn('ETH', orderThresholdInEth, inputCurrency)
+  if (inputCurrency === 'ETH' && orderThresholdInEth) {
     minOrderSize = ethers.utils.parseEther(orderThresholdInEth.toString())
   } else {
-    if(outputCurrency && minOrderSizeTrade) {
+    if (outputCurrency && minOrderSizeTrade) {
       minOrderSize = ethers.utils.parseUnits(minOrderSizeTrade.outputAmount.toExact(), inputDecimals)
     }
   }
   const numTradesBn = ethers.BigNumber.from(numTrades.toString())
   const numTradesIsZero = numTradesBn.eq(Zero) ? true : false
-  const executionRateWarning = !numTradesIsZero && inputValue && numTradesBn && minOrderSize && inputValue.div(numTradesBn).lt(minOrderSize) ? true : false
+  const executionRateWarning =
+    !numTradesIsZero && inputValue && numTradesBn && minOrderSize && inputValue.div(numTradesBn).lt(minOrderSize)
+      ? true
+      : false
 
   const isLOBtwEthAndWeth =
     (inputCurrency === 'ETH' && outputCurrency.toLocaleLowerCase() === WETH[chainId]) ||
@@ -410,7 +410,7 @@ export default function TimeExchangePage({ initialCurrency }) {
       }
     }
   }, [inputBalance, inputCurrency, t, inputValueParsed, inputAllowance])
-  
+
   // validate input balance
   useEffect(() => {
     const inputValueCalculation = inputValueParsed
@@ -430,26 +430,24 @@ export default function TimeExchangePage({ initialCurrency }) {
         dispatchSwapState({ type: 'UPDATE_DEPENDENT', payload: null })
       }
     }
-  }, [independentField])  
-  
+  }, [independentField])
+
   const isValid = !inputError && !independentError
 
-  
   function formatBalance(value) {
     return `Balance: ${value}`
   }
-
 
   async function onPlace() {
     let fromCurrency, toCurrency, inputAmount, amountPerTrade, value
     ReactGA.event({
       category: 'placeDCA',
-      action: 'place'
+      action: 'place',
     })
 
     inputAmount = inputValueParsed
     amountPerTrade = inputAmount.div(numTradesBn)
-    
+
     if (swapType === ETH_TO_TOKEN) {
       fromCurrency = ETH_ADDRESS
       toCurrency = outputCurrency
@@ -466,7 +464,7 @@ export default function TimeExchangePage({ initialCurrency }) {
 
     const order = {
       inToken: fromCurrency,
-      outToken: outputCurrency === "ETH" ? ETH_ADDRESS : outputCurrency,
+      outToken: outputCurrency === 'ETH' ? ETH_ADDRESS : outputCurrency,
       amountPerTrade: amountPerTrade.toString(),
       numTrades: numTradesBn.toString(),
       minSlippage: 1000,
@@ -474,22 +472,29 @@ export default function TimeExchangePage({ initialCurrency }) {
       // delay: 120,
       delay: getIntervalSeconds(interval),
       platformWallet: PLATFORM_WALLET[chainId],
-      platformFeeBps: 0
+      platformFeeBps: 0,
     }
 
-    const path = bestTradeExactIn.route.path.map(token => {
+    const path = bestTradeExactIn.route.path.map((token) => {
       return token.address
     })
-    if(ethers.utils.getAddress(path[0]) === ethers.utils.getAddress(WETH[chainId]) && fromCurrency === ETH_ADDRESS) path[0] = ETH_ADDRESS
-    if(ethers.utils.getAddress(path[path.length - 1]) === ethers.utils.getAddress(WETH[chainId]) && toCurrency === ETH_ADDRESS) path[path.length - 1] = ETH_ADDRESS
+    if (ethers.utils.getAddress(path[0]) === ethers.utils.getAddress(WETH[chainId]) && fromCurrency === ETH_ADDRESS)
+      path[0] = ETH_ADDRESS
+    if (
+      ethers.utils.getAddress(path[path.length - 1]) === ethers.utils.getAddress(WETH[chainId]) &&
+      toCurrency === ETH_ADDRESS
+    )
+      path[path.length - 1] = ETH_ADDRESS
 
-    const [minOutAmountUni, ] = await gelatoDcaContract.getExpectedReturnUniswap(
+    const [minOutAmountUni] = await gelatoDcaContract.getExpectedReturnUniswap(
       await gelatoDcaContract.uniRouterV2(),
       amountPerTrade.mul(numTradesBn),
       path,
       0
     )
-    const minOutAmountUniWithSlippage = minOutAmountUni.sub(minOutAmountUni.mul(ethers.BigNumber.from("100")).div(ethers.BigNumber.from("10000")))
+    const minOutAmountUniWithSlippage = minOutAmountUni.sub(
+      minOutAmountUni.mul(ethers.BigNumber.from('100')).div(ethers.BigNumber.from('10000'))
+    )
     // console.log(outputValueWithSlippage.toString())
     // console.log(minOutAmountUniWithSlippage.toString())
 
@@ -504,23 +509,33 @@ export default function TimeExchangePage({ initialCurrency }) {
 
       // Get Uniswap Rate
       // HOW ARE WE CALCULATING TEH TRADE ON EXCHANGE PAGE
-      
+
       // console.log(`Private key: ${privateKey}`)
       // console.log(privateKey.length)
       // console.log(`Witness: ${witness}`)
       // console.log(witness.length)
 
       const abiCoder = new AbiCoder()
-      const funcSig = gelatoDcaContract.interface.getSighash("submitAndExec")
+      const funcSig = gelatoDcaContract.interface.getSighash('submitAndExec')
       // console.log(funcSig)
       /* 
         Dex _protocol,
         uint256 _minReturnOrRate,
         address[] calldata _tradePath
       */
-      
-      let submitData = abiCoder.encode(['tuple(address inToken, address outToken, uint256 amountPerTrade, uint256 numTrades, uint256 minSlippage, uint256 maxSlippage, uint256 delay, address platformWallet, uint256 platformFeeBps)', 'uint8 _protocol', 'uint256 _minReturnOrRate', 'address[] _tradePath', 'bytes32 privateKey', 'address witness'], [order, UNI, minOutAmountUniWithSlippage, path,  privateKey, witness]);
-      submitData = "0x" + funcSig.substring(2, funcSig.length) + submitData.substring(2, submitData.length)
+
+      let submitData = abiCoder.encode(
+        [
+          'tuple(address inToken, address outToken, uint256 amountPerTrade, uint256 numTrades, uint256 minSlippage, uint256 maxSlippage, uint256 delay, address platformWallet, uint256 platformFeeBps)',
+          'uint8 _protocol',
+          'uint256 _minReturnOrRate',
+          'address[] _tradePath',
+          'bytes32 privateKey',
+          'address witness',
+        ],
+        [order, UNI, minOutAmountUniWithSlippage, path, privateKey, witness]
+      )
+      submitData = '0x' + funcSig.substring(2, funcSig.length) + submitData.substring(2, submitData.length)
 
       // const indexOfSecret = submitData.indexOf(privateKey.substring(2, privateKey.length))
       // const indexOfWitness = submitData.indexOf(witness.substring(2, witness.length))
@@ -531,39 +546,40 @@ export default function TimeExchangePage({ initialCurrency }) {
       // console.log(witness === ("0x" + witnessCut))
 
       const gasLimit = await gelatoDcaContract.estimateGas.submitAndExec(
-        order, UNI, minOutAmountUniWithSlippage, path, 
+        order,
+        UNI,
+        minOutAmountUniWithSlippage,
+        path,
         {
-          value: value
+          value: value,
         }
       )
-      
 
       const provider = new ethers.providers.Web3Provider(library.provider)
       let res = await provider.getSigner().sendTransaction({
         to: gelatoDcaContract.address,
         data: submitData,
         value: value,
-        gasPrice: gasPrice ? gasPrice: undefined,
-        gasLimit: gasLimit.add(ethers.BigNumber.from("80000"))
+        gasPrice: gasPrice ? gasPrice : undefined,
+        gasLimit: gasLimit.add(ethers.BigNumber.from('80000')),
       })
 
       trackTx(res.hash, chainId)
 
-
-      const submissionDate = (Math.floor(Date.now() / 1000)).toString()
+      const submissionDate = Math.floor(Date.now() / 1000).toString()
       const currentId = await gelatoDcaContract.taskId()
-      for(let i = 0; i < numTrades; i++) {
-        let estimatedExecutionDate;
-        if(i === 0) {
+      for (let i = 0; i < numTrades; i++) {
+        let estimatedExecutionDate
+        if (i === 0) {
           estimatedExecutionDate = Math.floor(Date.now() / 1000)
         } else {
-          estimatedExecutionDate = ((order.delay * i) + Math.floor(Date.now() / 1000)).toString()
+          estimatedExecutionDate = (order.delay * i + Math.floor(Date.now() / 1000)).toString()
         }
         const nTradesLeft = order.numTrades.sub(ethers.BigNumber.from(i.toString())).toString()
         const index = (numTrades - i).toString()
         const witnessHash = witness + i.toString()
         const localOrder = {
-          id: `${(parseInt(currentId) + 1)}:${i+1}`,
+          id: `${parseInt(currentId) + 1}:${i + 1}`,
           user: account.toLowerCase(),
           status: 'awaitingExec',
           submissionDate: submissionDate,
@@ -578,9 +594,9 @@ export default function TimeExchangePage({ initialCurrency }) {
           witness: witnessHash,
           cycleWrapper: {
             cycle: {
-              nTradesLeft: nTradesLeft
-            }
-          }
+              nTradesLeft: nTradesLeft,
+            },
+          },
         }
 
         saveOrder(account, localOrder, chainId)
@@ -589,8 +605,6 @@ export default function TimeExchangePage({ initialCurrency }) {
           addTransaction(res, { action: ACTION_PLACE_ORDER, order: localOrder })
         }
       }
-
-      
     } catch (e) {
       console.log('Error on place order', e.message)
     }
@@ -604,37 +618,37 @@ export default function TimeExchangePage({ initialCurrency }) {
 
   const [showWhatIsDca, setShowWhatIsDca] = useState(true)
 
-  if(NATIVE_TOKEN_TICKER[chainId] !== "ETH"){
-    return  <Redirect to="/limit-order" />
+  if (NATIVE_TOKEN_TICKER[chainId] !== 'ETH') {
+    return <Redirect to="/limit-order" />
   }
 
-  
   return (
     <>
-    {showBetaMessage && (
-      
-      <BetaMessage onClick={ () => setShowBetaMessage(false)}>
-        <span role="img" aria-label="warning">
-        🚨
-        </span>{' '}
-        <Link id="link"  className="how-it-works">
-              {`Experimental - Use at own risk`}
-        </Link>
-      </BetaMessage>
-    )}
-    {showWhatIsDca && (
-      <BetaMessage onClick={ () => setShowWhatIsDca(false)}>
-        <span role="img" aria-label="warning">
-          ❓
-        </span>{' '}
-        <Link id="link" href="https://www.investopedia.com/terms/d/dollarcostaveraging.asp#:~:text=Dollar%2Dcost%20averaging%20(DCA)%20is%20an%20investment%20strategy%20in,volatility%20on%20the%20overall%20purchase.&text=Dollar%2Dcost%20averaging%20is%20also%20known%20as%20the%20constant%20dollar%20plan." className="how-it-works">
-              {`What is Dollar Cost Averaging?`}
-        </Link>
-      </BetaMessage>
-    )}
+      {showBetaMessage && (
+        <BetaMessage onClick={() => setShowBetaMessage(false)}>
+          <span role="img" aria-label="warning">
+            🚨
+          </span>{' '}
+          <Link id="link" className="how-it-works">
+            {`Experimental - Use at own risk`}
+          </Link>
+        </BetaMessage>
+      )}
+      {showWhatIsDca && (
+        <BetaMessage onClick={() => setShowWhatIsDca(false)}>
+          <span role="img" aria-label="warning">
+            ❓
+          </span>{' '}
+          <Link
+            id="link"
+            href="https://www.investopedia.com/terms/d/dollarcostaveraging.asp#:~:text=Dollar%2Dcost%20averaging%20(DCA)%20is%20an%20investment%20strategy%20in,volatility%20on%20the%20overall%20purchase.&text=Dollar%2Dcost%20averaging%20is%20also%20known%20as%20the%20constant%20dollar%20plan."
+            className="how-it-works"
+          >
+            {`What is Dollar Cost Averaging?`}
+          </Link>
+        </BetaMessage>
+      )}
 
-
-     
       <CurrencyInputPanel
         title={t('Total Sell Volume')}
         allBalances={allBalances}
@@ -645,15 +659,15 @@ export default function TimeExchangePage({ initialCurrency }) {
             if (valueToSet.gt(ethers.constants.Zero)) {
               dispatchSwapState({
                 type: 'UPDATE_INDEPENDENT',
-                payload: { value: amountFormatter(valueToSet, inputDecimals, inputDecimals, false), field: INPUT }
+                payload: { value: amountFormatter(valueToSet, inputDecimals, inputDecimals, false), field: INPUT },
               })
             }
           }
         }}
-        onCurrencySelected={inputCurrency => {
+        onCurrencySelected={(inputCurrency) => {
           dispatchSwapState({ type: 'SELECT_CURRENCY', payload: { currency: inputCurrency, field: INPUT } })
         }}
-        onValueChange={inputValue => {
+        onValueChange={(inputValue) => {
           dispatchSwapState({ type: 'UPDATE_INDEPENDENT', payload: { value: inputValue, field: INPUT } })
         }}
         showUnlock={showUnlock}
@@ -668,7 +682,7 @@ export default function TimeExchangePage({ initialCurrency }) {
         <DownArrowBackground>
           <RateIcon
             // RateIconSVG={rateOp === RATE_OP_MULT ? SVGClose : SVGDiv}
-            RateIconSVG={ SVGDiv }
+            RateIconSVG={SVGDiv}
             icon={rateOp}
             // onClick={() => {
             //   dispatchSwapState({ type: 'FLIP_RATE_OP' })
@@ -682,12 +696,12 @@ export default function TimeExchangePage({ initialCurrency }) {
       <TimeIntervalInputPancel
         title={t('Split into how many orders?')}
         allBalances={allBalances}
-        description={""}
+        description={''}
         extraText={'Time between orders'}
-        onIntervalSelect={outputInterval => {
+        onIntervalSelect={(outputInterval) => {
           dispatchSwapState({ type: 'UPDATE_INTERVAL', payload: { value: outputInterval, field: INTERVAL } })
         }}
-        onValueChange={newNumTrades => {
+        onValueChange={(newNumTrades) => {
           // Dispatch change in value
           dispatchSwapState({ type: 'UPDATE_NUM_TRADES', payload: { value: newNumTrades, field: NUM_TRADES } })
         }}
@@ -714,11 +728,11 @@ export default function TimeExchangePage({ initialCurrency }) {
         allBalances={allBalances}
         description={''}
         extraText={'Token to buy'}
-        onCurrencySelected={outputCurrency => {
+        onCurrencySelected={(outputCurrency) => {
           dispatchSwapState({ type: 'SELECT_CURRENCY', payload: { currency: outputCurrency, field: OUTPUT } })
           dispatchSwapState({ type: 'UPDATE_INDEPENDENT', payload: { value: inputValueFormatted, field: INPUT } })
         }}
-        onValueChange={outputValue => {
+        onValueChange={(outputValue) => {
           dispatchSwapState({ type: 'UPDATE_INDEPENDENT', payload: { value: outputValue, field: OUTPUT } })
         }}
         selectedTokens={[inputCurrency, outputCurrency]}
@@ -729,20 +743,31 @@ export default function TimeExchangePage({ initialCurrency }) {
         searchDisabled={true}
       />
       <OversizedPanel hideBottom>
-        <ExchangeRateWrapper
-        >
+        <ExchangeRateWrapper>
           {numTrades && (
             <span>
-              {`${numTrades} Orders, each swapping ${numTrades ? (inputValueFormatted / numTrades).toFixed(4) : 0} ${inputSymbol} ${outputSymbol ? `to ${outputSymbol}` : ''} every ${interval}`}
-          </span>
+              {`${numTrades} Orders, each swapping ${
+                numTrades ? (inputValueFormatted / numTrades).toFixed(4) : 0
+              } ${inputSymbol} ${outputSymbol ? `to ${outputSymbol}` : ''} every ${interval}`}
+            </span>
           )}
         </ExchangeRateWrapper>
       </OversizedPanel>
       <Flex>
         <Button
-          disabled={showUnlock || !account || !isValid || customSlippageError === 'invalid' || numTradesIsZero || executionRateWarning || isLOBtwEthAndWeth || !outputSymbol || insufficientNumTrades}
+          disabled={
+            showUnlock ||
+            !account ||
+            !isValid ||
+            customSlippageError === 'invalid' ||
+            numTradesIsZero ||
+            executionRateWarning ||
+            isLOBtwEthAndWeth ||
+            !outputSymbol ||
+            insufficientNumTrades
+          }
           onClick={onPlace}
-          warning={ executionRateWarning || customSlippageError === 'warning'}
+          warning={executionRateWarning || customSlippageError === 'warning'}
         >
           {customSlippageError === 'warning' ? t('placeAnyway') : t('place')}
         </Button>
@@ -752,7 +777,12 @@ export default function TimeExchangePage({ initialCurrency }) {
           <span role="img" aria-label="warning">
             ⚠️
           </span>
-          {`Min. total order size: ${amountFormatter(minOrderSize.mul(numTradesBn), inputDecimals, 4, false)} ${inputSymbol} for ${numTrades} orders`}
+          {`Min. total order size: ${amountFormatter(
+            minOrderSize.mul(numTradesBn),
+            inputDecimals,
+            4,
+            false
+          )} ${inputSymbol} for ${numTrades} orders`}
         </div>
       )}
       {isLOBtwEthAndWeth && (

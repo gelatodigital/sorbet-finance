@@ -21,7 +21,10 @@ export const RowFlat = styled.div`
   align-items: flex-end;
 `
 
-export const AutoRow = styled(Row)<{ gap: String, justify: String }>`
+export const AutoRow =
+  styled(Row) <
+  { gap: String, justify: String } >
+  `
   flex-wrap: wrap;
   margin: ${({ gap }) => gap && `-${gap}`};
   justify-content: ${({ justify }) => justify && justify};
@@ -31,7 +34,10 @@ export const AutoRow = styled(Row)<{ gap: String, justify: String }>`
   }
 `
 
-export const RowFixed = styled(Row)<{ gap: String, justify: String }>`
+export const RowFixed =
+  styled(Row) <
+  { gap: String, justify: String } >
+  `
   width: fit-content;
   margin: ${({ gap }) => gap && `-${gap}`};
 `

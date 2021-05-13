@@ -11,7 +11,7 @@ export function OrdersHistory() {
   return orders.length > 0 ? (
     <>
       <p style={{ marginTop: '40px', fontSize: '24px' }}>History</p>
-      {orders.map(order => (
+      {orders.map((order) => (
         <PastOrderCard key={order.id} data={order} />
       ))}
     </>
@@ -23,7 +23,7 @@ function usePastOrders(account, chainId) {
 
   useEffect(() => {
     if (account && isAddress(account)) {
-      fetchUserPastOrders(account, chainId).then(orders => {
+      fetchUserPastOrders(account, chainId).then((orders) => {
         setState(orders)
       })
     }
@@ -52,7 +52,7 @@ async function fetchUserPastOrders(account, chainId) {
     const res = await fetch(ORDER_GRAPH[chainId], {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, variables: { owner: account.toLowerCase() } })
+      body: JSON.stringify({ query, variables: { owner: account.toLowerCase() } }),
     })
 
     const { data } = await res.json()

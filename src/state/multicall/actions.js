@@ -19,7 +19,7 @@ export function parseCallKey(callKey) {
   }
   return {
     address: pcs[0],
-    callData: pcs[1]
+    callData: pcs[1],
   }
 }
 

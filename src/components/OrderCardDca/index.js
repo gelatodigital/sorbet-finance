@@ -8,14 +8,16 @@ import { ETH_ADDRESS } from '../../constants'
 import { useGasPrice } from '../../contexts/GasPrice'
 import { useTokenDetails } from '../../contexts/Tokens'
 import {
-  ACTION_CANCEL_ORDER, ACTION_PLACE_ORDER, useOrderPendingStateDca, useTransactionAdder
+  ACTION_CANCEL_ORDER,
+  ACTION_PLACE_ORDER,
+  useOrderPendingStateDca,
+  useTransactionAdder,
 } from '../../contexts/Transactions'
 import { useGelatoDcaContract } from '../../hooks'
 import { amountFormatter, getEtherscanLink, getTimeAndDate, trackTx } from '../../utils'
 import { Aligner, CurrencySelect, StyledTokenName } from '../CurrencyInputPanel'
 import TokenLogo from '../TokenLogo'
 import './OrderCardDca.css'
-
 
 const CancelButton = styled.div`
   color: ${({ selected, theme }) => (selected ? theme.textColor : theme.textColor)};
@@ -61,69 +63,59 @@ export function OrderCardDca(props) {
   const order = props.data
 
   const gasPrice = useGasPrice()
-  
 
   const inputToken = order.inToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.inToken)
-  const outputToken =
-  order.outToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.outToken)
+  const outputToken = order.outToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.outToken)
 
   const { symbol: fromSymbol, decimals: fromDecimals } = useTokenDetails(inputToken)
   const { symbol: toSymbol, decimals: toDecimals } = useTokenDetails(outputToken)
 
-  // @dev fix 
+  // @dev fix
   const { state, last } = useOrderPendingStateDca()
 
   const canceling = state === ACTION_CANCEL_ORDER
   const pending = state === ACTION_PLACE_ORDER
 
   // WHITELIST WETH DAI IN OA
-  
+
   const addTransaction = useTransactionAdder()
 
   const getTimerText = (execDate) => {
-    execDate =  Number(execDate)
-    const now = Math.floor(new Date().getTime() / 1000);
+    execDate = Number(execDate)
+    const now = Math.floor(new Date().getTime() / 1000)
 
     // Find the distance between now and the count down date
-    const distance = Math.max(execDate - now, 0);
+    const distance = Math.max(execDate - now, 0)
 
     // Time calculations for days, hours, minutes and seconds
-    const days = Math.floor(distance / (60 * 60 * 24));
-    const hours = Math.floor((distance % (60 * 60 * 24)) / (60 * 60));
-    const minutes = Math.floor((distance % (60 * 60)) / (60));
+    const days = Math.floor(distance / (60 * 60 * 24))
+    const hours = Math.floor((distance % (60 * 60 * 24)) / (60 * 60))
+    const minutes = Math.floor((distance % (60 * 60)) / 60)
     // const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    if(distance > 0) {
+    if (distance > 0) {
       return `${days}d: ${hours}h: ${minutes}m`
     } else {
       return `now`
     }
-    
   }
 
   const gasPriceAlert = gasPrice > 80000000000 ? true : false
 
   async function onCancel(cycle, id, pending) {
     gelatoDcaContract
-      .cancel(
-        cycle,
-        id,
-        {
-          gasLimit: pending ? 400000 : undefined,
-          gasPrice: gasPrice ? gasPrice : undefined
-        }
-      )
-      .then(response => {
+      .cancel(cycle, id, {
+        gasLimit: pending ? 400000 : undefined,
+        gasPrice: gasPrice ? gasPrice : undefined,
+      })
+      .then((response) => {
         trackTx(response.hash, chainId)
         addTransaction(response, { action: ACTION_CANCEL_ORDER, order: order })
       })
   }
 
-  const inputAmount = ethers.BigNumber.from(
-    order.amount
-  )
+  const inputAmount = ethers.BigNumber.from(order.amount)
 
   const explorerLink = last ? getEtherscanLink(chainId, last.response.hash, 'transaction') : undefined
-
 
   return (
     <Order className={`order ${order.status}`}>
@@ -144,22 +136,25 @@ export function OrderCardDca(props) {
           </Aligner>
         </CurrencySelect>
         <Spacer />
-        {order.status === "awaitingExec" && order.index === order.cycleWrapper.cycle.nTradesLeft && (
-          <CurrencySelect selected={true} disabled={order.status === "cancelled" ? true : false} onClick={() => onCancel(order.cycleWrapper.cycle, order.cycleWrapper.id)}>
+        {order.status === 'awaitingExec' && order.index === order.cycleWrapper.cycle.nTradesLeft && (
+          <CurrencySelect
+            selected={true}
+            disabled={order.status === 'cancelled' ? true : false}
+            onClick={() => onCancel(order.cycleWrapper.cycle, order.cycleWrapper.id)}
+          >
             <CancelButton>{canceling ? 'Cancelling ...' : t('cancel')}</CancelButton>
-          </CurrencySelect>  
+          </CurrencySelect>
         )}
       </div>{' '}
       <p>
         {`Sell: ${amountFormatter(inputAmount, fromDecimals, 6)}`} {fromSymbol}
         {/* {`TEST`}  */}
       </p>
-      <p>{`Status: ${order.status === "awaitingExec" ? "pending" : order.status}`}</p>
+      <p>{`Status: ${order.status === 'awaitingExec' ? 'pending' : order.status}`}</p>
       <p>{`Time to Exec: ${getTimerText(order.estExecutionDate)}`}</p>
       <p>{`Estimated Exec Date: ${getTimeAndDate(order.estExecutionDate)}`}</p>
       {gasPriceAlert && (
-        <p>{`Gas Price ${ethers.utils.formatUnits(gasPrice, "gwei")} Gwei: Execution maybe delayed`}</p>
-            
+        <p>{`Gas Price ${ethers.utils.formatUnits(gasPrice, 'gwei')} Gwei: Execution maybe delayed`}</p>
       )}
       {/* <Tooltip
         label={tooltipText}

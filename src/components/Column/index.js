@@ -10,8 +10,8 @@ export const ColumnCenter = styled(Column)`
   align-items: center;
 `
 export const AutoColumn = styled.div`
-    display: grid;
-    grid-auto-rows: auto;
-    grid-row-gap: inherit;
-    justify-items: ${(props) => props.justify && props.justify};
-  `
+  display: grid;
+  grid-auto-rows: auto;
+  grid-row-gap: inherit;
+  justify-items: ${(props) => props.justify && props.justify};
+`

@@ -71,8 +71,7 @@
     "fix:all": "yarn fix:lint && yarn fix:format",
     "check:lint": "yarn lint:base",
     "check:format": "yarn format:base --check",
-    "check:all": "yarn check:lint && yarn check:format",
-    "prettier": "^1.17.0"
+    "check:all": "yarn check:lint && yarn check:format"
   },
   "eslintConfig": {
     "extends": "react-app"

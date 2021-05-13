@@ -23,12 +23,12 @@ function reducer(state, { type, payload }) {
   switch (type) {
     case UPDATE_KEY: {
       const { key, value } = payload
-      if (!UPDATABLE_KEYS.some(k => k === key)) {
+      if (!UPDATABLE_KEYS.some((k) => k === key)) {
         throw Error(`Unexpected key in LocalStorageContext reducer: '${key}'.`)
       } else {
         return {
           ...state,
-          [key]: value
+          [key]: value,
         }
       }
     }
@@ -42,7 +42,7 @@ function init() {
   const defaultLocalStorage = {
     [VERSION]: CURRENT_VERSION,
     [BETA_MESSAGE_DISMISSED]: false,
-    [DARK_MODE]: true
+    [DARK_MODE]: true,
   }
 
   try {
@@ -76,7 +76,10 @@ export function Updater() {
   const [state] = useLocalStorageContext()
 
   useEffect(() => {
-    window.localStorage.setItem(SORBET_FINANCE, JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000) }))
+    window.localStorage.setItem(
+      SORBET_FINANCE,
+      JSON.stringify({ ...state, [LAST_SAVED]: Math.floor(Date.now() / 1000) })
+    )
   })
 
   return null

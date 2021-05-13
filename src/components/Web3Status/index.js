@@ -145,8 +145,8 @@ export default function Web3Status() {
 
   function getWeb3Status() {
     if (account) {
-      const chainIdStored = ls.get("chainId")
-      if(chainIdStored !== chainId) ls.set("chainId", chainId)
+      const chainIdStored = ls.get('chainId')
+      if (chainIdStored !== chainId) ls.set('chainId', chainId)
       return (
         <Web3StatusConnected id="web3-status-connected" onClick={toggleWalletModal}>
           <>
@@ -154,7 +154,6 @@ export default function Web3Status() {
           </>
           {getStatusIcon()}
         </Web3StatusConnected>
-
       )
     } else if (error) {
       console.log(error)

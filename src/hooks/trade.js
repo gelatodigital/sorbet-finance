@@ -1,5 +1,22 @@
-import { Trade as UniswapTrade, TokenAmount as UniswapTokenAmount, Pair as UniswapPair, Token as UniswapToken, CurrencyAmount as UniswapCurrencyAmount, ETHER, WETH, JSBI } from 'uniswap-v2-sdk'
-import { Trade as QuickswapTrade, TokenAmount as QuickswapTokenAmount, Pair as QuickswapPair, Token as QuickswapToken, ETHER as MATIC, WETH as WMATIC, CurrencyAmount as QuickswapCurrencyAmount } from 'quickswap-sdk'
+import {
+  Trade as UniswapTrade,
+  TokenAmount as UniswapTokenAmount,
+  Pair as UniswapPair,
+  Token as UniswapToken,
+  CurrencyAmount as UniswapCurrencyAmount,
+  ETHER,
+  WETH,
+  JSBI,
+} from 'uniswap-v2-sdk'
+import {
+  Trade as QuickswapTrade,
+  TokenAmount as QuickswapTokenAmount,
+  Pair as QuickswapPair,
+  Token as QuickswapToken,
+  ETHER as MATIC,
+  WETH as WMATIC,
+  CurrencyAmount as QuickswapCurrencyAmount,
+} from 'quickswap-sdk'
 import flatMap from 'lodash.flatmap'
 import { useMemo } from 'react'
 import { Interface } from '@ethersproject/abi'
@@ -18,64 +35,59 @@ export const PairState = {
   LOADING: 'LOADING',
   NOT_EXISTS: 'NOT_EXISTS',
   EXISTS: 'EXISTS',
-  INVALID: 'INVALID'
+  INVALID: 'INVALID',
 }
 
 const PAIR_INTERFACE = new Interface(PAIR_ABI)
 
-
-const getBestTradeExactIn = (chainId, allowedPairs, currencyAmountIn, currencyOut) =>{
-  if(NATIVE_TOKEN_TICKER[chainId] === "ETH"){
+const getBestTradeExactIn = (chainId, allowedPairs, currencyAmountIn, currencyOut) => {
+  if (NATIVE_TOKEN_TICKER[chainId] === 'ETH') {
     return UniswapTrade.bestTradeExactIn(allowedPairs, currencyAmountIn, currencyOut, {
       maxHops: 3,
-      maxNumResults: 1
+      maxNumResults: 1,
     })[0]
   }
-  if(NATIVE_TOKEN_TICKER[chainId] === "MATIC"){
+  if (NATIVE_TOKEN_TICKER[chainId] === 'MATIC') {
     return QuickswapTrade.bestTradeExactIn(allowedPairs, currencyAmountIn, currencyOut, {
       maxHops: 3,
-      maxNumResults: 1
+      maxNumResults: 1,
     })[0]
   }
 }
 
-const getTokenAmount = (chainId, token0, reserve0)=>{
-  if(NATIVE_TOKEN_TICKER[chainId] === "ETH"){
+const getTokenAmount = (chainId, token0, reserve0) => {
+  if (NATIVE_TOKEN_TICKER[chainId] === 'ETH') {
     return new UniswapTokenAmount(token0, reserve0)
   }
-  if(NATIVE_TOKEN_TICKER[chainId] === "MATIC"){
+  if (NATIVE_TOKEN_TICKER[chainId] === 'MATIC') {
     return new QuickswapTokenAmount(token0, reserve0)
   }
 }
 
-const getPair = (chainId, tokenA, tokenB)=>{
-  if(NATIVE_TOKEN_TICKER[chainId] === "ETH"){
+const getPair = (chainId, tokenA, tokenB) => {
+  if (NATIVE_TOKEN_TICKER[chainId] === 'ETH') {
     return new UniswapPair(tokenA, tokenB)
   }
-  if(NATIVE_TOKEN_TICKER[chainId] === "MATIC"){
+  if (NATIVE_TOKEN_TICKER[chainId] === 'MATIC') {
     return new QuickswapPair(tokenA, tokenB)
   }
 }
 
-const getPairAddress = (chainId, tokenA, tokenB)=>{
-  if(NATIVE_TOKEN_TICKER[chainId] === "ETH"){
+const getPairAddress = (chainId, tokenA, tokenB) => {
+  if (NATIVE_TOKEN_TICKER[chainId] === 'ETH') {
     return UniswapPair.getAddress(tokenA, tokenB)
   }
-  if(NATIVE_TOKEN_TICKER[chainId] === "MATIC"){
+  if (NATIVE_TOKEN_TICKER[chainId] === 'MATIC') {
     return QuickswapPair.getAddress(tokenA, tokenB)
   }
 }
 
-const getToken = (chainId,currencyAddress, decimals, symbol, name)=>{
-  if(NATIVE_TOKEN_TICKER[chainId] === "ETH"){
-    return currencyAddress === 'ETH'
-        ? ETHER :
-        new UniswapToken(chainId, currencyAddress, decimals, symbol, name)
+const getToken = (chainId, currencyAddress, decimals, symbol, name) => {
+  if (NATIVE_TOKEN_TICKER[chainId] === 'ETH') {
+    return currencyAddress === 'ETH' ? ETHER : new UniswapToken(chainId, currencyAddress, decimals, symbol, name)
   }
-  if(NATIVE_TOKEN_TICKER[chainId] === "MATIC"){
-    return currencyAddress === 'MATIC'
-    ? MATIC :
-    new QuickswapToken(chainId, currencyAddress, decimals, symbol, name)
+  if (NATIVE_TOKEN_TICKER[chainId] === 'MATIC') {
+    return currencyAddress === 'MATIC' ? MATIC : new QuickswapToken(chainId, currencyAddress, decimals, symbol, name)
   }
 }
 
@@ -93,11 +105,11 @@ function useAllCommonPairs(currencyA, currencyB) {
       // the direct pair
       [tokenA, tokenB],
       // token A against all bases
-      ...bases.map(base => [tokenA, base]),
+      ...bases.map((base) => [tokenA, base]),
       // token B against all bases
-      ...bases.map(base => [tokenB, base]),
+      ...bases.map((base) => [tokenB, base]),
       // each base against all bases
-      ...flatMap(bases, base => bases.map(otherBase => [base, otherBase]))
+      ...flatMap(bases, (base) => bases.map((otherBase) => [base, otherBase])),
     ],
     [tokenA, tokenB, bases]
   )
@@ -110,7 +122,7 @@ function useAllCommonPairs(currencyA, currencyB) {
       Object.values(
         allPairs
           // filter out invalid pairs
-          .filter(result => Boolean(result[0] === PairState.EXISTS && result[1]))
+          .filter((result) => Boolean(result[0] === PairState.EXISTS && result[1]))
           // filter out duplicated pairs
           .reduce((memo, [, curr]) => {
             memo[curr.liquidityToken.address] = memo[curr.liquidityToken.address]
@@ -127,20 +139,21 @@ function useAllCommonPairs(currencyA, currencyB) {
  * Returns the best trade for the exact amount of tokens in to the given token out
  */
 export function useTradeExactIn(currencyAddressIn, currencyValueIn, currencyAddressOut) {
-  const chainId = ls.get("chainId")
+  const chainId = ls.get('chainId')
   const currencyIn = useTokenDetails(currencyAddressIn)
   const currencyOutDetail = useTokenDetails(currencyAddressOut)
-  const currencyOut = currencyAddressOut && currencyOutDetail && currencyOutDetail.decimals
-    ?  getToken(
+  const currencyOut =
+    currencyAddressOut && currencyOutDetail && currencyOutDetail.decimals
+      ? getToken(
           currencyOutDetail.chainId,
           currencyAddressOut,
           currencyOutDetail.decimals,
           currencyOutDetail.symbol,
           currencyOutDetail.name
         )
-    : undefined
+      : undefined
 
-    const currencyAmountIn = tryParseAmount(
+  const currencyAmountIn = tryParseAmount(
     currencyValueIn,
     currencyAddressIn && currencyIn.symbol
       ? getToken(currencyIn.chainId, currencyAddressIn, currencyIn.decimals, currencyIn.symbol, currencyIn.name)
@@ -154,7 +167,7 @@ export function useTradeExactIn(currencyAddressIn, currencyValueIn, currencyAddr
       try {
         const tradeRes = getBestTradeExactIn(chainId, allowedPairs, currencyAmountIn, currencyOut)
         return tradeRes ? tradeRes : null
-      } catch{}
+      } catch {}
     }
     return null
   }, [allowedPairs, currencyAmountIn, currencyOut, chainId])
@@ -167,7 +180,7 @@ export function usePairs(currencies) {
     () =>
       currencies.map(([currencyA, currencyB]) => [
         wrappedCurrency(currencyA, chainId),
-        wrappedCurrency(currencyB, chainId)
+        wrappedCurrency(currencyB, chainId),
       ]),
     [chainId, currencies]
   )
@@ -196,7 +209,11 @@ export function usePairs(currencies) {
       const [token0, token1] = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA]
       return [
         PairState.EXISTS,
-        getPair(chainId, getTokenAmount(chainId, token0, _reserve0.toString()), getTokenAmount(chainId, token1, _reserve1.toString()))
+        getPair(
+          chainId,
+          getTokenAmount(chainId, token0, _reserve0.toString()),
+          getTokenAmount(chainId, token1, _reserve1.toString())
+        ),
       ]
     })
   }, [results, tokens, chainId])
@@ -209,13 +226,12 @@ export function usePair(tokenA, tokenB) {
 export function wrappedCurrency(currency, chainId) {
   //   return chainId && currency === ETHER ? WETH[chainId] : currency instanceof Token ? currency : undefined
 
-if(chainId){
-  if(NATIVE_TOKEN_TICKER[chainId] === "ETH")
-  return  currency === ETHER ? WETH[chainId] : currency instanceof UniswapToken ? currency : undefined
-  if(NATIVE_TOKEN_TICKER[chainId] === "MATIC")
-  return  currency === MATIC ? WMATIC[chainId] : currency instanceof QuickswapToken ? currency : undefined
-}else return undefined
-
+  if (chainId) {
+    if (NATIVE_TOKEN_TICKER[chainId] === 'ETH')
+      return currency === ETHER ? WETH[chainId] : currency instanceof UniswapToken ? currency : undefined
+    if (NATIVE_TOKEN_TICKER[chainId] === 'MATIC')
+      return currency === MATIC ? WMATIC[chainId] : currency instanceof QuickswapToken ? currency : undefined
+  } else return undefined
 }
 
 // try to parse a user entered amount for a given token
@@ -224,17 +240,17 @@ export function tryParseAmount(value, currency) {
     return
   }
   try {
-    const chainId = ls.get("chainId")
+    const chainId = ls.get('chainId')
     const typedValueParsed = parseUnits(value.toString(), currency.decimals).toString()
     if (typedValueParsed !== '0') {
-      if(NATIVE_TOKEN_TICKER[chainId] === "ETH")
-      return currency instanceof UniswapToken
-        ? getTokenAmount(chainId, currency, JSBI.BigInt(typedValueParsed))
-        : UniswapCurrencyAmount.ether(JSBI.BigInt(typedValueParsed))
-      if(NATIVE_TOKEN_TICKER[chainId] === "MATIC")
-      return currency instanceof QuickswapToken
-        ? getTokenAmount(chainId, currency, JSBI.BigInt(typedValueParsed))
-        : QuickswapCurrencyAmount.ether(JSBI.BigInt(typedValueParsed))
+      if (NATIVE_TOKEN_TICKER[chainId] === 'ETH')
+        return currency instanceof UniswapToken
+          ? getTokenAmount(chainId, currency, JSBI.BigInt(typedValueParsed))
+          : UniswapCurrencyAmount.ether(JSBI.BigInt(typedValueParsed))
+      if (NATIVE_TOKEN_TICKER[chainId] === 'MATIC')
+        return currency instanceof QuickswapToken
+          ? getTokenAmount(chainId, currency, JSBI.BigInt(typedValueParsed))
+          : QuickswapCurrencyAmount.ether(JSBI.BigInt(typedValueParsed))
     }
   } catch (error) {
     // should fail if the user specifies too many decimal places of precision (or maybe exceed max uint?)
