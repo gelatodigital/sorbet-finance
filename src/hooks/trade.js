@@ -21,7 +21,6 @@ import flatMap from 'lodash.flatmap'
 import { useMemo } from 'react'
 import { Interface } from '@ethersproject/abi'
 import { parseUnits } from '@ethersproject/units'
-import * as ls from 'local-storage'
 
 import { BASES_TO_CHECK_TRADES_AGAINST } from '../constants'
 import PAIR_ABI from '../constants/abis/pair.json'
@@ -139,7 +138,7 @@ function useAllCommonPairs(currencyA, currencyB) {
  * Returns the best trade for the exact amount of tokens in to the given token out
  */
 export function useTradeExactIn(currencyAddressIn, currencyValueIn, currencyAddressOut) {
-  const chainId = ls.get('chainId')
+  const { chainId } = useActiveWeb3React()
   const currencyIn = useTokenDetails(currencyAddressIn)
   const currencyOutDetail = useTokenDetails(currencyAddressOut)
   const currencyOut =
@@ -154,6 +153,7 @@ export function useTradeExactIn(currencyAddressIn, currencyValueIn, currencyAddr
       : undefined
 
   const currencyAmountIn = tryParseAmount(
+    chainId,
     currencyValueIn,
     currencyAddressIn && currencyIn.symbol
       ? getToken(currencyIn.chainId, currencyAddressIn, currencyIn.decimals, currencyIn.symbol, currencyIn.name)
@@ -224,8 +224,6 @@ export function usePair(tokenA, tokenB) {
 }
 
 export function wrappedCurrency(currency, chainId) {
-  //   return chainId && currency === ETHER ? WETH[chainId] : currency instanceof Token ? currency : undefined
-
   if (chainId) {
     if (NATIVE_TOKEN_TICKER[chainId] === 'ETH')
       return currency === ETHER ? WETH[chainId] : currency instanceof UniswapToken ? currency : undefined
@@ -235,12 +233,11 @@ export function wrappedCurrency(currency, chainId) {
 }
 
 // try to parse a user entered amount for a given token
-export function tryParseAmount(value, currency) {
+export function tryParseAmount(chainId, value, currency) {
   if (!value || !currency) {
     return
   }
   try {
-    const chainId = ls.get('chainId')
     const typedValueParsed = parseUnits(value.toString(), currency.decimals).toString()
     if (typedValueParsed !== '0') {
       if (NATIVE_TOKEN_TICKER[chainId] === 'ETH')

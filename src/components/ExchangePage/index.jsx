@@ -126,27 +126,26 @@ function saveOrder(account, orderData, chainId) {
 // ///
 // Helpers
 // ///
-function getSwapType(inputCurrency, outputCurrency) {
-  const chainIdStored = ls.get('chainId')
+function getSwapType(chainId, inputCurrency, outputCurrency) {
   if (!inputCurrency || !outputCurrency) {
     return null
-  } else if (inputCurrency === NATIVE_TOKEN_TICKER[chainIdStored]) {
+  } else if (inputCurrency === NATIVE_TOKEN_TICKER[chainId]) {
     return ETH_TO_TOKEN
-  } else if (outputCurrency === NATIVE_TOKEN_TICKER[chainIdStored]) {
+  } else if (outputCurrency === NATIVE_TOKEN_TICKER[chainId]) {
     return TOKEN_TO_ETH
   } else {
     return TOKEN_TO_TOKEN
   }
 }
 
-function getInitialSwapState(outputCurrency) {
+function getInitialSwapState(chainId, outputCurrency) {
   const chainIdStored = ls.get('chainId')
   return {
     independentValue: '', // this is a user input
     dependentValue: '', // this is a calculated number
     independentField: INPUT,
     prevIndependentField: OUTPUT,
-    inputCurrency: NATIVE_TOKEN_TICKER[chainIdStored],
+    inputCurrency: NATIVE_TOKEN_TICKER[chainId ?? chainIdStored],
     outputCurrency: outputCurrency ? outputCurrency : '',
     rateOp: RATE_OP_MULT,
     inputRateValue: '',
@@ -291,7 +290,7 @@ export default function ExchangePage({ initialCurrency }) {
   const { account, library, chainId } = useWeb3React()
 
   // core swap state
-  const [swapState, dispatchSwapState] = useReducer(swapStateReducer, initialCurrency, getInitialSwapState)
+  const [swapState, dispatchSwapState] = useReducer(swapStateReducer, initialCurrency, () => getInitialSwapState(chainId))
 
   const { independentValue, independentField, inputCurrency, outputCurrency, rateOp, inputRateValue } = swapState
 
@@ -302,7 +301,7 @@ export default function ExchangePage({ initialCurrency }) {
   const addTransaction = useTransactionAdder()
 
   // get swap type from the currency types
-  const swapType = getSwapType(inputCurrency, outputCurrency)
+  const swapType = getSwapType(chainId, inputCurrency, outputCurrency)
 
   // get decimals and exchange address for each of the currency types
   const { symbol: inputSymbol, decimals: inputDecimals } = useTokenDetails(inputCurrency)

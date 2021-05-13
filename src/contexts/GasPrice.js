@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import * as ls from 'local-storage'
+import { useWeb3React } from '@web3-react/core'
 import { useBlockNumber } from './Application'
 import { ChainId } from '../constants/networks'
 
@@ -35,7 +35,7 @@ export default function Provider({ children }) {
 
   const globalBlockNumber = useBlockNumber()
 
-  const chainId = ls.get('chainId')
+  const { chainId } = useWeb3React()
 
   useEffect(() => {
     GAS_STATION[chainId]
