@@ -13,6 +13,7 @@ import Circle from '../../assets/images/circle-grey.svg'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import SearchIcon from '../../assets/images/magnifying-glass.svg'
 import { ReactComponent as Close } from '../../assets/images/x.svg'
+import { NATIVE_TOKEN_TICKER, NATIVE_WRAPPED_TOKEN_TICKER } from '../../constants/networks'
 import { useUSDPrice } from '../../contexts/Application'
 import { useGasPrice } from '../../contexts/GasPrice'
 import { useAllTokenDetails, useTokenDetails } from '../../contexts/Tokens'
@@ -20,7 +21,6 @@ import { useAllTokenDcaDetails, useTokenDcaDetails } from '../../contexts/Tokens
 import { usePendingApproval, useTransactionAdder } from '../../contexts/Transactions'
 import { useTokenContract } from '../../hooks'
 import { BorderlessInput, Spinner } from '../../theme'
-import { NATIVE_TOKEN_TICKER, NATIVE_WRAPPED_TOKEN_TICKER } from '../../constants/networks'
 import { calculateGasMargin, formatEthBalance, formatTokenBalance, formatToUsd, isAddress, trackTx } from '../../utils'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
@@ -415,7 +415,6 @@ export default function CurrencyInputPanel({
                 marginTop: '-64px',
               }}
             >
-              {/* (Balance: X) */}
               <span>{extraText}</span>
             </Tooltip>
           </ErrorSpan>

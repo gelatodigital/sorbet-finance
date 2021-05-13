@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
 import { useWeb3React } from '@web3-react/core'
-
-import { PastOrderCard } from '../PastOrderCard'
-import { isAddress } from '../../utils'
+import React, { useEffect, useState } from 'react'
 import { ORDER_GRAPH } from '../../constants'
+import { isAddress } from '../../utils'
+import { PastOrderCard } from '../PastOrderCard'
+
 
 export function OrdersHistory() {
   const { account, chainId } = useWeb3React()
@@ -28,6 +28,17 @@ function usePastOrders(account, chainId) {
       })
     }
   }, [account, chainId])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (account && isAddress(account)) {
+        fetchUserPastOrders(account, chainId).then((orders) => {
+          setState(orders)
+        })
+      }
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [])
 
   return state
 }

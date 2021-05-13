@@ -28,6 +28,17 @@ function usePastOrders(account, chainId) {
     }
   }, [account, chainId])
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (account && isAddress(account)) {
+        fetchUserPastOrders(account, chainId).then((orders) => {
+          setState(orders)
+        })
+      }
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
   return state
 }
 
