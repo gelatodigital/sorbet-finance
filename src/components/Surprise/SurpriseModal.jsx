@@ -73,7 +73,7 @@ export default function SupriseModal() {
 
   useEffect(() => {
     async function getAllExecutedOrdersAsync() {
-      if (chainId !== 1) return
+      if (chainId !== 1 || chainId !== 137) return
       if (ls.get(lsKey(LS_GIFT, account, chainId))) return
 
       const allExecOrder = await getAllExecutedOrders(account, chainId)
