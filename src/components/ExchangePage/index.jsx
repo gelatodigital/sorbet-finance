@@ -790,6 +790,7 @@ export default function ExchangePage({ initialCurrency }) {
             !isValid ||
             customSlippageError === 'invalid' ||
             (rateDeltaFormatted && rateDeltaFormatted.startsWith('-')) ||
+            rateDeltaFormatted === "0"||
             isLOBtwEthAndWeth
           }
           onClick={onPlace}

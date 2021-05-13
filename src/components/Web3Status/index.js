@@ -146,7 +146,11 @@ export default function Web3Status() {
   function getWeb3Status() {
     if (account) {
       const chainIdStored = ls.get('chainId')
-      if (chainIdStored !== chainId) ls.set('chainId', chainId)
+      if (chainIdStored !== chainId) {
+        ls.set('chainId', chainId)
+        window.location.reload()
+      }
+
       return (
         <Web3StatusConnected id="web3-status-connected" onClick={toggleWalletModal}>
           <>

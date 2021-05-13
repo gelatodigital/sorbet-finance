@@ -176,7 +176,7 @@ export default function NetworkModal({ toggleNetworkModal, isOpen }) {
             )
           })}
           <br></br>
-          <Text>If you are having trouble switching networks please switch manually via MetaMask.</Text>
+          <Text>To switch networks please switch manually via MetaMask.</Text>
         </ContentWrapper>
       </UpperSection>
     )
