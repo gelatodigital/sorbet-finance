@@ -155,9 +155,9 @@ export function useTradeExactIn(currencyAddressIn, currencyValueIn, currencyAddr
   const currencyAmountIn = tryParseAmount(
     chainId,
     currencyValueIn,
-    currencyAddressIn && currencyIn.symbol
-      ? getToken(currencyIn.chainId, currencyAddressIn, currencyIn.decimals, currencyIn.symbol, currencyIn.name)
-      : undefined
+    currencyAddressIn && currencyIn.symbol && currencyIn.decimals && currencyIn.chainId && currencyIn.name
+    ? getToken(currencyIn.chainId, currencyAddressIn, currencyIn.decimals, currencyIn.symbol, currencyIn.name)
+    : undefined
   )
 
   const allowedPairs = useAllCommonPairs(currencyAmountIn ? currencyAmountIn.currency : undefined, currencyOut)
