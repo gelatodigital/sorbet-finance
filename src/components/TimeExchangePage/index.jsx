@@ -8,6 +8,7 @@ import React, { useEffect, useReducer, useState } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
+import { Redirect } from 'react-router-dom';
 import ArrowDown from '../../assets/svg/SVGArrowDown'
 import SVGDiv from '../../assets/svg/SVGDiv'
 import { ALL_INTERVALS, DCA_ORDER_THRESHOLD, ETH_ADDRESS, GELATO_DCA, PLATFORM_WALLET, UNI } from '../../constants'
@@ -26,6 +27,7 @@ import CurrencyInputPanelDca from '../CurrencyInputPanelDca'
 import OversizedPanel from '../OversizedPanel'
 import TimeIntervalInputPancel from '../TimeIntervalInputPancel'
 import './TimeExchangePage.css'
+import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
 
 // Use to detach input from output
 let inputValue
@@ -357,7 +359,7 @@ export default function TimeExchangePage({ initialCurrency }) {
   let minOrderSize
 
   const minOrderSizeTrade =  useTradeExactIn('ETH', orderThresholdInEth, inputCurrency)
-  if(inputCurrency === 'ETH' ) {
+  if(inputCurrency === 'ETH' && orderThresholdInEth) {
     minOrderSize = ethers.utils.parseEther(orderThresholdInEth.toString())
   } else {
     if(outputCurrency && minOrderSizeTrade) {
@@ -602,6 +604,11 @@ export default function TimeExchangePage({ initialCurrency }) {
 
   const [showWhatIsDca, setShowWhatIsDca] = useState(true)
 
+  if(NATIVE_TOKEN_TICKER[chainId] !== "ETH"){
+    return  <Redirect to="/limit-order" />
+  }
+
+  
   return (
     <>
     {showBetaMessage && (

@@ -286,8 +286,6 @@ export default function CurrencyInputPanelDca({
 
   const gasPrice = useGasPrice()
 
-  const { chainId } = useWeb3React()
-
   const [modalIsOpen, setModalIsOpen] = useState(false)
 
   const tokenContract = useTokenContract(selectedTokenAddress)
