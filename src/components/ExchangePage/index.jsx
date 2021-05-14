@@ -13,11 +13,11 @@ import { ETH_ADDRESS, GENERIC_GAS_LIMIT_ORDER_EXECUTE, LIMIT_ORDER_MODULE_ADDRES
 import { useFetchAllBalances } from '../../contexts/AllBalances'
 import { useAddressBalance } from '../../contexts/Balances'
 import { useGasPrice } from '../../contexts/GasPrice'
-import { useTokenDetails, WETH } from '../../contexts/Tokens'
+import { useTokenDetails } from '../../contexts/Tokens'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
 import { useTradeExactIn } from '../../hooks/trade'
 import { Button } from '../../theme'
-import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
+import { NATIVE_TOKEN_TICKER, NATIVE_WRAPPED_TOKEN_ADDRESS } from '../../constants/networks'
 import { amountFormatter, trackTx } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../CurrencyInputPanel'
@@ -440,8 +440,8 @@ export default function ExchangePage({ initialCurrency }) {
   const executionRateNegative = executionRate?.lt(ethers.constants.Zero)
   const executionRateWarning = executionRateNegative || executionRateDelta?.abs()?.gt(limitExecution)
   const isLOBtwEthAndWeth =
-    (inputCurrency === 'ETH' && outputCurrency.toLocaleLowerCase() === WETH[chainId]) ||
-    (outputCurrency === 'ETH' && inputCurrency.toLocaleLowerCase() === WETH[chainId])
+    (inputCurrency === NATIVE_TOKEN_TICKER[chainId] && outputCurrency.toLocaleLowerCase() === NATIVE_WRAPPED_TOKEN_ADDRESS[chainId].toLocaleLowerCase()) ||
+    (outputCurrency === NATIVE_TOKEN_TICKER[chainId] && inputCurrency.toLocaleLowerCase() === NATIVE_WRAPPED_TOKEN_ADDRESS[chainId].toLocaleLowerCase())
 
   const { exchangeAddress: selectedTokenExchangeAddress } = useTokenDetails(inputCurrency)
 

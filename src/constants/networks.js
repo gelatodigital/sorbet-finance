@@ -37,3 +37,9 @@ export const NATIVE_TOKEN_NAME = {
   [ChainId.ROPSTEN]: 'Ether',
   [ChainId.MATIC]: 'Matic',
 }
+
+export const NATIVE_WRAPPED_TOKEN_ADDRESS = {
+  [ChainId.MAINNET]: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+  [ChainId.ROPSTEN]: '0xc778417e063141139fce010982780140aa0cd5ab',
+  [ChainId.MATIC]: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
+}
