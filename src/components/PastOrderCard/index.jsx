@@ -9,8 +9,7 @@ import { amountFormatter, getEtherscanLink } from '../../utils'
 import { Aligner, CurrencySelect, StyledTokenName } from '../CurrencyInputPanel'
 import TokenLogo from '../TokenLogo'
 import './OrderCard.css'
-
-
+import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
 
 const Order = styled.div`
   display: -webkit-box;
@@ -47,9 +46,14 @@ export function PastOrderCard(props) {
 
   const order = props.data
 
-  const inputToken = order.inputToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.inputToken)
+  const inputToken =
+    order.inputToken === ETH_ADDRESS.toLowerCase()
+      ? NATIVE_TOKEN_TICKER[chainId]
+      : ethers.utils.getAddress(order.inputToken)
   const outputToken =
-    order.outputToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.outputToken)
+    order.outputToken === ETH_ADDRESS.toLowerCase()
+      ? NATIVE_TOKEN_TICKER[chainId]
+      : ethers.utils.getAddress(order.outputToken)
 
   const { symbol: fromSymbol, decimals: fromDecimals } = useTokenDetails(inputToken)
   const { symbol: toSymbol, decimals: toDecimals } = useTokenDetails(outputToken)

@@ -1,4 +1,4 @@
-import { getCancelLimitOrderPayload } from "@gelatonetwork/limit-orders-lib"
+import { getCancelLimitOrderPayload } from '@gelatonetwork/limit-orders-lib'
 import Tooltip from '@reach/tooltip'
 import { useWeb3React } from '@web3-react/core'
 import { ethers } from 'ethers'
@@ -10,7 +10,10 @@ import { ETH_ADDRESS, GENERIC_GAS_LIMIT_ORDER_EXECUTE } from '../../constants'
 import { useGasPrice } from '../../contexts/GasPrice'
 import { useTokenDetails } from '../../contexts/Tokens'
 import {
-  ACTION_CANCEL_ORDER, ACTION_PLACE_ORDER, useOrderPendingState, useTransactionAdder
+  ACTION_CANCEL_ORDER,
+  ACTION_PLACE_ORDER,
+  useOrderPendingState,
+  useTransactionAdder,
 } from '../../contexts/Transactions'
 import { useTradeExactIn } from '../../hooks/trade'
 import { amountFormatter, getEtherscanLink, trackTx } from '../../utils'
@@ -18,7 +21,7 @@ import { getExchangeRate } from '../../utils/rate'
 import { Aligner, CurrencySelect, StyledTokenName } from '../CurrencyInputPanel'
 import TokenLogo from '../TokenLogo'
 import './OrderCard.css'
-
+import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
 
 const CancelButton = styled.div`
   color: ${({ selected, theme }) => (selected ? theme.textColor : theme.textColor)};
@@ -62,9 +65,14 @@ export function OrderCard(props) {
 
   const order = props.data
 
-  const inputToken = order.inputToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.inputToken)
+  const inputToken =
+    order.inputToken === ETH_ADDRESS.toLowerCase()
+      ? NATIVE_TOKEN_TICKER[chainId]
+      : ethers.utils.getAddress(order.inputToken)
   const outputToken =
-    order.outputToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.outputToken)
+    order.outputToken === ETH_ADDRESS.toLowerCase()
+      ? NATIVE_TOKEN_TICKER[chainId]
+      : ethers.utils.getAddress(order.outputToken)
 
   const { symbol: fromSymbol, decimals: fromDecimals } = useTokenDetails(inputToken)
   const { symbol: toSymbol, decimals: toDecimals } = useTokenDetails(outputToken)
@@ -76,23 +84,29 @@ export function OrderCard(props) {
   const addTransaction = useTransactionAdder()
 
   async function onCancel(order, pending) {
-
     const { inputToken, outputToken, minReturn, owner, witness } = order
 
-    const transactionData = await getCancelLimitOrderPayload(chainId, inputToken, outputToken, minReturn, owner, witness)
-    const res = await (new ethers.providers.Web3Provider(library.provider)).getSigner().sendTransaction({
+    const transactionData = await getCancelLimitOrderPayload(
+      chainId,
+      inputToken,
+      outputToken,
+      minReturn,
+      owner,
+      witness,
+      new ethers.providers.Web3Provider(library.provider)
+    )
+    const res = await new ethers.providers.Web3Provider(library.provider).getSigner().sendTransaction({
       to: transactionData.to,
       data: transactionData.data,
       value: transactionData.value,
       gasPrice: gasPrice,
-      gasLimit: 400000
-    });
+      gasLimit: 400000,
+    })
 
     if (res.hash) {
       trackTx(res.hash, chainId)
       addTransaction(res, { action: ACTION_CANCEL_ORDER, order: order })
     }
-    
   }
 
   const inputAmount = ethers.BigNumber.from(
@@ -109,7 +123,11 @@ export function OrderCard(props) {
   const gasLimit = GENERIC_GAS_LIMIT_ORDER_EXECUTE
   const requiredGas = gasPrice?.mul(gasLimit)
 
-  const gasInInputTokens = useTradeExactIn('ETH', amountFormatter(requiredGas, 18, 18), inputToken)
+  const gasInInputTokens = useTradeExactIn(
+    NATIVE_TOKEN_TICKER[chainId],
+    amountFormatter(requiredGas, 18, 18),
+    inputToken
+  )
 
   let tooltipText = ''
   let executionRateText = ''
@@ -121,7 +139,7 @@ export function OrderCard(props) {
       let usedInput
 
       try {
-        if (inputToken === 'ETH') {
+        if (inputToken === NATIVE_TOKEN_TICKER[chainId]) {
           usedInput = requiredGas
         } else if (!gasInInputTokens || !requiredGas) {
           return [undefined, undefined]
@@ -131,12 +149,12 @@ export function OrderCard(props) {
 
         return [
           getExchangeRate(inputAmount.sub(usedInput), fromDecimals, minReturn, toDecimals, false),
-          getExchangeRate(inputAmount.sub(usedInput), fromDecimals, minReturn, toDecimals, true)
+          getExchangeRate(inputAmount.sub(usedInput), fromDecimals, minReturn, toDecimals, true),
         ]
       } catch {
         return [undefined, undefined]
       }
-    }, [fromDecimals, inputAmount, minReturn, requiredGas, toDecimals, inputToken, gasInInputTokens, gasPrice])
+    }, [fromDecimals, inputAmount, minReturn, requiredGas, toDecimals, inputToken, gasInInputTokens, gasPrice, chainId])
 
     if (virtualRateFromTo?.gt(ethers.constants.Zero)) {
       executionRateText = `Execution rate: ${
@@ -196,7 +214,7 @@ export function OrderCard(props) {
           border: 'none',
           borderRadius: '24px',
           padding: '0.5em 1em',
-          marginTop: '-64px'
+          marginTop: '-64px',
         }}
       >
         <p>{executionRateText}</p>

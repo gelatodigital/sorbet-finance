@@ -17,6 +17,7 @@ import { useTokenDetails, WETH } from '../../contexts/Tokens'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
 import { useTradeExactIn } from '../../hooks/trade'
 import { Button } from '../../theme'
+import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
 import { amountFormatter, trackTx } from '../../utils'
 import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../CurrencyInputPanel'
@@ -125,29 +126,29 @@ function saveOrder(account, orderData, chainId) {
 // ///
 // Helpers
 // ///
-
-function getSwapType(inputCurrency, outputCurrency) {
+function getSwapType(chainId, inputCurrency, outputCurrency) {
   if (!inputCurrency || !outputCurrency) {
     return null
-  } else if (inputCurrency === 'ETH') {
+  } else if (inputCurrency === NATIVE_TOKEN_TICKER[chainId]) {
     return ETH_TO_TOKEN
-  } else if (outputCurrency === 'ETH') {
+  } else if (outputCurrency === NATIVE_TOKEN_TICKER[chainId]) {
     return TOKEN_TO_ETH
   } else {
     return TOKEN_TO_TOKEN
   }
 }
 
-function getInitialSwapState(outputCurrency) {
+function getInitialSwapState(chainId, outputCurrency) {
+  const chainIdStored = ls.get('chainId')
   return {
     independentValue: '', // this is a user input
     dependentValue: '', // this is a calculated number
     independentField: INPUT,
     prevIndependentField: OUTPUT,
-    inputCurrency: 'ETH',
+    inputCurrency: NATIVE_TOKEN_TICKER[chainId ?? chainIdStored],
     outputCurrency: outputCurrency ? outputCurrency : '',
     rateOp: RATE_OP_MULT,
-    inputRateValue: ''
+    inputRateValue: '',
   }
 }
 
@@ -162,7 +163,7 @@ function swapStateReducer(state, action) {
         independentValue: '',
         inputRateValue: '',
         inputCurrency: outputCurrency,
-        outputCurrency: inputCurrency
+        outputCurrency: inputCurrency,
       }
     }
     case 'FLIP_RATE_OP': {
@@ -174,7 +175,7 @@ function swapStateReducer(state, action) {
       return {
         ...state,
         inputRateValue: flipped,
-        rateOp: rateOp === RATE_OP_DIV ? RATE_OP_MULT : RATE_OP_DIV
+        rateOp: rateOp === RATE_OP_DIV ? RATE_OP_MULT : RATE_OP_DIV,
       }
     }
     case 'SELECT_CURRENCY': {
@@ -188,13 +189,13 @@ function swapStateReducer(state, action) {
         return {
           ...state,
           inputCurrency: field === INPUT ? currency : '',
-          outputCurrency: field === OUTPUT ? currency : ''
+          outputCurrency: field === OUTPUT ? currency : '',
         }
       } else {
         return {
           ...state,
           inputCurrency: newInputCurrency,
-          outputCurrency: newOutputCurrency
+          outputCurrency: newOutputCurrency,
         }
       }
     }
@@ -208,13 +209,13 @@ function swapStateReducer(state, action) {
         dependentValue: Number(value) === Number(independentValue) ? dependentValue : '',
         independentField: field,
         inputRateValue: field === RATE ? value : inputRateValue,
-        prevIndependentField: independentField === field ? prevIndependentField : independentField
+        prevIndependentField: independentField === field ? prevIndependentField : independentField,
       }
     }
     case 'UPDATE_DEPENDENT': {
       return {
         ...state,
-        dependentValue: action.payload === null ? inputValue : action.payload
+        dependentValue: action.payload === null ? inputValue : action.payload,
       }
     }
     default: {
@@ -289,7 +290,7 @@ export default function ExchangePage({ initialCurrency }) {
   const { account, library, chainId } = useWeb3React()
 
   // core swap state
-  const [swapState, dispatchSwapState] = useReducer(swapStateReducer, initialCurrency, getInitialSwapState)
+  const [swapState, dispatchSwapState] = useReducer(swapStateReducer, initialCurrency, () => getInitialSwapState(chainId))
 
   const { independentValue, independentField, inputCurrency, outputCurrency, rateOp, inputRateValue } = swapState
 
@@ -300,7 +301,7 @@ export default function ExchangePage({ initialCurrency }) {
   const addTransaction = useTransactionAdder()
 
   // get swap type from the currency types
-  const swapType = getSwapType(inputCurrency, outputCurrency)
+  const swapType = getSwapType(chainId, inputCurrency, outputCurrency)
 
   // get decimals and exchange address for each of the currency types
   const { symbol: inputSymbol, decimals: inputDecimals } = useTokenDetails(inputCurrency)
@@ -309,6 +310,7 @@ export default function ExchangePage({ initialCurrency }) {
   // get balances for each of the currency types
   const inputBalance = useAddressBalance(account, inputCurrency)
   const outputBalance = useAddressBalance(account, outputCurrency)
+
   const inputBalanceFormatted = !!(inputBalance && Number.isInteger(inputDecimals))
     ? amountFormatter(inputBalance, inputDecimals, Math.min(4, inputDecimals))
     : ''
@@ -403,10 +405,14 @@ export default function ExchangePage({ initialCurrency }) {
   const gasLimit = GENERIC_GAS_LIMIT_ORDER_EXECUTE
   const requiredGas = gasPrice?.mul(gasLimit)
 
-  const gasInInputTokens = useTradeExactIn('ETH', amountFormatter(requiredGas, 18, 18), inputCurrency)
+  const gasInInputTokens = useTradeExactIn(
+    NATIVE_TOKEN_TICKER[chainId],
+    amountFormatter(requiredGas, 18, 18),
+    inputCurrency
+  )
 
   let usedInput
-  if (inputSymbol === 'ETH') {
+  if (inputSymbol === NATIVE_TOKEN_TICKER[chainId]) {
     usedInput = requiredGas
   } else if (gasInInputTokens) {
     usedInput = ethers.utils.parseUnits(gasInInputTokens.outputAmount.toExact(), inputDecimals)
@@ -540,7 +546,7 @@ export default function ExchangePage({ initialCurrency }) {
     let fromCurrency, toCurrency, inputAmount, minimumReturn
     ReactGA.event({
       category: 'place',
-      action: 'place'
+      action: 'place',
     })
 
     inputAmount = inputValueParsed
@@ -565,7 +571,8 @@ export default function ExchangePage({ initialCurrency }) {
         toCurrency,
         inputAmount,
         minimumReturn,
-        account.toLowerCase()
+        account.toLowerCase(),
+        provider
       )
 
       const order = {
@@ -579,14 +586,14 @@ export default function ExchangePage({ initialCurrency }) {
         secret: transactionDataWithSecret.secret,
         status: 'open',
         outputToken: toCurrency.toLowerCase(),
-        witness: transactionDataWithSecret.witness.toLowerCase()
+        witness: transactionDataWithSecret.witness.toLowerCase(),
       }
 
       saveOrder(account, order, chainId)
 
       const res = await provider.getSigner().sendTransaction({
         ...transactionDataWithSecret.txData,
-        gasPrice: gasPrice
+        gasPrice: gasPrice,
       })
 
       setConfirmationPending(false)
@@ -596,6 +603,7 @@ export default function ExchangePage({ initialCurrency }) {
         addTransaction(res, { action: ACTION_PLACE_ORDER, order: order })
       }
     } catch (e) {
+      console.log('ERROR', e)
       setConfirmationPending(false)
       console.log('Error on place order', e.message)
     }
@@ -635,19 +643,22 @@ export default function ExchangePage({ initialCurrency }) {
         extraText={inputBalanceFormatted && formatBalance(inputBalanceFormatted)}
         extraTextClickHander={() => {
           if (inputBalance && inputDecimals) {
-            const valueToSet = inputCurrency === 'ETH' ? inputBalance.sub(ethers.utils.parseEther('.1')) : inputBalance
+            const valueToSet =
+              inputCurrency === NATIVE_TOKEN_TICKER[chainId]
+                ? inputBalance.sub(ethers.utils.parseEther('.1'))
+                : inputBalance
             if (valueToSet.gt(ethers.constants.Zero)) {
               dispatchSwapState({
                 type: 'UPDATE_INDEPENDENT',
-                payload: { value: amountFormatter(valueToSet, inputDecimals, inputDecimals, false), field: INPUT }
+                payload: { value: amountFormatter(valueToSet, inputDecimals, inputDecimals, false), field: INPUT },
               })
             }
           }
         }}
-        onCurrencySelected={inputCurrency => {
+        onCurrencySelected={(inputCurrency) => {
           dispatchSwapState({ type: 'SELECT_CURRENCY', payload: { currency: inputCurrency, field: INPUT } })
         }}
-        onValueChange={inputValue => {
+        onValueChange={(inputValue) => {
           dispatchSwapState({ type: 'UPDATE_INDEPENDENT', payload: { value: inputValue, field: INPUT } })
         }}
         showUnlock={showUnlock}
@@ -683,7 +694,7 @@ export default function ExchangePage({ initialCurrency }) {
           dispatchSwapState({ type: 'FLIP_RATE_OP' })
         }}
         value={rateFormatted || ''}
-        onValueChange={rateValue => {
+        onValueChange={(rateValue) => {
           dispatchSwapState({ type: 'UPDATE_INDEPENDENT', payload: { value: rateValue, field: RATE } })
         }}
         addressToApprove={selectedTokenExchangeAddress}
@@ -691,7 +702,7 @@ export default function ExchangePage({ initialCurrency }) {
       <OversizedPanel>
         <ExchangeRateWrapper
           onClick={() => {
-            setInverted(inverted => !inverted)
+            setInverted((inverted) => !inverted)
           }}
         >
           <ExchangeRate>
@@ -736,11 +747,11 @@ export default function ExchangePage({ initialCurrency }) {
         allBalances={allBalances}
         description={estimatedText}
         extraText={outputBalanceFormatted && formatBalance(outputBalanceFormatted)}
-        onCurrencySelected={outputCurrency => {
+        onCurrencySelected={(outputCurrency) => {
           dispatchSwapState({ type: 'SELECT_CURRENCY', payload: { currency: outputCurrency, field: OUTPUT } })
           dispatchSwapState({ type: 'UPDATE_INDEPENDENT', payload: { value: inputValueFormatted, field: INPUT } })
         }}
-        onValueChange={outputValue => {
+        onValueChange={(outputValue) => {
           dispatchSwapState({ type: 'UPDATE_INDEPENDENT', payload: { value: outputValue, field: OUTPUT } })
         }}
         selectedTokens={[inputCurrency, outputCurrency]}
@@ -753,7 +764,7 @@ export default function ExchangePage({ initialCurrency }) {
       <OversizedPanel hideBottom>
         <ExchangeRateWrapper
           onClick={() => {
-            setInverted(inverted => !inverted)
+            setInverted((inverted) => !inverted)
           }}
         >
           <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
@@ -779,6 +790,7 @@ export default function ExchangePage({ initialCurrency }) {
             !isValid ||
             customSlippageError === 'invalid' ||
             (rateDeltaFormatted && rateDeltaFormatted.startsWith('-')) ||
+            rateDeltaFormatted === "0"||
             isLOBtwEthAndWeth
           }
           onClick={onPlace}

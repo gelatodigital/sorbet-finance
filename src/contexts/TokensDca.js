@@ -1,4 +1,4 @@
-import GELATO_TOKEN_LIST from "@gelatonetwork/default-token-list"
+import GELATO_TOKEN_LIST from '@gelatonetwork/default-token-list'
 import { useWeb3React } from '@web3-react/core'
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from 'react'
 import { ChainId } from 'uniswap-v2-sdk'
@@ -20,13 +20,13 @@ const ETH = {
     [NAME]: 'Ethereum',
     [SYMBOL]: 'ETH',
     [DECIMALS]: 18,
-    [EXCHANGE_ADDRESS]: null
-  }
+    [EXCHANGE_ADDRESS]: null,
+  },
 }
 
 export const WETH = {
   1: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-  3: '0xc778417e063141139fce010982780140aa0cd5ab'
+  3: '0xc778417e063141139fce010982780140aa0cd5ab',
 }
 
 const EMPTY_LIST = {
@@ -34,7 +34,7 @@ const EMPTY_LIST = {
   [ChainId.RINKEBY]: {},
   [ChainId.ROPSTEN]: {},
   [ChainId.GÖRLI]: {},
-  [ChainId.MAINNET]: {}
+  [ChainId.MAINNET]: {},
 }
 
 const TokensDcaContext = createContext()
@@ -54,9 +54,9 @@ function reducer(state, { type, payload }) {
           [tokenAddress]: {
             [NAME]: name,
             [SYMBOL]: symbol,
-            [DECIMALS]: decimals
-          }
-        }
+            [DECIMALS]: decimals,
+          },
+        },
       }
     }
     case SET_LIST: {
@@ -72,27 +72,24 @@ export default function Provider({ children }) {
   const [state, dispatch] = useReducer(reducer, EMPTY_LIST)
 
   useEffect(() => {
-    const tokenList = GELATO_TOKEN_LIST.tokens
-      .reduce(
-        (tokenMap, token) => {
-          if (tokenMap[token.chainId][token.address] !== undefined) {
-            console.warn('Duplicate tokens.')
-            return tokenMap
-          }
+    const tokenList = GELATO_TOKEN_LIST.tokens.reduce(
+      (tokenMap, token) => {
+        if (tokenMap[token.chainId][token.address] !== undefined) {
+          console.warn('Duplicate tokens.')
+          return tokenMap
+        }
 
-          return {
-            ...tokenMap,
-            [token.chainId]: {
-              ...tokenMap[token.chainId],
-              [token.address]: token
-            }
-          }
-        },
-        { ...EMPTY_LIST }
-      )
-      dispatch({ type: SET_LIST, payload: tokenList })
-    
-    
+        return {
+          ...tokenMap,
+          [token.chainId]: {
+            ...tokenMap[token.chainId],
+            [token.address]: token,
+          },
+        }
+      },
+      { ...EMPTY_LIST }
+    )
+    dispatch({ type: SET_LIST, payload: tokenList })
   }, [])
 
   const update = useCallback((chainId, tokenAddress, name, symbol, decimals) => {

@@ -8,7 +8,7 @@ const size = {
   tablet: '768px',
   laptop: '1024px',
   laptopL: '1440px',
-  desktop: '2560px'
+  desktop: '2560px',
 }
 
 export const deviceDown = {
@@ -19,7 +19,7 @@ export const deviceDown = {
   laptop: `(min-width: ${size.laptop})`,
   laptopL: `(min-width: ${size.laptopL})`,
   desktop: `(min-width: ${size.desktop})`,
-  desktopL: `(min-width: ${size.desktop})`
+  desktopL: `(min-width: ${size.desktop})`,
 }
 
 export const deviceUp = {
@@ -30,11 +30,11 @@ export const deviceUp = {
   laptop: `(max-width: ${size.laptop})`,
   laptopL: `(max-width: ${size.laptopL})`,
   desktop: `(max-width: ${size.desktop})`,
-  desktopL: `(max-width: ${size.desktop})`
+  desktopL: `(max-width: ${size.desktop})`,
 }
 
 export const Button = styled.button.attrs(({ warning, theme }) => ({
-  backgroundColor: warning ? theme.salmonRed : theme.royalPurple
+  backgroundColor: warning ? theme.salmonRed : theme.royalPurple,
 }))`
   padding: 1rem 2rem 1rem 2rem;
   border-radius: 3rem;
@@ -65,7 +65,7 @@ export const Button = styled.button.attrs(({ warning, theme }) => ({
 
 export const Link = styled.a.attrs({
   target: '_blank',
-  rel: 'noopener noreferrer'
+  rel: 'noopener noreferrer',
 })`
   text-decoration: none;
   cursor: pointer;

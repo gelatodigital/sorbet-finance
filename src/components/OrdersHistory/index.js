@@ -4,14 +4,13 @@ import React, { useEffect, useState } from 'react'
 import { isAddress } from '../../utils'
 import { PastOrderCard } from '../PastOrderCard'
 
-
 export function OrdersHistory() {
   const { account, chainId } = useWeb3React()
   const orders = usePastOrders(account, chainId)
   return orders.length > 0 ? (
     <>
       <p style={{ marginTop: '40px', fontSize: '24px' }}>History</p>
-      {orders.map(order => (
+      {orders.map((order) => (
         <PastOrderCard key={order.id} data={order} />
       ))}
     </>
@@ -23,11 +22,22 @@ function usePastOrders(account, chainId) {
 
   useEffect(() => {
     if (account && isAddress(account)) {
-      fetchUserPastOrders(account, chainId).then(orders => {
+      fetchUserPastOrders(account, chainId).then((orders) => {
         setState(orders)
       })
     }
   }, [account, chainId])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (account && isAddress(account)) {
+        fetchUserPastOrders(account, chainId).then((orders) => {
+          setState(orders)
+        })
+      }
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [])
 
   return state
 }

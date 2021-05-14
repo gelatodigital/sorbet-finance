@@ -5,6 +5,7 @@ import escapeStringRegex from 'escape-string-regexp'
 import { ethers } from 'ethers'
 import { darken, transparentize } from 'polished'
 import React, { useMemo, useRef, useState } from 'react'
+import { useWeb3React } from '@web3-react/core'
 import { isMobile } from 'react-device-detect'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -22,9 +23,9 @@ import { BorderlessInput, Spinner } from '../../theme'
 import { calculateGasMargin, formatEthBalance, formatTokenBalance, formatToUsd, isAddress } from '../../utils'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
+import { NATIVE_TOKEN_TICKER, NATIVE_WRAPPED_TOKEN_TICKER } from '../../constants/networks'
 
-
-const GAS_MARGIN = ethers.BigNumber.from("1000")
+const GAS_MARGIN = ethers.BigNumber.from('1000')
 
 const SubCurrencySelect = styled.button`
   ${({ theme }) => theme.flexRowNoWrap}
@@ -277,7 +278,7 @@ export default function CurrencyInputPanelDca({
   showUnlock,
   value,
   showCurrencySelector = true,
-  searchDisabled = true
+  searchDisabled = true,
 }) {
   const { t } = useTranslation()
 
@@ -295,11 +296,11 @@ export default function CurrencyInputPanelDca({
   const allTokens = useAllTokenDetails()
   const allDcaTokens = useAllTokenDcaDetails()
 
-  let tokenListFromContext;
-  if(window.location.pathname === "/limit-order") {
+  let tokenListFromContext
+  if (window.location.pathname === '/limit-order') {
     tokenListFromContext = allTokens
   }
-  if(window.location.pathname === "/dca") {
+  if (window.location.pathname === '/dca') {
     tokenListFromContext = allDcaTokens
   }
 
@@ -318,9 +319,9 @@ export default function CurrencyInputPanelDca({
               tokenContract
                 .approve(selectedTokenExchangeAddress, ethers.constants.MaxUint256, {
                   gasLimit: calculateGasMargin(estimatedGas, GAS_MARGIN),
-                  gasPrice: gasPrice ? gasPrice : undefined
+                  gasPrice: gasPrice ? gasPrice : undefined,
                 })
-                .then(response => {
+                .then((response) => {
                   addTransaction(response, { approval: selectedTokenAddress })
                 })
             }}
@@ -348,8 +349,8 @@ export default function CurrencyInputPanelDca({
           placeholder=""
           step="0.000000000000000001"
           disabled
-          onChange={e => onValueChange(e.target.value)}
-          onKeyPress={e => {
+          onChange={(e) => onValueChange(e.target.value)}
+          onKeyPress={(e) => {
             const charCode = e.which ? e.which : e.keyCode
 
             // Prevent 'minus' character
@@ -374,7 +375,8 @@ export default function CurrencyInputPanelDca({
               {selectedTokenAddress ? <TokenLogo address={selectedTokenAddress} /> : null}
               {
                 <StyledTokenName>
-                  {(tokenListFromContext[selectedTokenAddress] && tokenListFromContext[selectedTokenAddress].symbol) || t('selectToken')}
+                  {(tokenListFromContext[selectedTokenAddress] && tokenListFromContext[selectedTokenAddress].symbol) ||
+                    t('selectToken')}
                 </StyledTokenName>
               }
               {!disableTokenSelect && <StyledDropDown selected={!!selectedTokenAddress} />}
@@ -408,7 +410,7 @@ export default function CurrencyInputPanelDca({
                 border: 'none',
                 borderRadius: '24px',
                 padding: '0.5em 1em',
-                marginTop: '-64px'
+                marginTop: '-64px',
               }}
             >
               <span>{extraText}</span>
@@ -436,21 +438,23 @@ export default function CurrencyInputPanelDca({
 function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, searchDisabled }) {
   const { t } = useTranslation()
 
+  const { chainId } = useWeb3React()
+
   const [searchQuery, setSearchQuery] = useState('')
-  
+
   const { nameLimit } = useTokenDetails(searchQuery)
   const { nameDca } = useTokenDcaDetails(searchQuery)
 
   const allTokens = useAllTokenDetails()
   const allDcaTokens = useAllTokenDcaDetails()
 
-  let tokenListFromContext;
+  let tokenListFromContext
   let name
-  if(window.location.pathname === "/limit-order") {
+  if (window.location.pathname === '/limit-order') {
     name = nameLimit
     tokenListFromContext = allTokens
   }
-  if(window.location.pathname === "/dca") {
+  if (window.location.pathname === '/dca') {
     name = nameDca
     tokenListFromContext = allDcaTokens
   }
@@ -458,7 +462,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
   // BigNumber.js instance
   const ethPrice = useUSDPrice()
 
-  const _usdAmounts = Object.keys(tokenListFromContext).map(k => {
+  const _usdAmounts = Object.keys(tokenListFromContext).map((k) => {
     if (
       ethPrice &&
       allBalances &&
@@ -484,17 +488,23 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
 
   const tokenList = useMemo(() => {
     return Object.keys(tokenListFromContext)
-      .filter(k => tokenListFromContext[k].symbol)
+      .filter((k) => tokenListFromContext[k].symbol)
       .sort((a, b) => {
         const aSymbol = tokenListFromContext[a].symbol.toLowerCase()
         const bSymbol = tokenListFromContext[b].symbol.toLowerCase()
 
-        if (aSymbol === 'ETH'.toLowerCase() || bSymbol === 'ETH'.toLowerCase()) {
-          return aSymbol === bSymbol ? 0 : aSymbol === 'ETH'.toLowerCase() ? -1 : 1
+        if (
+          aSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase() ||
+          bSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase()
+        ) {
+          return aSymbol === bSymbol ? 0 : aSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase() ? -1 : 1
         }
 
-        if (aSymbol === 'WETH'.toLowerCase() || bSymbol === 'WETH'.toLowerCase()) {
-          return aSymbol === bSymbol ? 0 : aSymbol === 'WETH'.toLowerCase() ? -1 : 1
+        if (
+          aSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase() ||
+          bSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase()
+        ) {
+          return aSymbol === bSymbol ? 0 : aSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase() ? -1 : 1
         }
 
         if (allBalances) {
@@ -518,7 +528,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
 
         return aSymbol < bSymbol ? -1 : aSymbol > bSymbol ? 1 : 0
       })
-      .map(k => {
+      .map((k) => {
         let balance
         let usdBalance
         // only update if we have data
@@ -534,22 +544,22 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
           symbol: tokenListFromContext[k].symbol,
           address: k,
           balance: balance,
-          usdBalance: usdBalance
+          usdBalance: usdBalance,
         }
       })
   }, [allBalances, tokenListFromContext, usdAmounts])
 
   const filteredTokenList = useMemo(() => {
-    return tokenList.filter(tokenEntry => {
+    return tokenList.filter((tokenEntry) => {
       // check the regex for each field
-      const regexMatches = Object.keys(tokenEntry).map(tokenEntryKey => {
+      const regexMatches = Object.keys(tokenEntry).map((tokenEntryKey) => {
         return (
           typeof tokenEntry[tokenEntryKey] === 'string' &&
           !!tokenEntry[tokenEntryKey].match(new RegExp(escapeStringRegex(searchQuery), 'i'))
         )
       })
 
-      return regexMatches.some(m => m)
+      return regexMatches.some((m) => m)
     })
   }, [tokenList, searchQuery])
 

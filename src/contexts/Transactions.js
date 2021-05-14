@@ -32,9 +32,9 @@ function reducer(state, { type, payload }) {
         [chainId]: {
           ...(safeAccess(state, [chainId]) || {}),
           [hash]: {
-            [RESPONSE]: response
-          }
-        }
+            [RESPONSE]: response,
+          },
+        },
       }
     }
     case CHECK: {
@@ -50,9 +50,9 @@ function reducer(state, { type, payload }) {
           ...(safeAccess(state, [chainId]) || {}),
           [hash]: {
             ...(safeAccess(state, [chainId, hash]) || {}),
-            [BLOCK_NUMBER_CHECKED]: blockNumber
-          }
-        }
+            [BLOCK_NUMBER_CHECKED]: blockNumber,
+          },
+        },
       }
     }
     case FINALIZE: {
@@ -68,9 +68,9 @@ function reducer(state, { type, payload }) {
           ...(safeAccess(state, [chainId]) || {}),
           [hash]: {
             ...(safeAccess(state, [chainId, hash]) || {}),
-            [RECEIPT]: receipt
-          }
-        }
+            [RECEIPT]: receipt,
+          },
+        },
       }
     }
     default: {
@@ -114,12 +114,12 @@ export function Updater() {
       let stale = false
       Object.keys(allTransactions)
         .filter(
-          hash => !allTransactions[hash][RECEIPT] && allTransactions[hash][BLOCK_NUMBER_CHECKED] !== globalBlockNumber
+          (hash) => !allTransactions[hash][RECEIPT] && allTransactions[hash][BLOCK_NUMBER_CHECKED] !== globalBlockNumber
         )
-        .forEach(hash => {
+        .forEach((hash) => {
           library
             .getTransactionReceipt(hash)
-            .then(receipt => {
+            .then((receipt) => {
               if (!stale) {
                 if (!receipt) {
                   check(chainId, hash, globalBlockNumber)
@@ -176,7 +176,7 @@ export function usePendingApproval(tokenAddress) {
   const allTransactions = useAllTransactions()
 
   return (
-    Object.keys(allTransactions).filter(hash => {
+    Object.keys(allTransactions).filter((hash) => {
       if (allTransactions[hash][RECEIPT]) {
         return false
       } else if (!allTransactions[hash][RESPONSE]) {
@@ -199,7 +199,7 @@ export function useOrderPendingState(order) {
   const allTransactions = useAllTransactions()
 
   const last = Object.keys(allTransactions).find(
-    hash =>
+    (hash) =>
       allTransactions[hash][RESPONSE] &&
       allTransactions[hash][RESPONSE][CUSTOM_DATA].order.secret === order.secret &&
       !allTransactions[hash][RECEIPT]
@@ -211,7 +211,7 @@ export function useOrderPendingState(order) {
 
   return {
     state: allTransactions[last][RESPONSE][CUSTOM_DATA].action,
-    last: allTransactions[last]
+    last: allTransactions[last],
   }
 }
 
@@ -219,22 +219,22 @@ export function useOrderPendingStateDca() {
   const allTransactions = useAllTransactions()
 
   const last = Object.keys(allTransactions).find(
-    hash =>
+    (hash) =>
       allTransactions[hash][RESPONSE] &&
-      allTransactions[hash][RESPONSE][CONFIRMATIONS]=== 0 &&
+      allTransactions[hash][RESPONSE][CONFIRMATIONS] === 0 &&
       !allTransactions[hash][RECEIPT]
   )
 
   return {
     state: ACTION_PLACE_ORDER,
-    last: allTransactions[last]
+    last: allTransactions[last],
   }
 }
 
 export function useAllPendingOrders() {
   const allTransactions = useAllTransactions()
   return Object.keys(allTransactions)
-    .filter(hash => {
+    .filter((hash) => {
       if (allTransactions[hash][RECEIPT]) {
         return false
       } else if (!allTransactions[hash][RESPONSE]) {
@@ -245,13 +245,13 @@ export function useAllPendingOrders() {
         return false
       }
     })
-    .map(hash => allTransactions[hash][RESPONSE][CUSTOM_DATA].order)
+    .map((hash) => allTransactions[hash][RESPONSE][CUSTOM_DATA].order)
 }
 
 export function useAllPendingCancelOrders() {
   const allTransactions = useAllTransactions()
   return Object.keys(allTransactions)
-    .filter(hash => {
+    .filter((hash) => {
       if (allTransactions[hash][RECEIPT]) {
         return false
       } else if (!allTransactions[hash][RESPONSE]) {
@@ -262,5 +262,5 @@ export function useAllPendingCancelOrders() {
         return false
       }
     })
-    .map(hash => allTransactions[hash][RESPONSE][CUSTOM_DATA].order)
+    .map((hash) => allTransactions[hash][RESPONSE][CUSTOM_DATA].order)
 }

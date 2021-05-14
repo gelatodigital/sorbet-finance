@@ -15,8 +15,8 @@ export function sortBigNumbers(values) {
   })
 
   return [
-    valueMap.map(element => values[element.i]),
-    values.map((_, i) => valueMap.findIndex(element => element.i === i))
+    valueMap.map((element) => values[element.i]),
+    values.map((_, i) => valueMap.findIndex((element) => element.i === i)),
   ]
 }
 
@@ -27,11 +27,11 @@ export function getMedian(values) {
     const indices = [middle - 1, middle]
     return [
       sortedValues[middle - 1].plus(sortedValues[middle]).dividedBy(2),
-      sortMap.map(element => (indices.includes(element) ? new BigNumber(0.5) : new BigNumber(0)))
+      sortMap.map((element) => (indices.includes(element) ? new BigNumber(0.5) : new BigNumber(0))),
     ]
   } else {
     const middle = Math.floor(values.length / 2)
-    return [sortedValues[middle], sortMap.map(element => (element === middle ? new BigNumber(1) : new BigNumber(0)))]
+    return [sortedValues[middle], sortMap.map((element) => (element === middle ? new BigNumber(1) : new BigNumber(0)))]
   }
 }
 
@@ -45,5 +45,5 @@ export function getMean(values, _weights) {
   )
   const denominator = weights.reduce((accumulator, currentValue) => accumulator.plus(currentValue), new BigNumber(0))
 
-  return [numerator.dividedBy(denominator), weights.map(weight => weight.dividedBy(denominator))]
+  return [numerator.dividedBy(denominator), weights.map((weight) => weight.dividedBy(denominator))]
 }

@@ -24,8 +24,8 @@ class MiniRpcProvider {
 
   sendAsync = (request, callback) => {
     this.request(request.method, request.params)
-      .then(result => callback(null, { jsonrpc: '2.0', id: request.id, result }))
-      .catch(error => callback(error, null))
+      .then((result) => callback(null, { jsonrpc: '2.0', id: request.id, result }))
+      .catch((error) => callback(error, null))
   }
 
   request = async (method, params) => {
@@ -41,8 +41,8 @@ class MiniRpcProvider {
         jsonrpc: '2.0',
         id: 1,
         method,
-        params
-      })
+        params,
+      }),
     })
     if (!response.ok) throw new RequestError(`${response.status}: ${response.statusText}`, -32000)
     const body = await response.json()
@@ -62,7 +62,7 @@ export class NetworkConnector extends AbstractConnector {
 
   constructor({ urls, defaultChainId }) {
     invariant(defaultChainId || Object.keys(urls).length === 1, 'defaultChainId is a required argument with >1 url')
-    super({ supportedChainIds: Object.keys(urls).map(k => Number(k)) })
+    super({ supportedChainIds: Object.keys(urls).map((k) => Number(k)) })
 
     this.currentChainId = defaultChainId || Number(Object.keys(urls)[0])
     this.providers = Object.keys(urls).reduce((accumulator, chainId) => {

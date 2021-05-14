@@ -9,15 +9,12 @@ import NewContextualInfo from '../../components/ContextualInfoNew'
 import { useDebounce } from '../../hooks'
 import { amountFormatter, isAddress } from '../../utils'
 
-
-
-
 const EXECUTE_ORDER_GAS_USAGE = '300000' // 300,000 GAS
 
 const WARNING_TYPE = Object.freeze({
   none: 'none',
   noSend: 'noSend',
-  almostNoSend: 'almostNoSend'
+  almostNoSend: 'almostNoSend',
 })
 
 const Flex = styled.div`
@@ -484,26 +481,24 @@ export default function TransactionDetails(props) {
   }
 
   // check that the theyve entered number and correct decimal
-  const parseInput = e => {
+  const parseInput = (e) => {
     let input = e.target.value
     setUserInput(input)
   }
 
-  const b = text => <Bold>{text}</Bold>
+  const b = (text) => <Bold>{text}</Bold>
 
   const renderTransactionDetails = () => {
     ReactGA.event({
       category: 'TransactionDetail',
-      action: 'Open'
+      action: 'Open',
     })
 
     return (
       <TransactionInfo>
         <div>
           {t('feeSet')}
-          <ValueWrapper>
-            {b(`${amountFormatter(ethers.BigNumber.from(props.fee.toString()), 18, 4)} ETH`)}
-          </ValueWrapper>
+          <ValueWrapper>{b(`${amountFormatter(ethers.BigNumber.from(props.fee.toString()), 18, 4)} ETH`)}</ValueWrapper>
           {t('toTheRelayer')}
         </div>
         <LastSummaryText>

@@ -20,7 +20,7 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
     const { ethereum, web3 } = window
 
     if (ethereum) {
-      await ethereum.enable().catch(error => {
+      await ethereum.enable().catch((error) => {
         const deniedAccessError = Error(error)
         deniedAccessError.code = InjectedConnector.errorCodes.ETHEREUM_ACCESS_DENIED
         throw deniedAccessError
@@ -65,7 +65,7 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
   }
 
   onDeactivation() {
-    this.runOnDeactivation.forEach(runner => runner())
+    this.runOnDeactivation.forEach((runner) => runner())
     this.runOnDeactivation = []
   }
 
@@ -78,7 +78,7 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
 
       super._web3ReactUpdateHandler({
         updatechainId: true,
-        chainId: chainIdNumber
+        chainId: chainIdNumber,
       })
     } catch (error) {
       super._web3ReactErrorHandler(error)
@@ -93,7 +93,7 @@ export default class InjectedConnector extends ErrorCodeMixin(Connector, Injecte
     } else {
       super._web3ReactUpdateHandler({
         updateAccount: true,
-        account: accounts[0]
+        account: accounts[0],
       })
     }
   }

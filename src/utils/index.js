@@ -1,16 +1,14 @@
-import { AddressZero } from '@ethersproject/constants';
-import { Contract } from '@ethersproject/contracts';
-import { formatFixed } from '@uniswap/sdk';
-import Notify from "bnc-notify";
-import { ethers } from 'ethers';
-import { GELATO_DCA, UNISWAPEX_ADDRESSES } from '../constants';
-import ERC20_ABI from '../constants/abis/erc20';
-import ERC20_BYTES32_ABI from '../constants/abis/erc20_bytes32';
-import GELATO_DCA_ABI from '../constants/abis/gelatoDca';
-import PAIR_ABI from '../constants/abis/pair.json';
-import UNISWAPEX_ABI from '../constants/abis/uniswapEX';
-
-
+import { AddressZero } from '@ethersproject/constants'
+import { Contract } from '@ethersproject/contracts'
+import { formatFixed } from '@uniswap/sdk'
+import Notify from 'bnc-notify'
+import { ethers } from 'ethers'
+import { GELATO_DCA, UNISWAPEX_ADDRESSES } from '../constants'
+import ERC20_ABI from '../constants/abis/erc20'
+import ERC20_BYTES32_ABI from '../constants/abis/erc20_bytes32'
+import GELATO_DCA_ABI from '../constants/abis/gelatoDca'
+import PAIR_ABI from '../constants/abis/pair.json'
+import UNISWAPEX_ABI from '../constants/abis/uniswapEX'
 
 export const ERROR_CODES = ['TOKEN_NAME', 'TOKEN_SYMBOL', 'TOKEN_DECIMALS'].reduce(
   (accumulator, currentValue, currentIndex) => {
@@ -30,14 +28,12 @@ export function safeAccess(object, path) {
 }
 
 const ETHERSCAN_PREFIXES = {
-  1: '',
-  3: 'ropsten.',
-  4: 'rinkeby.',
-  5: 'goerli.',
-  42: 'kovan.'
+  1: 'https://etherscan.io',
+  3: 'https://ropsten.etherscan.io',
+  137: 'https://explorer-mainnet.maticvigil.com',
 }
 export function getEtherscanLink(chainId, data, type) {
-  const prefix = `https://${ETHERSCAN_PREFIXES[chainId] || ETHERSCAN_PREFIXES[1]}etherscan.io`
+  const prefix = ETHERSCAN_PREFIXES[chainId]
 
   switch (type) {
     case 'transaction': {
@@ -74,13 +70,12 @@ export function getNetworkName(chainId) {
 }
 
 export const getTimeAndDate = (estimatedExecTime) => {
-  return `${new Date(estimatedExecTime * 1000)
-    .toTimeString()
-    .toString()
-    .substring(0, 8)} ${new Date(estimatedExecTime * 1000)
+  return `${new Date(estimatedExecTime * 1000).toTimeString().toString().substring(0, 8)} ${new Date(
+    estimatedExecTime * 1000
+  )
     .toLocaleDateString()
-    .toString()}`;
-};
+    .toString()}`
+}
 
 export function shortenAddress(address, digits = 4) {
   if (!isAddress(address)) {
@@ -144,8 +139,8 @@ export async function getTokenName(tokenAddress, library) {
     throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
   }
 
-  if (tokenAddress.toLowerCase() === "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359") {
-    return "Sai Stablecoin"
+  if (tokenAddress.toLowerCase() === '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359') {
+    return 'Sai Stablecoin'
   }
 
   return getContract(tokenAddress, ERC20_ABI, library)
@@ -153,9 +148,9 @@ export async function getTokenName(tokenAddress, library) {
     .catch(() =>
       getContract(tokenAddress, ERC20_BYTES32_ABI, library)
         .name()
-        .then(bytes32 => ethers.utils.parseBytes32String(bytes32))
+        .then((bytes32) => ethers.utils.parseBytes32String(bytes32))
     )
-    .catch(error => {
+    .catch((error) => {
       error.code = ERROR_CODES.TOKEN_SYMBOL
       throw error
     })
@@ -167,17 +162,17 @@ export async function getTokenSymbol(tokenAddress, library) {
     throw Error(`Invalid 'tokenAddress' parameter '${tokenAddress}'.`)
   }
 
-  if (tokenAddress.toLowerCase() === "0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359") {
-    return "SAI"
+  if (tokenAddress.toLowerCase() === '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359') {
+    return 'SAI'
   }
 
   return getContract(tokenAddress, ERC20_ABI, library)
     .symbol()
     .catch(() => {
       const contractBytes32 = getContract(tokenAddress, ERC20_BYTES32_ABI, library)
-      return contractBytes32.symbol().then(bytes32 => ethers.utils.parseBytes32String(bytes32))
+      return contractBytes32.symbol().then((bytes32) => ethers.utils.parseBytes32String(bytes32))
     })
-    .catch(error => {
+    .catch((error) => {
       error.code = ERROR_CODES.TOKEN_SYMBOL
       throw error
     })
@@ -191,7 +186,7 @@ export async function getTokenDecimals(tokenAddress, library) {
 
   return getContract(tokenAddress, ERC20_ABI, library)
     .decimals()
-    .catch(error => {
+    .catch((error) => {
       error.code = ERROR_CODES.TOKEN_DECIMALS
       throw error
     })
@@ -218,7 +213,7 @@ export function formatToUsd(price) {
   const usdPrice = formatFixed(price, {
     decimalPlaces: 2,
     dropTrailingZeros: false,
-    format
+    format,
   })
   return usdPrice
 }
@@ -246,69 +241,72 @@ export async function getTokenAllowance(address, tokenAddress, spenderAddress, l
 
 // amount must be a BigNumber, {base,display}Decimals must be Numbers
 export function amountFormatter(amount, baseDecimals = 18, displayDecimals = 3, useLessThan = true) {
-  if (displayDecimals > baseDecimals) {
-    return amountFormatter(amount, baseDecimals, baseDecimals, useLessThan)
-  }
-
-  const zero = ethers.constants.Zero
-  if (baseDecimals > 18 || displayDecimals > 18 || displayDecimals > baseDecimals) {
-    throw Error(`Invalid combination of baseDecimals '${baseDecimals}' and displayDecimals '${displayDecimals}.`)
-  }
-  // if balance is falsy, return undefined
-  if (!amount) {
-    return undefined
-  }
-  // if amount is 0, return
-  else if (amount.isZero()) {
-    return '0'
-  }
-  // amount is negative
-  else if (amount.lt(zero)) {
-    return `-${amountFormatter(zero.sub(amount), baseDecimals, displayDecimals, useLessThan)}`
-  }
-  // amount > 0
-  else {
-    // amount of 'wei' in 1 'ether'
-    const baseAmount = ethers.BigNumber.from(10).pow(ethers.BigNumber.from(baseDecimals))
-
-    const minimumDisplayAmount = baseAmount.div(
-      ethers.BigNumber.from(10).pow(ethers.BigNumber.from(displayDecimals))
-    )
-
-    // if balance is less than the minimum display amount
-    if (amount.lt(minimumDisplayAmount)) {
-      return useLessThan
-        ? `<${ethers.utils.formatUnits(minimumDisplayAmount, baseDecimals)}`
-        : `${ethers.utils.formatUnits(amount, baseDecimals)}`
+  try {
+    // if balance is falsy, return undefined
+    if (!amount) {
+      return undefined
     }
-    // if the balance is greater than the minimum display amount
+
+    if (displayDecimals > baseDecimals) {
+      return amountFormatter(amount, baseDecimals, baseDecimals, useLessThan)
+    }
+
+    const zero = ethers.constants.Zero
+    if (baseDecimals > 18 || displayDecimals > 18 || displayDecimals > baseDecimals) {
+      throw Error(`Invalid combination of baseDecimals '${baseDecimals}' and displayDecimals '${displayDecimals}.`)
+    }
+    // if amount is 0, return
+    else if (amount.isZero()) {
+      return '0'
+    }
+    // amount is negative
+    else if (amount.lt(zero)) {
+      return `-${amountFormatter(zero.sub(amount), baseDecimals, displayDecimals, useLessThan)}`
+    }
+    // amount > 0
     else {
-      const stringAmount = ethers.utils.formatUnits(amount, baseDecimals)
+      // amount of 'wei' in 1 'ether'
+      const baseAmount = ethers.BigNumber.from(10).pow(ethers.BigNumber.from(baseDecimals))
 
-      // if there isn't a decimal portion
-      if (!stringAmount.match(/\./)) {
-        return stringAmount
+      const minimumDisplayAmount = baseAmount.div(ethers.BigNumber.from(10).pow(ethers.BigNumber.from(displayDecimals)))
+
+      // if balance is less than the minimum display amount
+      if (amount.lt(minimumDisplayAmount)) {
+        return useLessThan
+          ? `<${ethers.utils.formatUnits(minimumDisplayAmount, baseDecimals)}`
+          : `${ethers.utils.formatUnits(amount, baseDecimals)}`
       }
-      // if there is a decimal portion
+      // if the balance is greater than the minimum display amount
       else {
-        const [wholeComponent, decimalComponent] = stringAmount.split('.')
-        const roundUpAmount = minimumDisplayAmount.div(ethers.constants.Two)
-        const roundedDecimalComponent = ethers.BigNumber.from(decimalComponent.padEnd(baseDecimals, '0'))
-          .add(roundUpAmount)
-          .toString()
-          .padStart(baseDecimals, '0')
-          .substring(0, displayDecimals)
+        const stringAmount = ethers.utils.formatUnits(amount, baseDecimals)
 
-        // decimals are too small to show
-        if (roundedDecimalComponent === '0'.repeat(displayDecimals)) {
-          return wholeComponent
+        // if there isn't a decimal portion
+        if (!stringAmount.match(/\./)) {
+          return stringAmount
         }
-        // decimals are not too small to show
+        // if there is a decimal portion
         else {
-          return `${wholeComponent}.${roundedDecimalComponent.toString().replace(/0*$/, '')}`
+          const [wholeComponent, decimalComponent] = stringAmount.split('.')
+          const roundUpAmount = minimumDisplayAmount.div(ethers.constants.Two)
+          const roundedDecimalComponent = ethers.BigNumber.from(decimalComponent.padEnd(baseDecimals, '0'))
+            .add(roundUpAmount)
+            .toString()
+            .padStart(baseDecimals, '0')
+            .substring(0, displayDecimals)
+
+          // decimals are too small to show
+          if (roundedDecimalComponent === '0'.repeat(displayDecimals)) {
+            return wholeComponent
+          }
+          // decimals are not too small to show
+          else {
+            return `${wholeComponent}.${roundedDecimalComponent.toString().replace(/0*$/, '')}`
+          }
         }
       }
     }
+  } catch {
+    return undefined
   }
 }
 
@@ -317,8 +315,8 @@ export const trackTx = (hash, chainId) => {
     const notify = Notify({
       dappId: process.env.REACT_APP_BLOCK_NATIVE, // [String] The API key created by step one above
       networkId: chainId, // [Integer] The Ethereum network ID your Dapp uses.
-    });
+    })
     // Track Tx progress
-    notify.hash(hash);
+    notify.hash(hash)
   }
-};
+}

@@ -192,7 +192,7 @@ export default function OrderDetailModal({
   warning,
   onPlaceComfirmed,
   onDismiss,
-  executionRateNegative
+  executionRateNegative,
 }) {
   const allTokens = useAllTokenDetails()
   const { t } = useTranslation()

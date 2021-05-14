@@ -2,6 +2,7 @@ import { darken, transparentize } from 'polished'
 import React, { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NavLink, withRouter } from 'react-router-dom'
+import { useActiveWeb3React } from '../../hooks'
 import styled from 'styled-components'
 import { useBodyKeyDown } from '../../hooks'
 
@@ -9,12 +10,12 @@ const tabOrder = [
   {
     path: '/limit-order',
     textKey: 'Limit Order',
-    regex: /\/limit-order/
+    regex: /\/limit-order/,
   },
   {
     path: '/dca',
     textKey: 'DCA',
-    regex: /\/dca/
+    regex: /\/dca/,
   },
   // {
   //   path: '/add-liquidity',
@@ -88,7 +89,7 @@ const Tabs = styled.div`
 const activeClassName = 'ACTIVE'
 
 const StyledNavLink = styled(NavLink).attrs({
-  activeClassName
+  activeClassName,
 })`
   ${({ theme }) => theme.flexRowNoWrap}
   align-items: center;
@@ -123,6 +124,8 @@ const StyledNavLink = styled(NavLink).attrs({
 `
 
 function NavigationTabs({ location: { pathname }, history }) {
+  const { chainId } = useActiveWeb3React()
+
   const { t } = useTranslation()
 
   // const [showBetaMessage, dismissBetaMessage] = useBetaMessageManager()
@@ -130,7 +133,7 @@ function NavigationTabs({ location: { pathname }, history }) {
   // const onLiquidityPage = pathname === '/pool' || pathname === '/add-liquidity' || pathname === '/remove-liquidity'
 
   const navigate = useCallback(
-    direction => {
+    (direction) => {
       const tabIndex = tabOrder.findIndex(({ regex }) => pathname.match(regex))
       history.push(tabOrder[(tabIndex + tabOrder.length + direction) % tabOrder.length].path)
     },
@@ -146,11 +149,15 @@ function NavigationTabs({ location: { pathname }, history }) {
   useBodyKeyDown('ArrowRight', navigateRight)
   useBodyKeyDown('ArrowLeft', navigateLeft)
 
+  let tabOrderToShow = tabOrder
+  if (chainId !== 1 && chainId !== 3) {
+    tabOrderToShow = tabOrder.filter((tab) => tab.textKey !== 'DCA')
+  }
 
   return (
     <>
       <Tabs>
-        {tabOrder.map(({ path, textKey, regex }) => (
+        {tabOrderToShow.map(({ path, textKey, regex }) => (
           <StyledNavLink key={path} to={path} isActive={(_, { pathname }) => pathname.match(regex)}>
             {t(textKey)}
           </StyledNavLink>

@@ -26,11 +26,11 @@ function reducer(state, { type, payload }) {
               ...(safeAccess(state, [chainId, address, tokenAddress]) || {}),
               [spenderAddress]: {
                 value,
-                blockNumber
-              }
-            }
-          }
-        }
+                blockNumber,
+              },
+            },
+          },
+        },
       }
     }
     default: {
@@ -73,7 +73,7 @@ export function useAddressAllowance(address, tokenAddress, spenderAddress) {
       let stale = false
 
       getTokenAllowance(address, tokenAddress, spenderAddress, library)
-        .then(value => {
+        .then((value) => {
           if (!stale) {
             update(chainId, address, tokenAddress, spenderAddress, value, globalBlockNumber)
           }

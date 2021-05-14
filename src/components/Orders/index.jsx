@@ -37,15 +37,17 @@ function getSavedOrders(account, chainId) {
 
 async function fetchUserOrders(account, chainId) {
   try {
+    const openOrders = await getAllOpenOrders(account, chainId)
     return {
       allOrders: [],
-      openOrders: await getAllOpenOrders(account, chainId)
+      openOrders,
     }
   } catch (e) {
+    console.log('ERROR', e)
     console.warn('Error loading orders from TheGraph', e)
     return {
       allOrders: [],
-      openOrders: []
+      openOrders: [],
     }
   }
 }
@@ -56,12 +58,24 @@ function useGraphOrders(account, chainId) {
   useEffect(() => {
     console.log(`Requesting load orders from the graph`)
     if (account && isAddress(account)) {
-      fetchUserOrders(account, chainId).then(orders => {
+      fetchUserOrders(account, chainId).then((orders) => {
         // console.log(`Fetched ${orders.allOrders.length} ${orders.openOrders.length} orders from the graph`)
         setState(orders)
       })
     }
   }, [account, chainId])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (account && isAddress(account)) {
+        fetchUserOrders(account, chainId).then((orders) => {
+          // console.log(`Fetched ${orders.allOrders.length} ${orders.openOrders.length} orders from the graph`)
+          setState(orders)
+        })
+      }
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [])
 
   return state
 }
@@ -95,13 +109,13 @@ function vaultForOrder(order, uniswapEXContract) {
 
 async function balancesOfOrders(orders, uniswapEXContract, multicallContract) {
   const result = await multicallContract.aggregate(
-    orders.map(o => {
+    orders.map((o) => {
       if (!isEthOrder(o)) {
         return [
           o.inputToken,
           `0x70a08231${ethers.utils.defaultAbiCoder // balanceOf(address)
             .encode(['address'], [vaultForOrder(o, uniswapEXContract)])
-            .replace('0x', '')}`
+            .replace('0x', '')}`,
         ]
       } else {
         return [uniswapEXContract.address, `0xebd9c39c${keyOfOrder(o).replace('0x', '')}`] // ethDeposits(bytes32)
@@ -121,11 +135,11 @@ function useSavedOrders(account, chainId, uniswapEXContract, multicallContract, 
       const allOrders = getSavedOrders(account, chainId)
       console.log(`Loaded ${allOrders.length} orders from local storage`)
       if (allOrders.length > 0) {
-        balancesOfOrders(allOrders, uniswapEXContract, multicallContract).then(amounts => {
+        balancesOfOrders(allOrders, uniswapEXContract, multicallContract).then((amounts) => {
           allOrders.map((o, i) => (o.inputAmount = ethers.BigNumber.from(amounts[i]).toString()))
           setState({
             allOrders: allOrders,
-            openOrders: allOrders.filter(o => o.inputAmount !== '0')
+            openOrders: allOrders.filter((o) => o.inputAmount !== '0'),
           })
         })
       }
@@ -154,7 +168,7 @@ export default function Orders() {
   // Get locally saved orders and the graph orders
   const local = useSavedOrders(account, chainId, uniswapEXContract, multicallContract, [
     pendingOrders.length,
-    pendingCancelOrders.length
+    pendingCancelOrders.length,
   ])
   const graph = useGraphOrders(account, chainId)
 
@@ -162,13 +176,13 @@ export default function Orders() {
   useEffect(() => {
     // Aggregate graph and local orders, local orders have priority
     const allOrders = local.allOrders.concat(
-      graph.allOrders.filter(o => !local.allOrders.find(c => c.secret === o.secret))
+      graph.allOrders.filter((o) => !local.allOrders.find((c) => c.secret === o.secret))
     )
     const openOrders = local.openOrders.concat(
-      graph.openOrders.filter(o => !local.allOrders.find(c => c.secret === o.secret))
+      graph.openOrders.filter((o) => !local.allOrders.find((c) => c.secret === o.secret))
     )
 
-    setOrders(openOrders.concat(allOrders.filter(o => pendingOrders.find(p => p.secret === o.secret))))
+    setOrders(openOrders.concat(allOrders.filter((o) => pendingOrders.find((p) => p.secret === o.secret))))
 
     // eslint-disable-next-line
   }, [
@@ -176,7 +190,7 @@ export default function Orders() {
     local.openOrders.length,
     graph.allOrders.length,
     graph.openOrders.length,
-    pendingOrders.length
+    pendingOrders.length,
   ])
 
   return (
@@ -195,7 +209,7 @@ export default function Orders() {
             {orders.length === 0 && !loading && <p>{t('noOpenOrders')}</p>}
             {
               <div>
-                {orders.map(order => (
+                {orders.map((order) => (
                   <OrderCard key={order.witness} data={order} />
                 ))}
               </div>

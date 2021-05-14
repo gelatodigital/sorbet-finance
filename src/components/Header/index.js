@@ -1,7 +1,8 @@
-import { darken } from 'polished';
-import React from 'react';
-import styled from 'styled-components';
-import Web3Status from '../Web3Status';
+import { darken } from 'polished'
+import React from 'react'
+import styled from 'styled-components'
+import Web3Status from '../Web3Status'
+import Web3Network from '../Web3Network'
 
 const HeaderFrame = styled.div`
   display: flex;
@@ -29,7 +30,8 @@ const Nod = styled.span`
 
 const Title = styled.div`
   display: flex;
-  align-items: center;
+  align-items: center; 
+  margin-bottom: 0.25px
 
   :hover {
     cursor: pointer;
@@ -40,6 +42,7 @@ const Title = styled.div`
   }
 
   #title {
+   
     display: inline;
     font-size: 1.2rem;
     font-weight: 500;
@@ -55,9 +58,12 @@ export default function Header() {
       <HeaderElement>
         <Title>
           {/* <Link id="link" href="https://limit-orders-ui.vercel.app/order"> */}
-            <h1 id="title"><span>{'🍧'}</span>Sorbet Finance</h1>
+          <h1 id="title">{'🍧'}Sorbet Finance</h1>
           {/* </Link> */}
         </Title>
+      </HeaderElement>
+      <HeaderElement>
+        <Web3Network />
       </HeaderElement>
       <HeaderElement>
         <Web3Status />

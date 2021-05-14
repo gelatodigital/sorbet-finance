@@ -13,6 +13,7 @@ import Circle from '../../assets/images/circle-grey.svg'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import SearchIcon from '../../assets/images/magnifying-glass.svg'
 import { ReactComponent as Close } from '../../assets/images/x.svg'
+import { NATIVE_TOKEN_TICKER, NATIVE_WRAPPED_TOKEN_TICKER } from '../../constants/networks'
 import { useUSDPrice } from '../../contexts/Application'
 import { useGasPrice } from '../../contexts/GasPrice'
 import { useAllTokenDetails, useTokenDetails } from '../../contexts/Tokens'
@@ -23,7 +24,6 @@ import { BorderlessInput, Spinner } from '../../theme'
 import { calculateGasMargin, formatEthBalance, formatTokenBalance, formatToUsd, isAddress, trackTx } from '../../utils'
 import Modal from '../Modal'
 import TokenLogo from '../TokenLogo'
-
 
 const GAS_MARGIN = ethers.BigNumber.from(1000)
 
@@ -279,7 +279,7 @@ export default function CurrencyInputPanel({
   value,
   showCurrencySelector = true,
   addressToApprove,
-  searchDisabled = false
+  searchDisabled = false,
 }) {
   const { t } = useTranslation()
 
@@ -290,7 +290,6 @@ export default function CurrencyInputPanel({
   const [modalIsOpen, setModalIsOpen] = useState(false)
 
   const tokenContract = useTokenContract(selectedTokenAddress)
-
   const pendingApproval = usePendingApproval(selectedTokenAddress)
 
   const addTransaction = useTransactionAdder()
@@ -298,12 +297,17 @@ export default function CurrencyInputPanel({
   const allTokens = useAllTokenDetails()
   const allDcaTokens = useAllTokenDcaDetails()
 
-  let tokenListFromContext;
-  if(window.location.pathname === "/limit-order") tokenListFromContext = allTokens
-  if(window.location.pathname === "/dca") tokenListFromContext = allDcaTokens
+  let tokenListFromContext
+  if (window.location.pathname === '/limit-order') tokenListFromContext = allTokens
+  if (window.location.pathname === '/dca') tokenListFromContext = allDcaTokens
 
   function renderUnlockButton() {
-    if (disableUnlock || !showUnlock || selectedTokenAddress === 'ETH' || !selectedTokenAddress) {
+    if (
+      disableUnlock ||
+      !showUnlock ||
+      selectedTokenAddress === NATIVE_TOKEN_TICKER[chainId] ||
+      !selectedTokenAddress
+    ) {
       return null
     } else {
       if (!pendingApproval) {
@@ -317,9 +321,9 @@ export default function CurrencyInputPanel({
               tokenContract
                 .approve(addressToApprove, ethers.constants.MaxUint256, {
                   gasLimit: calculateGasMargin(estimatedGas, GAS_MARGIN),
-                  gasPrice: gasPrice ? gasPrice : undefined
+                  gasPrice: gasPrice ? gasPrice : undefined,
                 })
-                .then(response => {
+                .then((response) => {
                   trackTx(response.hash, chainId)
                   addTransaction(response, { approval: selectedTokenAddress })
                 })
@@ -347,8 +351,8 @@ export default function CurrencyInputPanel({
           error={!!errorMessage}
           placeholder="0.0"
           step="0.000000000000000001"
-          onChange={e => onValueChange(e.target.value)}
-          onKeyPress={e => {
+          onChange={(e) => onValueChange(e.target.value)}
+          onKeyPress={(e) => {
             const charCode = e.which ? e.which : e.keyCode
 
             // Prevent 'minus' character
@@ -373,7 +377,8 @@ export default function CurrencyInputPanel({
               {selectedTokenAddress ? <TokenLogo address={selectedTokenAddress} /> : null}
               {
                 <StyledTokenName>
-                  {(tokenListFromContext[selectedTokenAddress] && tokenListFromContext[selectedTokenAddress].symbol) || t('selectToken')}
+                  {(tokenListFromContext[selectedTokenAddress] && tokenListFromContext[selectedTokenAddress].symbol) ||
+                    t('selectToken')}
                 </StyledTokenName>
               }
               {!disableTokenSelect && <StyledDropDown selected={!!selectedTokenAddress} />}
@@ -407,7 +412,7 @@ export default function CurrencyInputPanel({
                 border: 'none',
                 borderRadius: '24px',
                 padding: '0.5em 1em',
-                marginTop: '-64px'
+                marginTop: '-64px',
               }}
             >
               <span>{extraText}</span>
@@ -434,21 +439,22 @@ export default function CurrencyInputPanel({
 
 function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, searchDisabled }) {
   const { t } = useTranslation()
-
   const [searchQuery, setSearchQuery] = useState('')
   const { nameLimit } = useTokenDetails(searchQuery)
   const { nameDca } = useTokenDcaDetails(searchQuery)
 
+  const { chainId } = useWeb3React()
+
   const allTokens = useAllTokenDetails()
   const allDcaTokens = useAllTokenDcaDetails()
 
-  let tokenListFromContext;
+  let tokenListFromContext
   let name
-  if(window.location.pathname === "/limit-order") {
+  if (window.location.pathname === '/limit-order') {
     name = nameLimit
     tokenListFromContext = allTokens
   }
-  if(window.location.pathname === "/dca") {
+  if (window.location.pathname === '/dca') {
     name = nameDca
     tokenListFromContext = allDcaTokens
   }
@@ -456,7 +462,7 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
   // BigNumber.js instance
   const ethPrice = useUSDPrice()
 
-  const _usdAmounts = Object.keys(tokenListFromContext).map(k => {
+  const _usdAmounts = Object.keys(tokenListFromContext).map((k) => {
     if (
       ethPrice &&
       allBalances &&
@@ -482,17 +488,23 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
 
   const tokenList = useMemo(() => {
     return Object.keys(tokenListFromContext)
-      .filter(k => tokenListFromContext[k].symbol)
+      .filter((k) => tokenListFromContext[k].symbol)
       .sort((a, b) => {
         const aSymbol = tokenListFromContext[a].symbol.toLowerCase()
         const bSymbol = tokenListFromContext[b].symbol.toLowerCase()
 
-        if (aSymbol === 'ETH'.toLowerCase() || bSymbol === 'ETH'.toLowerCase()) {
-          return aSymbol === bSymbol ? 0 : aSymbol === 'ETH'.toLowerCase() ? -1 : 1
+        if (
+          aSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase() ||
+          bSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase()
+        ) {
+          return aSymbol === bSymbol ? 0 : aSymbol === NATIVE_TOKEN_TICKER[chainId].toLowerCase() ? -1 : 1
         }
 
-        if (aSymbol === 'WETH'.toLowerCase() || bSymbol === 'WETH'.toLowerCase()) {
-          return aSymbol === bSymbol ? 0 : aSymbol === 'WETH'.toLowerCase() ? -1 : 1
+        if (
+          aSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase() ||
+          bSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase()
+        ) {
+          return aSymbol === bSymbol ? 0 : aSymbol === NATIVE_WRAPPED_TOKEN_TICKER[chainId].toLowerCase() ? -1 : 1
         }
 
         if (allBalances) {
@@ -516,11 +528,11 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
 
         return aSymbol < bSymbol ? -1 : aSymbol > bSymbol ? 1 : 0
       })
-      .map(k => {
+      .map((k) => {
         let balance
         let usdBalance
         // only update if we have data
-        if (k === 'ETH' && allBalances && allBalances[k]) {
+        if (k === NATIVE_TOKEN_TICKER[chainId] && allBalances && allBalances[k]) {
           balance = formatEthBalance(allBalances[k].balance)
           usdBalance = usdAmounts[k]
         } else if (allBalances && allBalances[k]) {
@@ -532,22 +544,22 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
           symbol: tokenListFromContext[k].symbol,
           address: k,
           balance: balance,
-          usdBalance: usdBalance
+          usdBalance: usdBalance,
         }
       })
-  }, [allBalances, tokenListFromContext, usdAmounts])
+  }, [allBalances, tokenListFromContext, usdAmounts, chainId])
 
   const filteredTokenList = useMemo(() => {
-    return tokenList.filter(tokenEntry => {
+    return tokenList.filter((tokenEntry) => {
       // check the regex for each field
-      const regexMatches = Object.keys(tokenEntry).map(tokenEntryKey => {
+      const regexMatches = Object.keys(tokenEntry).map((tokenEntryKey) => {
         return (
           typeof tokenEntry[tokenEntryKey] === 'string' &&
           !!tokenEntry[tokenEntryKey].match(new RegExp(escapeStringRegex(searchQuery), 'i'))
         )
       })
 
-      return regexMatches.some(m => m)
+      return regexMatches.some((m) => m)
     })
   }, [tokenList, searchQuery])
 

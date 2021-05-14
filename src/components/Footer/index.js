@@ -5,7 +5,6 @@ import SVGDiscord from '../../assets/svg/SVGDiscord'
 import SVGTelegram from '../../assets/svg/SVGTelegram'
 import { Link } from '../../theme'
 
-
 const FooterFrame = styled.div`
   display: flex;
   align-items: center;
@@ -98,7 +97,6 @@ export default function Footer() {
               <SVGTelegram />
             </TelegramImg>
           </Link>
-          
         </Title>
       </FooterElement>
     </FooterFrame>

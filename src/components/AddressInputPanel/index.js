@@ -6,7 +6,6 @@ import styled from 'styled-components'
 import { useDebounce } from '../../hooks'
 import { isAddress } from '../../utils'
 
-
 const InputPanel = styled.div`
   ${({ theme }) => theme.flexColumnNoWrap}
   box-shadow: 0 4px 8px 0 ${({ theme }) => transparentize(0.95, theme.shadowColor)};
@@ -97,7 +96,7 @@ export default function AddressInputPanel({ title, initialInput = '', onChange =
       try {
         library
           .lookupAddress(debouncedInput)
-          .then(name => {
+          .then((name) => {
             if (!stale) {
               // if an ENS name exists, set it as the destination
               if (name) {
@@ -123,7 +122,7 @@ export default function AddressInputPanel({ title, initialInput = '', onChange =
         try {
           library
             .resolveName(debouncedInput)
-            .then(address => {
+            .then((address) => {
               if (!stale) {
                 // if the debounced input name resolves to an address
                 if (address) {

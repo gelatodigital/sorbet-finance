@@ -10,8 +10,6 @@ import { Aligner, CurrencySelect, StyledTokenName } from '../CurrencyInputPanel'
 import TokenLogo from '../TokenLogo'
 import './OrderCard.css'
 
-
-
 const Order = styled.div`
   display: -webkit-box;
   display: -webkit-flex;
@@ -49,31 +47,24 @@ export function PastOrderCardDca(props) {
 
   const cancelled = order.status === 'cancelled'
   const executed = order.status === 'execSuccess'
-  
+
   const inputToken = order.inToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.inToken)
-  const outputToken =
-  order.outToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.outToken)
-  
-  let feeToken;
-  if (executed && order.feeToken) feeToken = order.feeToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.feeToken)
+  const outputToken = order.outToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.outToken)
+
+  let feeToken
+  if (executed && order.feeToken)
+    feeToken = order.feeToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.feeToken)
 
   const { symbol: fromSymbol, decimals: fromDecimals } = useTokenDetails(inputToken)
   const { symbol: toSymbol, decimals: toDecimals } = useTokenDetails(outputToken)
   const { symbol: feeSymbol, decimals: feeDcimals } = useTokenDetails(feeToken)
 
-  
   const bought = ethers.BigNumber.from(executed && order.amountReceived ? order.amountReceived : 0)
   const fee = ethers.BigNumber.from(executed && order.executorFee ? order.executorFee : 0)
-  
-  const inputAmount = ethers.BigNumber.from(
-    order.amount
-  )
 
-  const explorerLink = getEtherscanLink(
-    chainId,
-    order.executionHash,
-    'transaction'
-  )
+  const inputAmount = ethers.BigNumber.from(order.amount)
+
+  const explorerLink = getEtherscanLink(chainId, order.executionHash, 'transaction')
 
   return (
     <Order className={`order ${order.status}`}>
@@ -123,9 +114,7 @@ export function PastOrderCardDca(props) {
           {/* <p>
             {`Expected: ${amountFormatter(minReturn, toDecimals, 6)}`} {toSymbol}
           </p> */}
-          <p className="order-link">
-            Cancelled
-          </p>
+          <p className="order-link">Cancelled</p>
           {/* <p>{`Date: ${getTimeAndDate(order.executionDate)}`}</p>
           <a rel="noopener noreferrer" target="_blank" href={explorerLink} className="order-link">
             Cancelled

@@ -9,14 +9,14 @@ import styled from 'styled-components'
 import ClockIcon from '../../assets/images/clock.svg'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
 import { ReactComponent as Close } from '../../assets/images/x.svg'
-import { ALL_INTERVALS } from "../../constants"
+import { ALL_INTERVALS } from '../../constants'
 import { useUSDPrice } from '../../contexts/Application'
 import { useAllTokenDetails, useTokenDetails } from '../../contexts/Tokens'
 import { BorderlessInput, Spinner } from '../../theme'
 import { formatEthBalance, formatTokenBalance, isAddress } from '../../utils'
 import Modal from '../Modal'
 
-const Clock =  styled.img`
+const Clock = styled.img`
   width: ${({ size }) => size};
   height: ${({ size }) => size};
   background-color: white;
@@ -58,8 +58,7 @@ export const CurrencySelect = styled.button`
   user-select: none;
 
   :hover {
-    border: 1px solid
-      ${({ selected, theme }) => (selected ? darken(0.1, theme.primary1) : darken(0.1, theme.primary1))};
+    border: 1px solid ${({ selected, theme }) => (selected ? darken(0.1, theme.primary1) : darken(0.1, theme.primary1))};
   }
 
   :focus {
@@ -242,12 +241,8 @@ const SpinnerWrapper = styled(Spinner)`
   opacity: 0.6;
 `
 
-const TimeClock = () => 
-  { return (
-    <Clock
-    src={ClockIcon}
-    size={"2rem"}
-  />)
+const TimeClock = () => {
+  return <Clock src={ClockIcon} size={'2rem'} />
 }
 
 export default function TimeIntervalInputPancel({
@@ -265,9 +260,8 @@ export default function TimeIntervalInputPancel({
   interval,
   showUnlock,
   value,
-  showCurrencySelector = true
+  showCurrencySelector = true,
 }) {
-
   const [modalIsOpen, setModalIsOpen] = useState(false)
 
   function _renderInput() {
@@ -283,12 +277,12 @@ export default function TimeIntervalInputPancel({
           error={!!errorMessage}
           placeholder=""
           step="1"
-          onChange={e => onValueChange(e.target.value)}
-          onKeyPress={e => {
+          onChange={(e) => onValueChange(e.target.value)}
+          onKeyPress={(e) => {
             const charCode = e.which ? e.which : e.keyCode
 
             // Prevent 'minus' character
-            if (charCode === 45 || charCode === 46 || charCode === 44) {
+            if (charCode === 45 || charCode === 46 || charCode === 44) {
               e.preventDefault()
               e.stopPropagation()
             }
@@ -343,7 +337,7 @@ export default function TimeIntervalInputPancel({
                 border: 'none',
                 borderRadius: '24px',
                 padding: '0.5em 1em',
-                marginTop: '-64px'
+                marginTop: '-64px',
               }}
             >
               <span>{extraText}</span>
@@ -378,7 +372,7 @@ function TimeSelectModal({ isOpen, onDismiss, onIntervalSelect, allBalances }) {
   // BigNumber.js instance
   const ethPrice = useUSDPrice()
 
-  const _usdAmounts = Object.keys(allTokens).map(k => {
+  const _usdAmounts = Object.keys(allTokens).map((k) => {
     if (
       ethPrice &&
       allBalances &&
@@ -404,7 +398,7 @@ function TimeSelectModal({ isOpen, onDismiss, onIntervalSelect, allBalances }) {
 
   const tokenList = useMemo(() => {
     return Object.keys(allTokens)
-      .filter(k => allTokens[k].symbol)
+      .filter((k) => allTokens[k].symbol)
       .sort((a, b) => {
         const aSymbol = allTokens[a].symbol.toLowerCase()
         const bSymbol = allTokens[b].symbol.toLowerCase()
@@ -438,7 +432,7 @@ function TimeSelectModal({ isOpen, onDismiss, onIntervalSelect, allBalances }) {
 
         return aSymbol < bSymbol ? -1 : aSymbol > bSymbol ? 1 : 0
       })
-      .map(k => {
+      .map((k) => {
         let balance
         let usdBalance
         // only update if we have data
@@ -454,22 +448,22 @@ function TimeSelectModal({ isOpen, onDismiss, onIntervalSelect, allBalances }) {
           symbol: allTokens[k].symbol,
           address: k,
           balance: balance,
-          usdBalance: usdBalance
+          usdBalance: usdBalance,
         }
       })
   }, [allBalances, allTokens, usdAmounts])
 
   const filteredTokenList = useMemo(() => {
-    return tokenList.filter(tokenEntry => {
+    return tokenList.filter((tokenEntry) => {
       // check the regex for each field
-      const regexMatches = Object.keys(tokenEntry).map(tokenEntryKey => {
+      const regexMatches = Object.keys(tokenEntry).map((tokenEntryKey) => {
         return (
           typeof tokenEntry[tokenEntryKey] === 'string' &&
           !!tokenEntry[tokenEntryKey].match(new RegExp(escapeStringRegex(searchQuery), 'i'))
         )
       })
 
-      return regexMatches.some(m => m)
+      return regexMatches.some((m) => m)
     })
   }, [tokenList, searchQuery])
 
@@ -484,11 +478,11 @@ function TimeSelectModal({ isOpen, onDismiss, onIntervalSelect, allBalances }) {
       return <TokenModalInfo>{t('noExchange')}</TokenModalInfo>
     }
 
-    return ALL_INTERVALS.map((interval => {
+    return ALL_INTERVALS.map((interval) => {
       return (
         <TokenModalRow key={interval} onClick={() => _onTokenSelect(interval)}>
           <TokenRowLeft>
-            <TimeClock/>
+            <TimeClock />
             <TokenSymbolGroup>
               <span id="symbol">{interval}</span>
               <TokenFullName>{interval}</TokenFullName>
@@ -506,7 +500,7 @@ function TimeSelectModal({ isOpen, onDismiss, onIntervalSelect, allBalances }) {
           </TokenRowRight> */}
         </TokenModalRow>
       )
-    }))
+    })
   }
 
   // manage focus on modal show

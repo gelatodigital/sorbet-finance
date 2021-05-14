@@ -7,7 +7,7 @@ export * from './components'
 const MEDIA_WIDTHS = {
   upToSmall: 600,
   upToMedium: 960,
-  upToLarge: 1280
+  upToLarge: 1280,
 }
 
 const mediaWidthTemplates = Object.keys(MEDIA_WIDTHS).reduce((accumulator, size) => {
@@ -32,7 +32,7 @@ const flexRowNoWrap = css`
 const white = '#FFFFFF'
 const black = '#000000'
 
-const theme = darkMode => ({
+const theme = (darkMode) => ({
   white,
   black,
   textColor: darkMode ? white : '#010101',
@@ -120,7 +120,7 @@ const theme = darkMode => ({
   red1: '#FF6871',
   purple1: '#c166a9',
   yellow1: '#FFE270',
-  yellow2: '#F3841E'
+  yellow2: '#F3841E',
 })
 
 export default function ThemeProvider({ children }) {

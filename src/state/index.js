@@ -17,7 +17,7 @@ const PERSISTED_KEYS = ['user', 'transactions', 'lists']
 const store = configureStore({
   reducer: {
     root,
-    multicall
+    multicall,
     //application,
     // user,
     // transactions,
@@ -27,7 +27,7 @@ const store = configureStore({
     // lists
   },
   middleware: [...getDefaultMiddleware(), save({ states: PERSISTED_KEYS })],
-  preloadedState: load({ states: PERSISTED_KEYS })
+  preloadedState: load({ states: PERSISTED_KEYS }),
 })
 
 // store.dispatch(updateVersion())

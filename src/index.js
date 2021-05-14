@@ -20,10 +20,6 @@ import store from './state'
 import MulticallUpdater from './state/multicall/updater'
 import ThemeProvider, { GlobalStyle } from './theme'
 
-
-
-
-
 const Web3ProviderNetwork = createWeb3ReactRoot(NetworkContextName)
 
 if (process.env.NODE_ENV === 'production') {
@@ -49,9 +45,7 @@ function ContextProviders({ children }) {
               <BalancesContextProvider>
                 <AllBalancesContextProvider>
                   <AllowancesContextProvider>
-                    <GasPricesContextProvider>
-                      {children}
-                    </GasPricesContextProvider>
+                    <GasPricesContextProvider>{children}</GasPricesContextProvider>
                   </AllowancesContextProvider>
                 </AllBalancesContextProvider>
               </BalancesContextProvider>

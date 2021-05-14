@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
 import { useWeb3React } from '@web3-react/core'
+import * as ls from 'local-storage'
 import { darken, lighten } from 'polished'
 import { Activity } from 'react-feather'
 import { useENSName } from '../../hooks'
@@ -101,7 +102,7 @@ const NetworkIcon = styled(Activity)`
 
 export default function Web3Status() {
   const { t } = useTranslation()
-  const { account, connector, error } = useWeb3React()
+  const { account, connector, error, chainId } = useWeb3React()
 
   const { ENSName } = useENSName(account)
 
@@ -144,6 +145,12 @@ export default function Web3Status() {
 
   function getWeb3Status() {
     if (account) {
+      const chainIdStored = ls.get('chainId')
+      if (chainIdStored !== chainId) {
+        ls.set('chainId', chainId)
+        window.location.reload()
+      }
+
       return (
         <Web3StatusConnected id="web3-status-connected" onClick={toggleWalletModal}>
           <>
@@ -153,6 +160,7 @@ export default function Web3Status() {
         </Web3StatusConnected>
       )
     } else if (error) {
+      console.log(error)
       return (
         <Web3StatusError onClick={toggleWalletModal}>
           <NetworkIcon />

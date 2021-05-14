@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
 import { isAddress } from '../../utils'
-
+import { useAllTokenDetails } from '../../contexts/Tokens'
+import { useWeb3React } from '@web3-react/core'
 import { ReactComponent as EthereumLogo } from '../../assets/images/ethereum-logo.svg'
+import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
 
-const TOKEN_ICON_API = address =>
+const TOKEN_ICON_API = (address) =>
   `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/${isAddress(
     address
   )}/logo.png`
@@ -30,11 +32,20 @@ const StyledEthereumLogo = styled(EthereumLogo)`
 export default function TokenLogo({ address, size = '1rem', ...rest }) {
   const [error, setError] = useState(false)
 
+  const { chainId } = useWeb3React()
+  const allTokens = useAllTokenDetails()
+
+  const logoURI = address ? allTokens[address]?.logoURI : undefined
+
   let path = ''
   if (address === 'ETH') {
     return <StyledEthereumLogo size={size} />
+  } else if (address === 'MATIC') {
+    path =
+      'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0/logo.png'
   } else if (!error && !BAD_IMAGES[address]) {
-    path = TOKEN_ICON_API(address.toLowerCase())
+    if (NATIVE_TOKEN_TICKER[chainId] === 'ETH') path = TOKEN_ICON_API(address.toLowerCase())
+    else path = logoURI
   } else {
     return (
       <Emoji {...rest} size={size}>

@@ -12,7 +12,7 @@ export default class UncheckedJsonRpcSigner extends ethers.Signer {
   }
 
   sendTransaction(transaction) {
-    return this.signer.sendUncheckedTransaction(transaction).then(hash => {
+    return this.signer.sendUncheckedTransaction(transaction).then((hash) => {
       return {
         hash: hash,
         nonce: null,
@@ -23,9 +23,9 @@ export default class UncheckedJsonRpcSigner extends ethers.Signer {
         chainId: null,
         confirmations: 0,
         from: null,
-        wait: confirmations => {
+        wait: (confirmations) => {
           return this.signer.provider.waitForTransaction(hash, confirmations)
-        }
+        },
       }
     })
   }

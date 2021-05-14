@@ -7,8 +7,6 @@ import NavigationTabs from '../components/NavigationTabs'
 import Web3ReactManager from '../components/Web3ReactManager'
 import { isAddress } from '../utils'
 
-
-
 const Swap = lazy(() => import('./Swap'))
 const Dca = lazy(() => import('./Dca'))
 

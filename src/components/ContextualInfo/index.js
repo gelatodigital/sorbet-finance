@@ -4,7 +4,6 @@ import styled from 'styled-components'
 import { ReactComponent as Dropdown } from '../../assets/images/dropdown-blue.svg'
 import { ReactComponent as Dropup } from '../../assets/images/dropup-blue.svg'
 
-
 const SummaryWrapper = styled.div`
   color: ${({ error, theme }) => (error ? theme.salmonRed : theme.doveGray)};
   font-size: 0.75rem;
@@ -61,7 +60,7 @@ class ContextualInfo extends Component {
     openDetailsText: PropTypes.string,
     renderTransactionDetails: PropTypes.func,
     contextualInfo: PropTypes.string,
-    isError: PropTypes.bool
+    isError: PropTypes.bool,
   }
 
   static defaultProps = {
@@ -69,11 +68,11 @@ class ContextualInfo extends Component {
     closeDetailsText: 'Hide Advanced',
     renderTransactionDetails() {},
     contextualInfo: '',
-    isError: false
+    isError: false,
   }
 
   state = {
-    showDetails: false
+    showDetails: false,
   }
 
   renderDetails() {
@@ -95,7 +94,7 @@ class ContextualInfo extends Component {
       <>
         <SummaryWrapperContainer
           onClick={() =>
-            this.setState(prevState => {
+            this.setState((prevState) => {
               return { showDetails: !prevState.showDetails }
             })
           }

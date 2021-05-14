@@ -4,7 +4,6 @@ import styled from 'styled-components'
 import { useCopyClipboard } from '../../hooks'
 import { Link } from '../../theme'
 
-
 const CopyIcon = styled(Link)`
   color: ${({ theme }) => theme.silverGray};
   flex-shrink: 0;

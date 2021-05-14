@@ -1,17 +1,15 @@
-import { SafeAppConnector, useSafeAppConnection } from '@gnosis.pm/safe-apps-web3-react';
-import { useWeb3React } from '@web3-react/core';
-import copy from 'copy-to-clipboard';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { isMobile } from 'react-device-detect';
-import { injected } from '../connectors';
-import { MULTICALL_NETWORKS, NetworkContextName } from '../constants';
-import ERC20_ABI from '../constants/abis/erc20';
-import MULTICALL_ABI from '../constants/abis/multicall';
-import {
-  getContract, getGelatoDcaContract, getUniswapExContract, isAddress
-} from '../utils';
+import { SafeAppConnector, useSafeAppConnection } from '@gnosis.pm/safe-apps-web3-react'
+import { useWeb3React } from '@web3-react/core'
+import copy from 'copy-to-clipboard'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { isMobile } from 'react-device-detect'
+import { injected } from '../connectors'
+import { MULTICALL_NETWORKS, NetworkContextName } from '../constants'
+import ERC20_ABI from '../constants/abis/erc20'
+import MULTICALL_ABI from '../constants/abis/multicall'
+import { getContract, getGelatoDcaContract, getUniswapExContract, isAddress } from '../utils'
 
-const safeMultisigConnector = new SafeAppConnector();
+const safeMultisigConnector = new SafeAppConnector()
 
 // modified from https://usehooks.com/useDebounce/
 export function useDebounce(value, delay) {
@@ -37,10 +35,10 @@ export function useDebounce(value, delay) {
 // modified from https://usehooks.com/useKeyPress/
 export function useBodyKeyDown(targetKey, onKeyDown, suppressOnKeyDown = false) {
   const downHandler = useCallback(
-    event => {
+    (event) => {
       const {
         target: { tagName },
-        key
+        key,
       } = event
       if (key === targetKey && tagName === 'BODY' && !suppressOnKeyDown) {
         event.preventDefault()
@@ -113,7 +111,7 @@ export function useGelatoDcaContract(withSignerIfPossible = true) {
 export function useCopyClipboard(timeout = 500) {
   const [isCopied, setIsCopied] = useState(false)
 
-  const staticCopy = useCallback(text => {
+  const staticCopy = useCallback((text) => {
     const didCopy = copy(text)
     setIsCopied(didCopy)
   }, [])
@@ -148,7 +146,7 @@ export function useENSName(address) {
 
   const [ENSName, setENSName] = useState({
     loading: false,
-    ENSName: null
+    ENSName: null,
   })
 
   useEffect(() => {
@@ -161,7 +159,7 @@ export function useENSName(address) {
       setENSName({ loading: true, ENSName: null })
       library
         .lookupAddress(validated)
-        .then(name => {
+        .then((name) => {
           if (!stale) {
             if (name) {
               setENSName({ loading: false, ENSName: name })
@@ -186,14 +184,13 @@ export function useENSName(address) {
 }
 
 export function useEagerConnect() {
-  
-  const triedToConnectToSafe = useSafeAppConnection(safeMultisigConnector);
+  const triedToConnectToSafe = useSafeAppConnection(safeMultisigConnector)
   const { active: networkActive, activate, active } = useWeb3React() // specifically using useWeb3React because of what this hook does
   const [tried, setTried] = useState(false)
-  
+
   useEffect(() => {
-    if (triedToConnectToSafe && !networkActive  && !active) {
-      injected.isAuthorized().then(isAuthorized => {
+    if (triedToConnectToSafe && !networkActive && !active) {
+      injected.isAuthorized().then((isAuthorized) => {
         if (isAuthorized) {
           activate(injected, undefined, true).catch(() => {
             setTried(true)
@@ -234,15 +231,15 @@ export function useInactiveListener(suppress = false) {
     if (ethereum && ethereum.on && !active && !error && !suppress) {
       const handleChainChanged = () => {
         // eat errors
-        activate(injected, undefined, true).catch(error => {
+        activate(injected, undefined, true).catch((error) => {
           console.error('Failed to activate after chain changed', error)
         })
       }
 
-      const handleAccountsChanged = accounts => {
+      const handleAccountsChanged = (accounts) => {
         if (accounts.length > 0) {
           // eat errors
-          activate(injected, undefined, true).catch(error => {
+          activate(injected, undefined, true).catch((error) => {
             console.error('Failed to activate after accounts changed', error)
           })
         }
