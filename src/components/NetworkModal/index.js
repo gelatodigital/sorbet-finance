@@ -141,7 +141,9 @@ export default function NetworkModal({ toggleNetworkModal, isOpen }) {
         </CloseIcon>
 
         <ContentWrapper>
-          {Object.values(ChainId).map((key, i) => {
+          {/* Do not show ropsten */}
+          {Object.values(ChainId).filter((key) => key !== 3).map((key, i) => {
+
             if (chainId === key) {
               return (
                 <div key={i}>
@@ -176,7 +178,7 @@ export default function NetworkModal({ toggleNetworkModal, isOpen }) {
             )
           })}
           <br></br>
-          <Text>To switch networks please switch manually via MetaMask.</Text>
+          <Text>If you are having problems switching networks please switch manually via MetaMask.</Text>
         </ContentWrapper>
       </UpperSection>
     )
