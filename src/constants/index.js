@@ -188,15 +188,15 @@ export const SUPPORTED_WALLETS = {
       color: '#6748FF',
       mobile: true,
     },
-    WALLET_CONNECT: {
-      connector: walletconnect,
-      name: 'Wallet Connect',
-      iconName: 'walletConnectIcon.svg',
-      description: 'Login using Wallet Connect',
-      href: null,
-      color: '#6748FF',
-      mobile: true,
-    },
+    // WALLET_CONNECT: {
+    //   connector: walletconnect,
+    //   name: 'Wallet Connect',
+    //   iconName: 'walletConnectIcon.svg',
+    //   description: 'Login using Wallet Connect',
+    //   href: null,
+    //   color: '#6748FF',
+    //   mobile: true,
+    // },
   },
 }
 
