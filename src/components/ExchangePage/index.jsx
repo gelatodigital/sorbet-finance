@@ -440,8 +440,8 @@ export default function ExchangePage({ initialCurrency }) {
   const executionRateNegative = executionRate?.lt(ethers.constants.Zero)
   const executionRateWarning = executionRateNegative || executionRateDelta?.abs()?.gt(limitExecution)
   const isLOBtwEthAndWeth =
-    (inputCurrency === NATIVE_TOKEN_TICKER[chainId] && outputCurrency.toLocaleLowerCase() === NATIVE_WRAPPED_TOKEN_ADDRESS[chainId].toLocaleLowerCase()) ||
-    (outputCurrency === NATIVE_TOKEN_TICKER[chainId] && inputCurrency.toLocaleLowerCase() === NATIVE_WRAPPED_TOKEN_ADDRESS[chainId].toLocaleLowerCase())
+    (outputCurrency && inputCurrency === NATIVE_TOKEN_TICKER[chainId] && outputCurrency.toLocaleLowerCase() === NATIVE_WRAPPED_TOKEN_ADDRESS[chainId].toLocaleLowerCase()) ||
+    (inputCurrency && outputCurrency === NATIVE_TOKEN_TICKER[chainId] && inputCurrency.toLocaleLowerCase() === NATIVE_WRAPPED_TOKEN_ADDRESS[chainId].toLocaleLowerCase())
 
   const { exchangeAddress: selectedTokenExchangeAddress } = useTokenDetails(inputCurrency)
 
