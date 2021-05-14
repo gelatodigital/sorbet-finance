@@ -65,6 +65,18 @@ function useGraphOrders(account, chainId) {
     }
   }, [account, chainId])
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (account && isAddress(account)) {
+        fetchUserOrders(account, chainId).then((orders) => {
+          // console.log(`Fetched ${orders.allOrders.length} ${orders.openOrders.length} orders from the graph`)
+          setState(orders)
+        })
+      }
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
   return state
 }
 
