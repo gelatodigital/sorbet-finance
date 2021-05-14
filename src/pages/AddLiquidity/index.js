@@ -136,6 +136,7 @@ const getPoolCurrentInfo = async (poolV3, gelatoPool) => {
   const {liquidity} = await poolV3.positions(await gelatoPool.getPositionID())
   const {amount0, amount1} = await gelatoPool.getAmountsForLiquidity(sqrtPriceX96, sqrtLowerPriceX96, sqrtUpperPriceX96, liquidity)
   const totalDollarValue = Number(ethers.utils.formatEther(amount0)) + price*Number(ethers.utils.formatEther(amount1))
+  const maxTokens = await gelatoPool.supplyCap();
   return {
     price: price,
     sqrtPrice: sqrtPriceX96,
@@ -145,7 +146,8 @@ const getPoolCurrentInfo = async (poolV3, gelatoPool) => {
     amount1: amount1,
     liquidity: liquidity,
     totalSupply: totalSupply,
-    totalDollarValue: totalDollarValue
+    totalDollarValue: totalDollarValue,
+    supplyCap: maxTokens
   }
 };
 
@@ -188,6 +190,9 @@ export default function AddLiquidity() {
   const [isApproveWethPending, setIsApproveWethPending] = useState(null)
   const [isApproveDaiPending, setIsApproveDaiPending] = useState(null)
 
+  const [supplyCap, setSupplyCap] = useState(null)
+  const [supplyError, setSupplyError] = useState(null)
+
   const addTransaction = useTransactionAdder()
   const gasPrice = useGasPrice()
 
@@ -226,6 +231,7 @@ export default function AddLiquidity() {
       setMetapoolLiquidity(result.liquidity)
       setMetapoolSupply(result.totalSupply)
       setTotalDollarValue(result.totalDollarValue)
+      setSupplyCap(result.supplyCap)
       console.log(wethValueFormatted, daiValueFormatted)
       const parsedWeth = ethers.utils.parseUnits(wethValueFormatted, 18)
       const parsedDai = ethers.utils.parseUnits(daiValueFormatted, 18)
@@ -233,7 +239,7 @@ export default function AddLiquidity() {
       const sqrtUpperPriceX96 = encodePriceSqrt("1", result.upperPrice.toString())
       gelatoPool.getLiquidityForAmounts(result.sqrtPrice.toString(), sqrtLowerPriceX96.toString(), sqrtUpperPriceX96.toString(), parsedDai.toString(), parsedWeth.toString()).then((r2) => {
         //gelatoPool.estimateGas.mint(r2.toString()).then((estimatedGas) => {
-          gelatoPool.mint(r2.toString(), {/*gasPrice: gasPrice,*/ gasLimit: 400000}).then((tx) => {
+          gelatoPool.mint(r2.toString(), {gasPrice: gasPrice, gasLimit: 400000}).then((tx) => {
             setIsAddLiquidityPending(true)
             tx.wait().then(() => {
               console.log("complete!")
@@ -257,6 +263,7 @@ export default function AddLiquidity() {
   useEffect(() => {
     setInputErrorDai(null)
     setInputErrorWeth(null)
+    setSupplyError(null)
     setPoolShare('')
     setUserEstimatedMint('')
     if (lowerBoundRate && upperBoundRate && metapoolBalanceDai && metapoolBalanceWeth) {
@@ -277,17 +284,31 @@ export default function AddLiquidity() {
             setMetapoolLiquidity(result.liquidity)
             setMetapoolSupply(result.totalSupply)
             setTotalDollarValue(result.totalDollarValue)
+            setSupplyCap(result.supplyCap)
             let currentLiquidity = result.liquidity
             let supply = result.totalSupply
+            let supplyCapped = result.supplyCap
             let parsedWeth = ethers.utils.parseUnits(wethValue, 18)
-            const factor = Number(ethers.utils.formatEther(result.amount0))/Number(ethers.utils.formatEther(result.amount1))
-            let daiEstimate = factor*Number(wethValue)*.999
-            let parsedDai = ethers.utils.parseUnits(daiEstimate.toString(), 18)
+            let parsedDai = 0;
+            if (result.amount1.gt(ethers.constants.Zero)) {
+              const factor = Number(ethers.utils.formatEther(result.amount0))/Number(ethers.utils.formatEther(result.amount1))
+              let daiEstimate = factor*Number(wethValue)*.999
+              parsedDai = ethers.utils.parseUnits(daiEstimate.toString(), 18)
+            } 
+            if (result.amount0.lte(ethers.constants.Zero) && parsedWeth.gt(ethers.constants.Zero)) {
+              setSupplyError('Pool is entirely composed in DAI')
+              return
+            }
             let sqrtLowerPriceX96 = encodePriceSqrt("1", result.lowerPrice.toString())
             let sqrtUpperPriceX96 = encodePriceSqrt("1", result.upperPrice.toString())
             gelatoPool.getLiquidityForAmounts(sqrtPrice.toString(), sqrtLowerPriceX96.toString(), sqrtUpperPriceX96.toString(), parsedDai.toString(), parsedWeth.toString()).then((r2) => {
-              setUserLiquidityDelta(r2)
               let amountToMint = Number(ethers.utils.formatEther(r2))*Number(ethers.utils.formatEther(supply))/Number(ethers.utils.formatEther(currentLiquidity))
+              let cap = Number(ethers.utils.formatEther(supplyCapped))
+              if (cap <= amountToMint+Number(ethers.utils.formatEther(supply))) {
+                setSupplyError('Exceeds Supply Cap!');
+                return
+              }
+              setUserLiquidityDelta(r2)
               setUserEstimatedMint(ethers.utils.parseEther(amountToMint.toString(), 18));
               let percentage = (amountToMint/(Number(ethers.utils.formatEther(supply))+amountToMint))*100
               setPoolShare(percentage)
@@ -332,17 +353,32 @@ export default function AddLiquidity() {
             setMetapoolBalanceDai(result.amount0)
             setMetapoolLiquidity(result.liquidity)
             setMetapoolSupply(result.totalSupply)
+            setSupplyCap(result.supplyCap)
             let currentLiquidity = result.liquidity
             let supply = result.totalSupply
+            let supplyCapped = result.supplyCap
             let parsedDai = ethers.utils.parseUnits(daiValue, 18)
-            const factor = Number(ethers.utils.formatEther(result.amount0))/Number(ethers.utils.formatEther(result.amount1))
-            let wethEstimate = factor*Number(daiValue)*1.25
-            let parsedWeth = ethers.utils.parseUnits(wethEstimate.toString(), 18)
+            let parsedWeth = 0;
+            if (result.amount1.gt(ethers.constants.Zero)) {
+              const factor = Number(ethers.utils.formatEther(result.amount0))/Number(ethers.utils.formatEther(result.amount1))
+              let wethEstimate = factor*Number(daiValue)*1.25
+              parsedWeth = ethers.utils.parseUnits(wethEstimate.toString(), 18)
+            } else {
+              if (parsedDai.gt(ethers.constants.Zero)) {
+                setSupplyError('Pool is entirely composed in WETH');
+                return            
+              }
+            }
             let sqrtLowerPriceX96 = encodePriceSqrt("1", result.lowerPrice.toString())
             let sqrtUpperPriceX96 = encodePriceSqrt("1", result.upperPrice.toString())
             gelatoPool.getLiquidityForAmounts(sqrtPrice.toString(), sqrtLowerPriceX96.toString(), sqrtUpperPriceX96.toString(), parsedDai.toString(), parsedWeth.toString()).then((r2) => {
-              setUserLiquidityDelta(r2)
               let amountToMint = Number(ethers.utils.formatEther(r2))*Number(ethers.utils.formatEther(supply))/Number(ethers.utils.formatEther(currentLiquidity))
+              let cap = Number(ethers.utils.formatEther(supplyCapped))
+              if (cap <= amountToMint+Number(ethers.utils.formatEther(supply))) {
+                setSupplyError('Exceeds Supply Cap!');
+                return
+              }
+              setUserLiquidityDelta(r2)
               setUserEstimatedMint(ethers.utils.parseEther(amountToMint.toString(), 18));
               let percentage = (amountToMint/(Number(ethers.utils.formatEther(supply))+amountToMint))*100
               setPoolShare(percentage)
@@ -365,6 +401,10 @@ export default function AddLiquidity() {
                 if (Number(ethers.utils.formatEther(amount1)) > Number(wethBalanceFormatted)) {
                   setInputErrorWeth('Insufficient Balance!')
                 }
+                let cap = Number(ethers.utils.formatEther(supplyCapped))
+                if (cap <= amountToMint+Number(ethers.utils.formatEther(supply))) {
+                  setSupplyError('Exceeds Supply Cap!');
+                }
               })
             }).catch((error) => {
               console.log(error);
@@ -380,7 +420,7 @@ export default function AddLiquidity() {
 
   const isActive = active && account
 
-  const isValid = !inputErrorDai && !inputErrorWeth && isWethApproved && isDaiApproved && (Number(wethValue) > 0 || Number(daiValue) > 0)
+  const isValid = !inputErrorDai && !inputErrorWeth && isWethApproved && isDaiApproved && !supplyError && (Number(wethValue) > 0 || Number(daiValue) > 0)
 
   function formatBalance(value) {
     return `(${t('balance', { balanceInput: value })})`
@@ -388,7 +428,7 @@ export default function AddLiquidity() {
 
   const onApproveWeth = async () => {
     console.log("Approving Dai")
-    wethContract.approve(gelatoPool.address, ethers.constants.MaxUint256, {/*gasPrice,*/ gasLimit: 200000}).then((tx) => {
+    wethContract.approve(gelatoPool.address, ethers.constants.MaxUint256, {gasPrice: gasPrice}).then((tx) => {
       setIsApproveWethPending(true)
       tx.wait().then(() => {
         setIsWethApproved(true)
@@ -402,7 +442,7 @@ export default function AddLiquidity() {
 
   const onApproveDai = async () => {
     console.log("Approving Dai")
-    daiContract.approve(gelatoPool.address, ethers.constants.MaxUint256, {/*gasPrice,*/ gasLimit: 200000}).then((tx) => {
+    daiContract.approve(gelatoPool.address, ethers.constants.MaxUint256, {gasPrice: gasPrice}).then((tx) => {
       setIsApproveDaiPending(true)
       tx.wait().then(() => {
         setIsDaiApproved(true)
@@ -426,6 +466,7 @@ export default function AddLiquidity() {
         setMetapoolLiquidity(result.liquidity)
         setMetapoolSupply(result.totalSupply)
         setTotalDollarValue(result.totalDollarValue)
+        setSupplyCap(result.supplyCap)
       })
       if (!daiValueFormatted) {
         setIsDaiApproved(true);
@@ -561,6 +602,10 @@ export default function AddLiquidity() {
               </ExchangeRateWrapper>
             </SummaryPanel>
           </OversizedPanel>
+          {supplyError && (
+            <p style={{color: 'red'}}>{supplyError}</p>
+          )
+          }
           {!isWethApproved && (
             <Flex>
               <Button disabled={isApproveWethPending} onClick={onApproveWeth}>

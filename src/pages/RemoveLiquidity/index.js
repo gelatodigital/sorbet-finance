@@ -168,7 +168,7 @@ export default function RemoveLiquidity() {
   const gUniBalanceFormatted = !!(gUniBalance) ? 0.0001 > Number(ethers.utils.formatEther(gUniBalance)) > 0 ?  ethers.utils.formatEther(gUniBalance) : Number(ethers.utils.formatEther(gUniBalance)).toFixed(5) : ''
 
   async function onRemoveLiquidity() {
-    gelatoPool.burn(ethers.utils.parseEther(gUniValue), {/*gasPrice: gasPrice,*/ gasLimit: 250000}).then((tx) => {
+    gelatoPool.burn(ethers.utils.parseEther(gUniValue), {gasPrice: gasPrice, gasLimit: 300000}).then((tx) => {
       setIsRemoveLiquidityPending(true);
       tx.wait().then(() => {
         setIsRemoveLiquidityPending(false);

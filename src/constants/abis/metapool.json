@@ -33,6 +33,55 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "supplyCap",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "heartbeat",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "int24",
+        "name": "minTickDeviation",
+        "type": "int24"
+      },
+      {
+        "indexed": false,
+        "internalType": "int24",
+        "name": "maxTickDeviation",
+        "type": "int24"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "disablePoolSwitch",
+        "type": "bool"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint32",
+        "name": "observationSeconds",
+        "type": "uint32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint160",
+        "name": "maxSlippagePercentage",
+        "type": "uint160"
+      }
+    ],
+    "name": "MetaParamsAdjusted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "previousOwner",
@@ -456,6 +505,19 @@
   },
   {
     "inputs": [],
+    "name": "maxSlippagePercentage",
+    "outputs": [
+      {
+        "internalType": "uint160",
+        "name": "",
+        "type": "uint160"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "maxTickDeviation",
     "outputs": [
       {
@@ -526,6 +588,19 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "observationSeconds",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
       }
     ],
     "stateMutability": "view",
@@ -630,6 +705,19 @@
     "name": "renounceOwnership",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "supplyCap",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -813,6 +901,11 @@
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "_supplyCap",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
         "name": "_heartbeat",
         "type": "uint256"
       },
@@ -830,9 +923,19 @@
         "internalType": "bool",
         "name": "_disablePoolSwitch",
         "type": "bool"
+      },
+      {
+        "internalType": "uint32",
+        "name": "_observationSeconds",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint160",
+        "name": "_maxSlippagePercentage",
+        "type": "uint160"
       }
     ],
-    "name": "updateAcceptedParams",
+    "name": "updateMetaParams",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
