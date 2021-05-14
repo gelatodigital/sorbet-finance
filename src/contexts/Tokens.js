@@ -15,6 +15,11 @@ export const DEFAULT_TOKEN_LIST_URL = 'https://unpkg.com/@uniswap/default-token-
 const UPDATE = 'UPDATE'
 const SET_LIST = 'SET_LIST'
 
+export const WETH = {
+  1: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+  3: '0xc778417e063141139fce010982780140aa0cd5ab'
+}
+
 const ETH = {
   ETH: {
     [NAME]: 'Ethereum',
@@ -22,11 +27,6 @@ const ETH = {
     [DECIMALS]: 18,
     [EXCHANGE_ADDRESS]: null
   }
-}
-
-export const WETH = {
-  1: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-  3: '0xc778417e063141139fce010982780140aa0cd5ab'
 }
 
 const EMPTY_LIST = {

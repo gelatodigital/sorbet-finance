@@ -298,9 +298,10 @@ export default function CurrencyInputPanel({
   const allTokens = useAllTokenDetails()
   const allDcaTokens = useAllTokenDcaDetails()
 
-  let tokenListFromContext;
-  if(window.location.pathname === "/limit-order") tokenListFromContext = allTokens
-  if(window.location.pathname === "/dca") tokenListFromContext = allDcaTokens
+  let tokenListFromContext = allTokens;
+  if(window.location.pathname === "/dca") {
+    tokenListFromContext = allDcaTokens
+  }
 
   function renderUnlockButton() {
     if (disableUnlock || !showUnlock || selectedTokenAddress === 'ETH' || !selectedTokenAddress) {
@@ -442,12 +443,8 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
   const allTokens = useAllTokenDetails()
   const allDcaTokens = useAllTokenDcaDetails()
 
-  let tokenListFromContext;
-  let name
-  if(window.location.pathname === "/limit-order") {
-    name = nameLimit
-    tokenListFromContext = allTokens
-  }
+  let tokenListFromContext = allTokens;
+  let name = nameLimit;
   if(window.location.pathname === "/dca") {
     name = nameDca
     tokenListFromContext = allDcaTokens

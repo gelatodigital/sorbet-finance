@@ -69,7 +69,7 @@ export const DEFAULT_TOKENS_EXTRA = [
     address: '0xbca556c912754bc8e7d4aad20ad69a1b1444f42d',
     decimals: 18,
     chainId: 3
-  }
+  },
 ]
 
 export const DISABLED_TOKENS = {}
