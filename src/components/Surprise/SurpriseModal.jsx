@@ -68,6 +68,7 @@ const Container = styled.div`
 export default function SupriseModal() {
   const { account, chainId, active } = useWeb3React()
   const [isOpen, setIsOpen] = useState('')
+  const [orderType, setOrderType] = useState("limit")
 
   const url = process.env.REACT_APP_GIFT
 
@@ -79,11 +80,13 @@ export default function SupriseModal() {
       const allExecOrder = await getAllExecutedOrders(account, chainId)
       if (allExecOrder.length > 0) {
         setIsOpen(true)
+        setOrderType("limit")
         return
       }
-      const allDcaPastOrders = await fetchUserPastDcaOrders()
+      const allDcaPastOrders = await fetchUserPastDcaOrders(account, chainId)
       if (allDcaPastOrders.length > 0) {
         setIsOpen(true)
+        setOrderType("dca")
         return
       }
     }
@@ -121,7 +124,7 @@ export default function SupriseModal() {
           <h2>
             <span>{'🍦'}</span>Congratulations<span>{'🍦'}</span>
           </h2>
-          <h5>You successfully executed a limit order on Sorbet.</h5>
+          <h5>{`You successfully executed a ${orderType} order on Sorbet!`}</h5>
           <h5>
             This means you just earned yourself the opportunity to reserve a whitelist spot for the (still secret)
             Gelato Token Sale.
