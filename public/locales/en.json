@@ -92,6 +92,6 @@
   "notExecuted": "Your order will not be executed",
   "mayNotExecuted": "Your order may not be executed",
   "orderWarning": "Order too small, extreme execution rate",
-  "ethToWethLOWng": "Orders between ETH and WETH are not allowed",
+  "ethToWethLOWng": "Orders between a token and its wrapped token are not allowed",
   "executionRate": "Execution rate at {{ gasPrice }} GWEI"
 }
