@@ -56,6 +56,16 @@ export default function TokenLogo({ address, size = '1rem', ...rest }) {
     )
   }
 
+  if (!path) {
+    return (
+      <Emoji {...rest} size={size}>
+        <span style={{ lineHeight: 0 }} role="img" aria-label="Thinking">
+          🌕
+        </span>
+      </Emoji>
+    )
+  }
+
   return (
     <Image
       {...rest}

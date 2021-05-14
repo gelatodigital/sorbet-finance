@@ -570,9 +570,14 @@ function CurrencySelectModal({ isOpen, onDismiss, onTokenSelect, allBalances, se
   }
 
   function renderTokenList() {
+    if (name === undefined && filteredTokenList.length === 1) {
+      name = filteredTokenList[0].name
+    }
+
     if (isAddress(searchQuery) && name === undefined) {
       return <TokenModalInfo>Searching for Exchange...</TokenModalInfo>
     }
+
     if (!filteredTokenList.length) {
       return <TokenModalInfo>{t('noExchange')}</TokenModalInfo>
     }
