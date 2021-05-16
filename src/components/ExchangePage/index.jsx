@@ -311,6 +311,8 @@ export default function ExchangePage({ initialCurrency }) {
   const inputBalance = useAddressBalance(account, inputCurrency)
   const outputBalance = useAddressBalance(account, outputCurrency)
 
+  const nativeBalance = useAddressBalance(account, NATIVE_TOKEN_TICKER[chainId])
+
   const inputBalanceFormatted = !!(inputBalance && Number.isInteger(inputDecimals))
     ? amountFormatter(inputBalance, inputDecimals, Math.min(4, inputDecimals))
     : ''
@@ -444,6 +446,9 @@ export default function ExchangePage({ initialCurrency }) {
     (inputCurrency && outputCurrency === NATIVE_TOKEN_TICKER[chainId] && inputCurrency.toLocaleLowerCase() === NATIVE_WRAPPED_TOKEN_ADDRESS[chainId].toLocaleLowerCase())
 
   const { exchangeAddress: selectedTokenExchangeAddress } = useTokenDetails(inputCurrency)
+
+  const hasEnoughFundsToPayTx = executionRate && nativeBalance ? nativeBalance.sub(requiredGas).gt(0) : true
+
 
   function getWadNumber(nb, decimalsNb) {
     return nb.mul(ethers.utils.parseUnits('1', 18)).div(ethers.utils.parseUnits('1', decimalsNb))
@@ -791,7 +796,8 @@ export default function ExchangePage({ initialCurrency }) {
             customSlippageError === 'invalid' ||
             (rateDeltaFormatted && rateDeltaFormatted.startsWith('-')) ||
             rateDeltaFormatted === "0"||
-            isLOBtwEthAndWeth
+            isLOBtwEthAndWeth ||
+            !hasEnoughFundsToPayTx
           }
           onClick={onPlace}
           warning={highSlippageWarning || executionRateWarning || customSlippageError === 'warning'}
@@ -820,6 +826,14 @@ export default function ExchangePage({ initialCurrency }) {
             ⚠️
           </span>
           {t('orderWarning')}
+        </div>
+      )}
+      {!hasEnoughFundsToPayTx && (
+        <div className="slippage-warning">
+          <span role="img" aria-label="warning">
+            ⚠️
+          </span>
+          {'Not enough funds to pay gas and submit transaction'}
         </div>
       )}
       {isLOBtwEthAndWeth && (
