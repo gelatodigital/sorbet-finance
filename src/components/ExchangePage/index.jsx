@@ -447,7 +447,7 @@ export default function ExchangePage({ initialCurrency }) {
 
   const { exchangeAddress: selectedTokenExchangeAddress } = useTokenDetails(inputCurrency)
 
-  const hasEnoughFundsToPayTx = executionRate && nativeBalance ? nativeBalance.sub(requiredGas).gt(0) : true
+  const hasEnoughFundsToPayTx = executionRate && nativeBalance ? nativeBalance.gt(0) : true
 
 
   function getWadNumber(nb, decimalsNb) {
