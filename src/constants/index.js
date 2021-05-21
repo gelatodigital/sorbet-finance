@@ -1,9 +1,9 @@
 import { ethers } from 'ethers'
-import { Token as UniswapToken, WETH } from 'uniswap-v2-sdk'
 import { Token as QuickswapToken, WETH as WMATIC } from 'quickswap-sdk'
-import { ChainId } from './networks'
+import { Token as UniswapToken, WETH } from 'uniswap-v2-sdk'
 // @TODO: we should test walletconnect, walletlink before adding
-import { fortmatic, injected, portis, walletconnect } from '../connectors'
+import { fortmatic, injected, portis } from '../connectors'
+import { ChainId } from './networks'
 
 export const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
@@ -12,12 +12,6 @@ export const UNISWAPEX_ADDRESSES = {
   [ChainId.ROPSTEN]: '0x0e5096D201Fe2985f5C26432A76f145D6e5D1453',
   [ChainId.MATIC]: '0x38c4092b28dAB7F3d98eE6524549571c283cdfA5',
 }
-
-export const DCA_GRAPH = {
-  [ChainId.MAINNET]: 'https://api.thegraph.com/subgraphs/name/gelatodigital/gelato-dca',
-  [ChainId.ROPSTEN]: 'https://api.thegraph.com/subgraphs/name/gelatodigital/gelato-dca-ropsten',
-}
-
 export const LIMIT_ORDER_MODULE_ADDRESSES = {
   [ChainId.MAINNET]: '0x037fc8e71445910e1E0bBb2a0896d5e9A7485318',
   [ChainId.ROPSTEN]: '0x3f3C13b09B601fb6074124fF8D779d2964caBf8B',

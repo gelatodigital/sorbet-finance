@@ -1,5 +1,4 @@
-import { AbiCoder } from '@ethersproject/abi'
-import { Zero } from '@ethersproject/constants'
+import { getMinOrderRequirements, getOrdersArray, placeDcaOrder, storeOrdersInLocalStorage } from '@gelatonetwork/dca-sdk'
 import { useWeb3React } from '@web3-react/core'
 import { ethers } from 'ethers'
 import * as ls from 'local-storage'
@@ -7,18 +6,18 @@ import { transparentize } from 'polished'
 import React, { useEffect, useReducer, useState } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
-import styled from 'styled-components'
 import { Redirect } from 'react-router-dom'
+import styled from 'styled-components'
 import ArrowDown from '../../assets/svg/SVGArrowDown'
 import SVGDiv from '../../assets/svg/SVGDiv'
-import { ALL_INTERVALS, DCA_ORDER_THRESHOLD, ETH_ADDRESS, GELATO_DCA, PLATFORM_WALLET, UNI } from '../../constants'
+import { ALL_INTERVALS, DCA_ORDER_THRESHOLD, ETH_ADDRESS, GELATO_DCA, PLATFORM_WALLET } from '../../constants'
+import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
 import { useFetchAllBalances } from '../../contexts/AllBalances'
 import { useAddressAllowance } from '../../contexts/Allowances'
 import { useAddressBalance } from '../../contexts/Balances'
 import { useGasPrice } from '../../contexts/GasPrice'
 import { useTokenDcaDetails, WETH } from '../../contexts/TokensDca'
 import { ACTION_PLACE_ORDER, useTransactionAdder } from '../../contexts/Transactions'
-import { useGelatoDcaContract } from '../../hooks'
 import { useTradeExactIn } from '../../hooks/trade'
 import { Button, Link } from '../../theme'
 import { amountFormatter, trackTx } from '../../utils'
@@ -27,7 +26,6 @@ import CurrencyInputPanelDca from '../CurrencyInputPanelDca'
 import OversizedPanel from '../OversizedPanel'
 import TimeIntervalInputPancel from '../TimeIntervalInputPancel'
 import './TimeExchangePage.css'
-import { NATIVE_TOKEN_TICKER } from '../../constants/networks'
 
 // Use to detach input from output
 let inputValue
@@ -303,7 +301,6 @@ export default function TimeExchangePage({ initialCurrency }) {
 
   const { independentValue, independentField, inputCurrency, outputCurrency, rateOp, numTrades, interval } = swapState
 
-  const gelatoDcaContract = useGelatoDcaContract()
   const [inputError, setInputError] = useState()
 
   const addTransaction = useTransactionAdder()
@@ -350,31 +347,39 @@ export default function TimeExchangePage({ initialCurrency }) {
 
   // validate + parse independent value
   const [independentError, setIndependentError] = useState()
+  const [minOrderSize, setMinOrderSize]  = useState(ethers.utils.parseEther(DCA_ORDER_THRESHOLD[chainId]))
+  const [executionRateWarning, setExecutionRateWarning]  = useState(false)
 
-  // Calc minimum order size
-  const orderThresholdInEth = DCA_ORDER_THRESHOLD[chainId ? chainId : 3]
-  let minOrderSize
-
-  const minOrderSizeTrade = useTradeExactIn('ETH', orderThresholdInEth, inputCurrency)
-  if (inputCurrency === 'ETH' && orderThresholdInEth) {
-    minOrderSize = ethers.utils.parseEther(orderThresholdInEth.toString())
-  } else {
-    if (outputCurrency && minOrderSizeTrade) {
-      minOrderSize = ethers.utils.parseUnits(minOrderSizeTrade.outputAmount.toExact(), inputDecimals)
-    }
-  }
   const numTradesBn = ethers.BigNumber.from(numTrades.toString())
-  const numTradesIsZero = numTradesBn.eq(Zero) ? true : false
-  const executionRateWarning =
-    !numTradesIsZero && inputValue && numTradesBn && minOrderSize && inputValue.div(numTradesBn).lt(minOrderSize)
-      ? true
-      : false
+  const numTradesIsZero = numTradesBn.eq(ethers.constants.Zero) ? true : false
+
 
   const isLOBtwEthAndWeth =
     (inputCurrency === 'ETH' && outputCurrency.toLocaleLowerCase() === WETH[chainId]) ||
     (outputCurrency === 'ETH' && inputCurrency.toLocaleLowerCase() === WETH[chainId])
 
   const insufficientNumTrades = !numTrades || numTradesBn.lt(2) ? true : false
+
+  useEffect(() => {
+    const updateOrderRequirements = async() => {
+        const provider = new ethers.providers.Web3Provider(library.provider)
+        const signer = await provider.getSigner()
+        const minOrderRequirements = await getMinOrderRequirements(
+          inputCurrency === 'ETH' ? ETH_ADDRESS : inputCurrency,
+          inputValue,
+          numTradesBn,
+          signer,
+          ethers.utils.parseEther(DCA_ORDER_THRESHOLD[chainId])
+        )
+        setMinOrderSize(minOrderRequirements.minOrderSize)
+        setExecutionRateWarning(minOrderRequirements.warning)
+    
+    }
+    if (library && inputValueFormatted && inputCurrency) {
+      updateOrderRequirements()
+    }
+    
+  }, [inputCurrency, inputValueFormatted.toString(), numTradesBn.toString(), account])
 
   useEffect(() => {
     if (independentValue && (independentDecimals || independentDecimals === 0)) {
@@ -439,7 +444,7 @@ export default function TimeExchangePage({ initialCurrency }) {
   }
 
   async function onPlace() {
-    let fromCurrency, toCurrency, inputAmount, amountPerTrade, value
+    let fromCurrency, inputAmount, amountPerTrade
     ReactGA.event({
       category: 'placeDCA',
       action: 'place',
@@ -450,161 +455,52 @@ export default function TimeExchangePage({ initialCurrency }) {
 
     if (swapType === ETH_TO_TOKEN) {
       fromCurrency = ETH_ADDRESS
-      toCurrency = outputCurrency
-      value = amountPerTrade.mul(numTradesBn)
     } else if (swapType === TOKEN_TO_ETH) {
       fromCurrency = inputCurrency
-      toCurrency = ETH_ADDRESS
-      value = 0
     } else if (swapType === TOKEN_TO_TOKEN) {
       fromCurrency = inputCurrency
-      toCurrency = outputCurrency
-      value = 0
     }
 
     const order = {
       inToken: fromCurrency,
       outToken: outputCurrency === 'ETH' ? ETH_ADDRESS : outputCurrency,
-      amountPerTrade: amountPerTrade.toString(),
-      numTrades: numTradesBn.toString(),
-      minSlippage: 1000,
-      maxSlippage: 9999,
+      amountPerTrade: amountPerTrade,
+      numTrades: numTradesBn,
+      minSlippage: ethers.BigNumber.from("1000"),
+      maxSlippage: ethers.BigNumber.from("9999"),
       // delay: 120,
-      delay: getIntervalSeconds(interval),
+      delay: ethers.BigNumber.from(getIntervalSeconds(interval).toString()),
       platformWallet: PLATFORM_WALLET[chainId],
-      platformFeeBps: 0,
+      platformFeeBps: ethers.BigNumber.from("0"),
     }
 
-    const path = bestTradeExactIn.route.path.map((token) => {
-      return token.address
-    })
-    if (ethers.utils.getAddress(path[0]) === ethers.utils.getAddress(WETH[chainId]) && fromCurrency === ETH_ADDRESS)
-      path[0] = ETH_ADDRESS
-    if (
-      ethers.utils.getAddress(path[path.length - 1]) === ethers.utils.getAddress(WETH[chainId]) &&
-      toCurrency === ETH_ADDRESS
-    )
-      path[path.length - 1] = ETH_ADDRESS
-
-    const [minOutAmountUni] = await gelatoDcaContract.getExpectedReturnUniswap(
-      await gelatoDcaContract.uniRouterV2(),
-      amountPerTrade.mul(numTradesBn),
-      path,
-      0
-    )
-    const minOutAmountUniWithSlippage = minOutAmountUni.sub(
-      minOutAmountUni.mul(ethers.BigNumber.from('100')).div(ethers.BigNumber.from('10000'))
-    )
-    // console.log(outputValueWithSlippage.toString())
-    // console.log(minOutAmountUniWithSlippage.toString())
-
     try {
-      // Prefix Hex for secret message
-      // this secret it's only intended for avoiding relayer front-running
-      // so a decreased entropy it's not an issue
-      const secret = ethers.utils.hexlify(ethers.utils.randomBytes(13)).replace('0x', '')
-      const fullSecret = `2070696e652e66696e616e63652020d83ddc09${secret}`
-      const { privateKey, address } = new ethers.Wallet(fullSecret)
-      const witness = address.toLowerCase()
-
-      // Get Uniswap Rate
-      // HOW ARE WE CALCULATING TEH TRADE ON EXCHANGE PAGE
-
-      // console.log(`Private key: ${privateKey}`)
-      // console.log(privateKey.length)
-      // console.log(`Witness: ${witness}`)
-      // console.log(witness.length)
-
-      const abiCoder = new AbiCoder()
-      const funcSig = gelatoDcaContract.interface.getSighash('submitAndExec')
-      // console.log(funcSig)
-      /* 
-        Dex _protocol,
-        uint256 _minReturnOrRate,
-        address[] calldata _tradePath
-      */
-
-      let submitData = abiCoder.encode(
-        [
-          'tuple(address inToken, address outToken, uint256 amountPerTrade, uint256 numTrades, uint256 minSlippage, uint256 maxSlippage, uint256 delay, address platformWallet, uint256 platformFeeBps)',
-          'uint8 _protocol',
-          'uint256 _minReturnOrRate',
-          'address[] _tradePath',
-          'bytes32 privateKey',
-          'address witness',
-        ],
-        [order, UNI, minOutAmountUniWithSlippage, path, privateKey, witness]
-      )
-      submitData = '0x' + funcSig.substring(2, funcSig.length) + submitData.substring(2, submitData.length)
-
-      // const indexOfSecret = submitData.indexOf(privateKey.substring(2, privateKey.length))
-      // const indexOfWitness = submitData.indexOf(witness.substring(2, witness.length))
-      // const witnessCut = submitData.substring(indexOfWitness, indexOfWitness + 40)
-      // console.log(`Secret Index: ${indexOfSecret}`)
-      // console.log(`Witness Index: ${indexOfWitness}`)
-      // console.log(witnessCut)
-      // console.log(witness === ("0x" + witnessCut))
-
-      const gasLimit = await gelatoDcaContract.estimateGas.submitAndExec(
-        order,
-        UNI,
-        minOutAmountUniWithSlippage,
-        path,
-        {
-          value: value,
-        }
-      )
-
       const provider = new ethers.providers.Web3Provider(library.provider)
-      let res = await provider.getSigner().sendTransaction({
-        to: gelatoDcaContract.address,
-        data: submitData,
-        value: value,
-        gasPrice: gasPrice ? gasPrice : undefined,
-        gasLimit: gasLimit.add(ethers.BigNumber.from('80000')),
+      const signer = provider.getSigner()
+      const slippage = 100 // 1%
+
+      const {tx, txData} = await placeDcaOrder(
+        order,
+        slippage,
+        gasPrice,
+        signer
+      )
+
+      const localOrders = getOrdersArray(
+        order,
+        account,
+        txData.witness,
+        tx.hash,
+      )
+
+      storeOrdersInLocalStorage(localOrders, account, chainId);
+
+      trackTx(tx.hash, chainId)
+      localOrders.forEach(order => {
+        if (tx.hash) {
+          addTransaction(tx, { action: ACTION_PLACE_ORDER, order: order })
+        }
       })
-
-      trackTx(res.hash, chainId)
-
-      const submissionDate = Math.floor(Date.now() / 1000).toString()
-      const currentId = await gelatoDcaContract.taskId()
-      for (let i = 0; i < numTrades; i++) {
-        let estimatedExecutionDate
-        if (i === 0) {
-          estimatedExecutionDate = Math.floor(Date.now() / 1000)
-        } else {
-          estimatedExecutionDate = (order.delay * i + Math.floor(Date.now() / 1000)).toString()
-        }
-        const nTradesLeft = order.numTrades.sub(ethers.BigNumber.from(i.toString())).toString()
-        const index = (numTrades - i).toString()
-        const witnessHash = witness + i.toString()
-        const localOrder = {
-          id: `${parseInt(currentId) + 1}:${i + 1}`,
-          user: account.toLowerCase(),
-          status: 'awaitingExec',
-          submissionDate: submissionDate,
-          submissionHash: res.hash.toLowerCase(),
-          estExecutionDate: estimatedExecutionDate,
-          amount: amountPerTrade.toString(),
-          inToken: fromCurrency.toLowerCase(),
-          outToken: toCurrency.toLowerCase(),
-          minSlippage: order.minSlippage.toString(),
-          maxSlippage: order.maxSlippage.toString(),
-          index: index,
-          witness: witnessHash,
-          cycleWrapper: {
-            cycle: {
-              nTradesLeft: nTradesLeft,
-            },
-          },
-        }
-
-        saveOrder(account, localOrder, chainId)
-
-        if (res.hash) {
-          addTransaction(res, { action: ACTION_PLACE_ORDER, order: localOrder })
-        }
-      }
     } catch (e) {
       console.log('Error on place order', e.message)
     }

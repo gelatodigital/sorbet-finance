@@ -8,10 +8,8 @@ import { ETH_ADDRESS } from '../../constants'
 import { useGasPrice } from '../../contexts/GasPrice'
 import { useTokenDetails } from '../../contexts/Tokens'
 import {
-  ACTION_CANCEL_ORDER,
-  ACTION_PLACE_ORDER,
-  useOrderPendingStateDca,
-  useTransactionAdder,
+  ACTION_CANCEL_ORDER, useOrderPendingStateDca,
+  useTransactionAdder
 } from '../../contexts/Transactions'
 import { useGelatoDcaContract } from '../../hooks'
 import { amountFormatter, getEtherscanLink, getTimeAndDate, trackTx } from '../../utils'
@@ -68,13 +66,12 @@ export function OrderCardDca(props) {
   const outputToken = order.outToken === ETH_ADDRESS.toLowerCase() ? 'ETH' : ethers.utils.getAddress(order.outToken)
 
   const { symbol: fromSymbol, decimals: fromDecimals } = useTokenDetails(inputToken)
-  const { symbol: toSymbol, decimals: toDecimals } = useTokenDetails(outputToken)
+  const { symbol: toSymbol } = useTokenDetails(outputToken)
 
   // @dev fix
   const { state, last } = useOrderPendingStateDca()
 
   const canceling = state === ACTION_CANCEL_ORDER
-  const pending = state === ACTION_PLACE_ORDER
 
   // WHITELIST WETH DAI IN OA
 
