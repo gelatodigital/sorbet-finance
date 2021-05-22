@@ -1,9 +1,9 @@
 import { ethers } from 'ethers'
-import { Token as UniswapToken, WETH } from 'uniswap-v2-sdk'
 import { Token as QuickswapToken, WETH as WMATIC } from 'quickswap-sdk'
-import { ChainId } from './networks'
+import { Token as UniswapToken, WETH } from 'uniswap-v2-sdk'
 // @TODO: we should test walletconnect, walletlink before adding
-import { fortmatic, injected, portis, walletconnect } from '../connectors'
+import { fortmatic, injected, portis } from '../connectors'
+import { ChainId } from './networks'
 
 export const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
@@ -93,6 +93,15 @@ export const WETH_MATIC = new QuickswapToken(
   'Wrapped ETH'
 )
 
+export const QUICK_MATIC = new QuickswapToken(
+  ChainId.MATIC,
+  '0x831753dd7087cac61ab5644b308642cc1c33dc13',
+  18,
+  'QUICK',
+  'Quickswap'
+)
+
+
 const WETH_ONLY = {
   [ChainId.MAINNET]: [WETH[ChainId.MAINNET]],
   [ChainId.ROPSTEN]: [WETH[ChainId.ROPSTEN]],
@@ -116,7 +125,7 @@ export const BASES_TO_CHECK_TRADES_AGAINST = {
     COMP_MAINNET,
     MKR_MAINNET,
   ],
-  [ChainId.MATIC]: [...WETH_ONLY[ChainId.MATIC], DAI_MATIC, USDC_MATIC, USDT_MATIC, WMATIC],
+  [ChainId.MATIC]: [...WETH_ONLY[ChainId.MATIC], DAI_MATIC, USDC_MATIC, USDT_MATIC, WMATIC, QUICK_MATIC],
 }
 
 export const NetworkContextName = 'NETWORK'
