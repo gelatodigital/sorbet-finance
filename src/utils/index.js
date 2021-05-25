@@ -3,12 +3,11 @@ import { Contract } from '@ethersproject/contracts';
 import { formatFixed } from '@uniswap/sdk';
 import Notify from "bnc-notify";
 import { ethers } from 'ethers';
-import { GELATO_DCA, GUNIV3_METAPOOL_ADDRESSES, GUNIV3_MINTER_ADDRESSES, UNISWAPEX_ADDRESSES, UNIV3_POOL_ADDRESSES } from '../constants';
+import { GELATO_DCA, GUNIV3_METAPOOL_ADDRESSES, UNISWAPEX_ADDRESSES, UNIV3_POOL_ADDRESSES } from '../constants';
 import ERC20_ABI from '../constants/abis/erc20';
 import ERC20_BYTES32_ABI from '../constants/abis/erc20_bytes32';
 import GELATO_DCA_ABI from '../constants/abis/gelatoDca';
 import GELATO_METAPOOL_ABI from '../constants/abis/metapool.json';
-import GUNIV3_MINTER_ABI from '../constants/abis/guniMinter.json';
 import POOL_V3_ABI from '../constants/abis/poolV3.json';
 import PAIR_ABI from '../constants/abis/pair.json';
 import UNISWAPEX_ABI from '../constants/abis/uniswapEX';
@@ -137,10 +136,6 @@ export function getGelatoDcaContract(chainId, library, account) {
 
 export function getGelatoMetapoolContract(chainId, library, account) {
   return getContract(GUNIV3_METAPOOL_ADDRESSES[chainId], GELATO_METAPOOL_ABI, library, account)
-}
-
-export function getGUniMinterContract(chainId, library, account) {
-  return getContract(GUNIV3_MINTER_ADDRESSES[chainId], GUNIV3_MINTER_ABI, library, account)
 }
 
 export function getPoolV3Contract(chainId, library, account) {

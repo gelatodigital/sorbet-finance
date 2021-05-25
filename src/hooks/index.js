@@ -11,7 +11,6 @@ import {
   getContract, 
   getGelatoDcaContract,
   getGelatoMetapoolContract,
-  getGUniMinterContract,
   getPoolV3Contract,
   getUniswapExContract, 
   isAddress,
@@ -123,19 +122,6 @@ export function useGelatoMetapoolContract(withSignerIfPossible = true) {
   return useMemo(() => {
     try {
       return getGelatoMetapoolContract(chainId, library, withSignerIfPossible ? account : undefined)
-    } catch (e) {
-      return null
-    }
-  }, [chainId, library, withSignerIfPossible, account])
-}
-
-// returns null on errors
-export function useGUniMinterContract(withSignerIfPossible = true) {
-  const { chainId, library, account } = useActiveWeb3React()
-
-  return useMemo(() => {
-    try {
-      return getGUniMinterContract(chainId, library, withSignerIfPossible ? account : undefined)
     } catch (e) {
       return null
     }

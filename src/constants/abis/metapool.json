@@ -307,11 +307,6 @@
         "internalType": "uint256",
         "name": "_burnAmount",
         "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "burner",
-        "type": "address"
       }
     ],
     "name": "burn",
@@ -490,6 +485,30 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "amount0Max",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount1Max",
+        "type": "uint256"
+      }
+    ],
+    "name": "getNewLiquidityFromAmounts",
+    "outputs": [
+      {
+        "internalType": "uint128",
+        "name": "",
+        "type": "uint128"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "getPositionID",
     "outputs": [
@@ -635,14 +654,14 @@
   {
     "inputs": [
       {
-        "internalType": "uint128",
-        "name": "_newLiquidity",
-        "type": "uint128"
+        "internalType": "uint256",
+        "name": "amount0Max",
+        "type": "uint256"
       },
       {
-        "internalType": "address",
-        "name": "minter",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "amount1Max",
+        "type": "uint256"
       }
     ],
     "name": "mint",

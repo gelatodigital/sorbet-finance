@@ -13,7 +13,7 @@ import { WETH, DAI } from '../../contexts/TokensDca'
 import { BetaMessage } from '../../components/TimeExchangePage'
 import { usePendingApproval, useTransactionAdder } from '../../contexts/Transactions'
 import { Button, Link } from '../../theme'
-import { useGelatoMetapoolContract, useGUniMinterContract, usePoolV3Contract, useTokenContract } from '../../hooks'
+import { useGelatoMetapoolContract, usePoolV3Contract, useTokenContract } from '../../hooks'
 //import { getExchangeRate } from '../../utils/rate'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import { ReactComponent as Plus } from '../../assets/images/plus-blue.svg'
@@ -259,12 +259,6 @@ export default function AddLiquidity() {
   const [inputErrorDai, setInputErrorDai] = useState()
   const [inputErrorWeth, setInputErrorWeth] = useState()
 
-  //const [inputValueParsed, setInputValueParsed] = useState()
-  //const [outputValueParsed, setOutputValueParsed] = useState()
-  //const [outputError, setOutputError] = useState()
-  //const [zeroDecimalError, setZeroDecimalError] = useState()
-  //const [brokenTokenWarning, setBrokenTokenWarning] = useState()
-
   // get symbols
   const { symbol: wethSymbol } = useTokenDetails(wethAddress)
   const { symbol: daiSymbol } = useTokenDetails(daiAddress)
@@ -277,7 +271,6 @@ export default function AddLiquidity() {
 
   const poolV3 = usePoolV3Contract()
   const gelatoPool = useGelatoMetapoolContract()
-  const guniMinter = useGUniMinterContract()
   const wethContract = useTokenContract(wethAddress)
   const daiContract = useTokenContract(daiAddress)
 
@@ -297,9 +290,9 @@ export default function AddLiquidity() {
       setUnclaimedFeesDollarValue(result.feesDollarValue)
       setApy(result.apy)
       console.log("values:", daiValueInput, wethValueInput)
-      const parsedWeth = ethers.utils.parseUnits(daiValueInput, 18);
-      const parsedDai = ethers.utils.parseUnits(wethValueInput, 18);
-      guniMinter.mintFromMaxAmounts(gelatoPool.address, parsedDai, parsedWeth, {gasPrice: gasPrice}).then((tx) => {
+      const parsedWeth = ethers.utils.parseUnits(wethValueInput, 18);
+      const parsedDai = ethers.utils.parseUnits(daiValueInput, 18);
+      gelatoPool.mint(parsedDai, parsedWeth, {gasPrice: gasPrice}).then((tx) => {
         setIsAddLiquidityPending(true)
         tx.wait().then(() => {
           console.log("complete!")
@@ -324,6 +317,8 @@ export default function AddLiquidity() {
     setInputErrorDai(null)
     setInputErrorWeth(null)
     setSupplyError(null)
+    setIsDaiApproved(false)
+    setIsWethApproved(false)
     setPoolShare('')
     setUserEstimatedMint('')
     if (lowerBoundRate && upperBoundRate && metapoolBalanceDai && metapoolBalanceWeth) {
@@ -346,130 +341,59 @@ export default function AddLiquidity() {
             setUnclaimedFeesDollarValue(result.feesDollarValue)
             setApy(result.apy)
             let supply = result.totalSupply
+            let currentLiquidity = result.liquidity
             let supplyCapped = result.supplyCap
             let parsedWeth = ethers.utils.parseUnits(wethValue, 18);
-            guniMinter.callStatic.mintFromMaxAmounts(gelatoPool.address, daiBalance, parsedWeth).then((r2) => {
-              setUserEstimatedMint(r2.mintAmount);
-              const mintAmountEstimate = Number(ethers.utils.formatEther(r2.mintAmount));
-              const estimatedAmountDai = Number(ethers.utils.formatEther(r2.amount0));
-              let amountToInputDai = estimatedAmountDai*1.3;
-              if (amountToInputDai > Number(ethers.utils.formatEther(daiBalance))) {
-                amountToInputDai =  Number(ethers.utils.formatEther(daiBalance));
-              }
-              const estimatedAmountWeth = Number(ethers.utils.formatEther(r2.amount1));
-              const percentage = (mintAmountEstimate*100)/(mintAmountEstimate+Number(ethers.utils.formatEther(supply)));
-              setPoolShare(percentage)
-              if (mintAmountEstimate+Number(ethers.utils.formatEther(supply)) > Number(ethers.utils.formatEther(supplyCapped))) {
-                setSupplyError('Cannot mint above supply cap!!');
+            let sqrtPriceLower = encodePriceSqrt("1", result.lowerPrice.toString());
+            let sqrtPriceUpper = encodePriceSqrt("1", result.upperPrice.toString());
+            gelatoPool.getNewLiquidityFromAmounts(daiBalance, parsedWeth).then((r2) => {
+              const estimatedMint = Number(ethers.utils.formatEther(r2))*Number(ethers.utils.formatEther(supply))/Number(ethers.utils.formatEther(currentLiquidity));
+              setUserEstimatedMint(ethers.utils.parseUnits(estimatedMint.toString(), 18));
+              const percentage = (estimatedMint*100)/(estimatedMint+Number(ethers.utils.formatEther(supply)));
+              setPoolShare(percentage);
+              if (estimatedMint + Number(ethers.utils.formatEther(supply)) > Number(ethers.utils.formatEther(supplyCapped))) {
+                setSupplyError('Cannot mint above supply cap!')
                 return
               }
-              setDaiValueFormatted(estimatedAmountDai.toString())
-              setEstimatedAmountWeth(estimatedAmountWeth)
-              setEstimatedAmountDai(estimatedAmountDai)
-              setDaiValueInput(amountToInputDai.toString());
-              getAllowance(wethContract, account, gelatoPool.address).then((allowance) => {
-                if (Number(ethers.utils.formatEther(allowance)) >= estimatedAmountWeth) {
-                  setIsWethApproved(true);
-                } else {
-                  setIsWethApproved(false)
+              gelatoPool.getAmountsForLiquidity(result.sqrtPrice, sqrtPriceLower.toString(), sqrtPriceUpper.toString(), r2).then((r3) => {
+                const estimatedAmountDai = Number(ethers.utils.formatEther(r3.amount0))*.99;
+                const estimatedAmountWeth = Number(ethers.utils.formatEther(r3.amount1))*.99;
+                setDaiValueFormatted(estimatedAmountDai.toString())
+                setEstimatedAmountWeth(estimatedAmountWeth)
+                setEstimatedAmountDai(estimatedAmountDai)
+                setDaiValueInput(estimatedAmountDai.toString());
+                getAllowance(wethContract, account, gelatoPool.address).then((allowance) => {
+                  if (Number(ethers.utils.formatEther(allowance)) >= Number(wethValue)) {
+                    setIsWethApproved(true);
+                  } else {
+                    setIsWethApproved(false)
+                  }
+                })
+                getAllowance(daiContract, account, gelatoPool.address).then((allowanceDai) => {
+                  if (Number(ethers.utils.formatEther(allowanceDai)) >= estimatedAmountDai) {
+                    setIsDaiApproved(true);
+                  } else {
+                    setIsDaiApproved(false)
+                  }
+                })
+                if (Number(wethValue) > Number(wethBalanceFormatted)) {
+                  setInputErrorWeth('Insufficient Balance!')
+                  setSupplyError('Insufficient Balance!')
+                  return
                 }
-              })
-              getAllowance(daiContract, account, gelatoPool.address).then((allowanceDai) => {
-                if (Number(ethers.utils.formatEther(allowanceDai)) >= daiBalanceFormatted) {
-                  setIsDaiApproved(true);
-                } else {
-                  setIsDaiApproved(false)
+                if (estimatedAmountDai > Number(daiBalanceFormatted)) {
+                  setInputErrorDai('Insufficient Balance!')
+                  setSupplyError('Insufficient Balance!')
+                  return
                 }
-              })
-              if (Number(wethValue) > Number(wethBalanceFormatted)) {
-                setInputErrorWeth('Insufficient Balance!')
-                setSupplyError('Insufficient Balance!')
-                return
-              }
-              if (amountToInputDai > Number(daiBalanceFormatted)) {
-                setInputErrorDai('Insufficient Balance!')
-                setSupplyError('Insufficient Balance!')
-              }
-            }).catch(() => {
-              if (!wethValue || Number(wethValue)==0) {
-                return
-              }
-              setInputErrorWeth('Insufficient Balance!')
-              setSupplyError('Insufficient Balance!')
+              });
             });
-          })
+          });
         }
       } else {
-        setDaiValueFormatted(daiValue)
-        setDaiValueInput(daiValue)
-        if (daiValue) {
-          getPoolCurrentInfo(poolV3, gelatoPool, wethContract, daiContract).then((result) => {
-            setMarketRate(result.price)
-            setUpperBoundRate(result.upperPrice)
-            setLowerBoundRate(result.lowerPrice)
-            setSqrtPrice(result.sqrtPrice)
-            setMetapoolBalanceWeth(result.amount1)
-            setMetapoolBalanceDai(result.amount0)
-            setMetapoolSupply(result.totalSupply)
-            setSupplyCap(result.supplyCap)
-            setUnclaimedFeeDai(result.fee0)
-            setUnclaimedFeeWeth(result.fee1)
-            setUnclaimedFeesDollarValue(result.feesDollarValue)
-            setApy(result.apy)
-            let supply = result.totalSupply
-            let supplyCapped = result.supplyCap
-            let parsedDai = ethers.utils.parseUnits(daiValue, 18);
-            guniMinter.callStatic.mintFromMaxAmounts(gelatoPool.address, parsedDai, wethBalance).then((r2) => {
-              setUserEstimatedMint(r2.mintAmount);
-              const mintAmountEstimate = Number(ethers.utils.formatEther(r2.mintAmount));
-              const estimatedAmountDai = Number(ethers.utils.formatEther(r2.amount0));
-              const estimatedAmountWeth = Number(ethers.utils.formatEther(r2.amount1));
-              let amountToInputWeth = estimatedAmountWeth*1.3;
-              if (amountToInputWeth > Number(ethers.utils.formatEther(wethBalance))) {
-                amountToInputWeth = Number(ethers.utils.formatEther(wethBalance));
-              }
-              const percentage = (mintAmountEstimate*100)/(mintAmountEstimate+Number(ethers.utils.formatEther(supply)));
-              setPoolShare(percentage)
-              if (mintAmountEstimate+Number(ethers.utils.formatEther(supply)) > Number(ethers.utils.formatEther(supplyCapped))) {
-                setSupplyError('Cannot mint above supply cap!!');
-                return
-              }
-              setWethValueFormatted(estimatedAmountWeth.toString())
-              setEstimatedAmountWeth(estimatedAmountWeth)
-              setEstimatedAmountDai(estimatedAmountDai)
-              setWethValueInput(amountToInputWeth.toString());
-              getAllowance(wethContract, account, gelatoPool.address).then((allowance) => {
-                if (Number(ethers.utils.formatEther(allowance)) >= Number(wethBalanceFormatted)) {
-                  setIsWethApproved(true);
-                } else {
-                  setIsWethApproved(false)
-                }
-              })
-              getAllowance(daiContract, account, gelatoPool.address).then((allowanceDai) => {
-                if (Number(ethers.utils.formatEther(allowanceDai)) >= Number(daiValue)) {
-                  setIsDaiApproved(true);
-                } else {
-                  setIsDaiApproved(false)
-                }
-              })
-              if (amountToInputWeth > Number(wethBalanceFormatted)) {
-                setInputErrorWeth('Insufficient Balance!')
-                setSupplyError('Insufficient Balance!')
-                return
-              }
-              if (Number(daiValue) > Number(daiBalanceFormatted)) {
-                setInputErrorDai('Insufficient Balance!')
-                setSupplyError('Insufficient Balance!')
-              }
-            }).catch(() => {
-              if (!daiValue || Number(daiValue)==0) {
-                return
-              }
-              setInputErrorDai('Insufficient Balance!')
-              setSupplyError('Insufficient Balance!')
-            });
-          })
-        }
+        setDaiValueFormatted('')
+        setDaiValueInput('')
+        setSupplyError('Input WETH amount only');
       }
     }
   }, [wethValue, daiValue])
@@ -540,7 +464,7 @@ export default function AddLiquidity() {
   }, [poolV3, gelatoPool]);
 
   return <>
-      { (gelatoPool && guniMinter && apy) ?
+      { (gelatoPool && metapoolSupply) ?
         <>
           {showBetaMessage && (
             <BetaMessage onClick={ () => setShowBetaMessage(false)}>
@@ -717,7 +641,7 @@ export default function AddLiquidity() {
         </>
       :
         <>
-          {(!gelatoPool || !guniMinter) ?
+          {(!gelatoPool) ?
             <OversizedPanel hideBottom>
               <SummaryPanel>Network not Supported</SummaryPanel>
             </OversizedPanel> 

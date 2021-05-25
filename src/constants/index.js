@@ -15,7 +15,6 @@ export const DCA_GRAPH = {
   [ChainId.ROPSTEN]: 'https://api.thegraph.com/subgraphs/name/gelatodigital/gelato-dca-ropsten'
 }
 
-
 export const LIMIT_ORDER_MODULE_ADDRESSES = {
   [ChainId.MAINNET]: '0x037fc8e71445910e1E0bBb2a0896d5e9A7485318',
   [ChainId.ROPSTEN]: '0x3f3C13b09B601fb6074124fF8D779d2964caBf8B',
@@ -23,12 +22,7 @@ export const LIMIT_ORDER_MODULE_ADDRESSES = {
 
 export const GUNIV3_METAPOOL_ADDRESSES = {
   [ChainId.MAINNET]: '0x810F9C4613f466F02cC7Da671a3ba9a7e8c33c69',
-  [ChainId.ROPSTEN]: '0xf5F2eB02fa8033593d9B461433674f488FF19B3f',
-}
-
-export const GUNIV3_MINTER_ADDRESSES = {
-  [ChainId.MAINNET]: '0x5dacf7B13Bea52DF7ba5222983b1FFE146a1e82b',
-  [ChainId.ROPSTEN]: '',
+  [ChainId.ROPSTEN]: '0xA49eD4E312aC5911C4fF391a20131F86Fc43845A',
 }
 
 export const UNIV3_POOL_ADDRESSES = {
