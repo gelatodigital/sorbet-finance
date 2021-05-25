@@ -16,11 +16,11 @@ const tabOrder = [
     textKey: 'DCA',
     regex: /\/dca/
   },
-  // {
-  //   path: '/add-liquidity',
-  //   textKey: 'pool',
-  //   regex: /\/add-liquidity|\/remove-liquidity|\/create-exchange.*/
-  // }
+  {
+      path: '/add-liquidity',
+      textKey: 'Pool V3',
+      regex: /\/add-liquidity|\/remove-liquidity/
+  }
 ]
 
 // const BetaMessage = styled.div`

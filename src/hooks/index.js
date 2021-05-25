@@ -8,7 +8,13 @@ import { MULTICALL_NETWORKS, NetworkContextName } from '../constants';
 import ERC20_ABI from '../constants/abis/erc20';
 import MULTICALL_ABI from '../constants/abis/multicall';
 import {
-  getContract, getGelatoDcaContract, getUniswapExContract, isAddress
+  getContract, 
+  getGelatoDcaContract,
+  getGelatoMetapoolContract,
+  getGUniMinterContract,
+  getPoolV3Contract,
+  getUniswapExContract, 
+  isAddress,
 } from '../utils';
 
 const safeMultisigConnector = new SafeAppConnector();
@@ -104,6 +110,45 @@ export function useGelatoDcaContract(withSignerIfPossible = true) {
   return useMemo(() => {
     try {
       return getGelatoDcaContract(chainId, library, withSignerIfPossible ? account : undefined)
+    } catch (e) {
+      return null
+    }
+  }, [chainId, library, withSignerIfPossible, account])
+}
+
+// returns null on errors
+export function useGelatoMetapoolContract(withSignerIfPossible = true) {
+  const { chainId, library, account } = useActiveWeb3React()
+
+  return useMemo(() => {
+    try {
+      return getGelatoMetapoolContract(chainId, library, withSignerIfPossible ? account : undefined)
+    } catch (e) {
+      return null
+    }
+  }, [chainId, library, withSignerIfPossible, account])
+}
+
+// returns null on errors
+export function useGUniMinterContract(withSignerIfPossible = true) {
+  const { chainId, library, account } = useActiveWeb3React()
+
+  return useMemo(() => {
+    try {
+      return getGUniMinterContract(chainId, library, withSignerIfPossible ? account : undefined)
+    } catch (e) {
+      return null
+    }
+  }, [chainId, library, withSignerIfPossible, account])
+}
+
+// returns null on errors
+export function usePoolV3Contract(withSignerIfPossible = true) {
+  const { chainId, library, account } = useActiveWeb3React()
+
+  return useMemo(() => {
+    try {
+      return getPoolV3Contract(chainId, library, withSignerIfPossible ? account : undefined)
     } catch (e) {
       return null
     }

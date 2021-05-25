@@ -29,6 +29,11 @@ export const WETH = {
   3: '0xc778417e063141139fce010982780140aa0cd5ab'
 }
 
+export const DAI = {
+  [ChainId.MAINNET]: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  [ChainId.ROPSTEN]: '0xaD6D458402F60fD3Bd25163575031ACDce07538D'
+}
+
 const EMPTY_LIST = {
   [ChainId.KOVAN]: {},
   [ChainId.RINKEBY]: {},
