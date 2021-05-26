@@ -391,9 +391,73 @@ export default function AddLiquidity() {
           });
         }
       } else {
-        setDaiValueFormatted('')
-        setDaiValueInput('')
-        setSupplyError('Input WETH amount only');
+        setDaiValueFormatted(daiValue)
+        setDaiValueInput(daiValue)
+        if (daiValue) {
+          getPoolCurrentInfo(poolV3, gelatoPool, wethContract, daiContract).then((result) => {
+            setMarketRate(result.price)
+            setUpperBoundRate(result.upperPrice)
+            setLowerBoundRate(result.lowerPrice)
+            setSqrtPrice(result.sqrtPrice)
+            setMetapoolBalanceWeth(result.amount1)
+            setMetapoolBalanceDai(result.amount0)
+            setMetapoolSupply(result.totalSupply)
+            setTotalDollarValue(result.totalDollarValue)
+            setSupplyCap(result.supplyCap)
+            setUnclaimedFeeDai(result.fee0)
+            setUnclaimedFeeWeth(result.fee1)
+            setUnclaimedFeesDollarValue(result.feesDollarValue)
+            setApy(result.apy)
+            let supply = result.totalSupply
+            let currentLiquidity = result.liquidity
+            let supplyCapped = result.supplyCap
+            let parsedDai = ethers.utils.parseUnits(daiValue, 18);
+            let sqrtPriceLower = encodePriceSqrt("1", result.lowerPrice.toString());
+            let sqrtPriceUpper = encodePriceSqrt("1", result.upperPrice.toString());
+            gelatoPool.getNewLiquidityFromAmounts(parsedDai, wethBalance).then((r2) => {
+              const estimatedMint = Number(ethers.utils.formatEther(r2))*Number(ethers.utils.formatEther(supply))/Number(ethers.utils.formatEther(currentLiquidity));
+              setUserEstimatedMint(ethers.utils.parseUnits(estimatedMint.toString(), 18));
+              const percentage = (estimatedMint*100)/(estimatedMint+Number(ethers.utils.formatEther(supply)));
+              setPoolShare(percentage);
+              if (estimatedMint + Number(ethers.utils.formatEther(supply)) > Number(ethers.utils.formatEther(supplyCapped))) {
+                setSupplyError('Cannot mint above supply cap!')
+                return
+              }
+              gelatoPool.getAmountsForLiquidity(result.sqrtPrice, sqrtPriceLower.toString(), sqrtPriceUpper.toString(), r2).then((r3) => {
+                const estimatedAmountDai = Number(ethers.utils.formatEther(r3.amount0))*.99;
+                const estimatedAmountWeth = Number(ethers.utils.formatEther(r3.amount1))*.99;
+                setWethValueFormatted(estimatedAmountWeth.toString())
+                setEstimatedAmountWeth(estimatedAmountWeth)
+                setEstimatedAmountDai(estimatedAmountDai)
+                setWethValueInput(estimatedAmountWeth.toString());
+                getAllowance(wethContract, account, gelatoPool.address).then((allowance) => {
+                  if (Number(ethers.utils.formatEther(allowance)) >= Number(wethValue)) {
+                    setIsWethApproved(true);
+                  } else {
+                    setIsWethApproved(false)
+                  }
+                })
+                getAllowance(daiContract, account, gelatoPool.address).then((allowanceDai) => {
+                  if (Number(ethers.utils.formatEther(allowanceDai)) >= estimatedAmountDai) {
+                    setIsDaiApproved(true);
+                  } else {
+                    setIsDaiApproved(false)
+                  }
+                })
+                if (estimatedAmountWeth > Number(wethBalanceFormatted)) {
+                  setInputErrorWeth('Insufficient Balance!')
+                  setSupplyError('Insufficient Balance!')
+                  return
+                }
+                if (Number(daiValue) > Number(daiBalanceFormatted)) {
+                  setInputErrorDai('Insufficient Balance!')
+                  setSupplyError('Insufficient Balance!')
+                  return
+                }
+              });
+            });
+          });
+        }
       }
     }
   }, [wethValue, daiValue])
