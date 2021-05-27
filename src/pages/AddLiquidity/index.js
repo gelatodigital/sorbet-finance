@@ -189,6 +189,8 @@ const getPoolCurrentInfo = async (poolV3, gelatoPool, wethContract, daiContract)
   const timeDiff2 = Number(new Date().getTime() / 1000) - timestamp2;
   const feePerYear2 = feeTotalValue2 * 31557600  / timeDiff2;
   const apyShort = feePerYear2/totalDollarValue;
+  console.log("apy1:", apyShort)
+  console.log("apy2:", apyLong)
   let apy = 0;
   if (apyShort > apyLong) {
     apy = apyShort;
@@ -592,7 +594,7 @@ export default function AddLiquidity() {
                 Gelato's Uniswap V3 WETH/DAI Automated LP
                 <br></br>
                 <ExchangeRateWrapper><ExchangeRate>
-                  An ERC20 aggregating V3 LPs to passively earn competitive yeild
+                  An ERC20 aggregating V3 LPs to passively earn competitive yield
                   <br></br>
                   <a href="https://gelato-1.gitbook.io/sorbet-finance/">Learn More</a>
                 </ExchangeRate></ExchangeRateWrapper>

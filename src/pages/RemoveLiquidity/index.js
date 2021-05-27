@@ -333,7 +333,7 @@ export default function RemoveLiquidity() {
                 Gelato's Uniswap V3 WETH/DAI Automated LP
                 <br></br>
                 <ExchangeRateWrapper><ExchangeRate>
-                  An ERC20 aggregating V3 LPs to passively earn competitive yeild
+                  An ERC20 aggregating V3 LPs to passively earn competitive yield
                   <br></br>
                   <a href="https://gelato-1.gitbook.io/sorbet-finance/">Learn More</a>
                 </ExchangeRate></ExchangeRateWrapper>
