@@ -241,18 +241,23 @@ export default function RemoveLiquidity() {
   const gUniBalanceFormatted = !!(gUniBalance) ? 0.0001 > Number(ethers.utils.formatEther(gUniBalance)) > 0 ?  ethers.utils.formatEther(gUniBalance) : Number(ethers.utils.formatEther(gUniBalance)).toFixed(5) : ''
 
   async function onRemoveLiquidity() {
-    gelatoPool.burn(ethers.utils.parseEther(gUniValue), {gasPrice: gasPrice}).then((tx) => {
-      setIsRemoveLiquidityPending(true);
-      tx.wait().then(() => {
-        setIsRemoveLiquidityPending(false);
-        setWethReturn(null)
-        setDaiReturn(null)
-        setPoolShareBurned(null)
-        dispatchAddLiquidityState({ type: 'UPDATE_VALUE', payload: { value: '', field: GUNI_OP } })
+    gelatoPool.estimateGas.burn(ethers.utils.parseEther(gUniValue)).then((gasEstimate) => {
+      const gasLimit = gasEstimate.add(ethers.BigNumber.from("50000"));
+      gelatoPool.burn(ethers.utils.parseEther(gUniValue), {gasPrice: gasPrice, gasLimit: gasLimit}).then((tx) => {
+        setIsRemoveLiquidityPending(true);
+        tx.wait().then(() => {
+          setIsRemoveLiquidityPending(false);
+          setWethReturn(null)
+          setDaiReturn(null)
+          setPoolShareBurned(null)
+          dispatchAddLiquidityState({ type: 'UPDATE_VALUE', payload: { value: '', field: GUNI_OP } })
+        })
+      }).catch((err) => {
+        console.log('error removing liquidity!', err)
+        setIsRemoveLiquidityPending(false)
       })
-    }).catch((err) => {
-      console.log('error removing liquidity!', err)
-      setIsRemoveLiquidityPending(false)
+    }).catch((error) => {
+      console.log('error estimating gas from remove liquidity!', error)
     })
   }
 

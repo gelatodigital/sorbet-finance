@@ -110,10 +110,21 @@ function addLiquidityStateReducer(state, action) {
     case 'UPDATE_VALUE': {
       const { wethValue, daiValue } = state
       const { field, value } = action.payload
+      let newValue = value
+      if (field === WETH_OP) {
+        if (value == wethValue.substring(0, wethValue.length - 1)) {
+          newValue = '';
+        }
+      }
+      if (field === DAI_OP) {
+        if (value == daiValue.substring(0, daiValue.length - 1)) {
+          newValue = '';
+        }
+      }
       return {
         ...state,
-        wethValue: field === WETH_OP ? value : wethValue,
-        daiValue: field === DAI_OP ? value : daiValue,
+        wethValue: field === WETH_OP ? newValue : wethValue,
+        daiValue: field === DAI_OP ? newValue : daiValue,
         lastEditedField: field
       }
     }
@@ -290,23 +301,40 @@ export default function AddLiquidity() {
       setUnclaimedFeesDollarValue(result.feesDollarValue)
       setApy(result.apy)
       console.log("values:", daiValueInput, wethValueInput)
-      const parsedWeth = ethers.utils.parseUnits(wethValueInput, 18);
-      const parsedDai = ethers.utils.parseUnits(daiValueInput, 18);
-      gelatoPool.mint(parsedDai, parsedWeth, {gasPrice: gasPrice}).then((tx) => {
-        setIsAddLiquidityPending(true)
-        tx.wait().then(() => {
-          console.log("complete!")
+      let parsedWeth = ethers.utils.parseUnits(wethValueInput, 18);
+      let parsedDai = ethers.utils.parseUnits(daiValueInput, 18);
+      if ((parsedWeth.sub(wethBalance)).gt(ethers.constants.Zero)) {
+        console.log("warning: overestimated");
+        parsedWeth = wethBalance;
+      } else {
+        console.log("did not overestimate weth");
+      }
+      if ((parsedDai.sub(daiBalance)).gt(ethers.constants.Zero)) {
+        console.log("warning: overestimated")
+        parsedDai = daiBalance;
+      } else {
+        console.log("did not overestimate dai")
+      }
+      gelatoPool.estimateGas.mint(parsedDai, parsedWeth).then((gasEstimate) => {
+        const gasLimit = gasEstimate.add(ethers.BigNumber.from("50000"));
+        gelatoPool.mint(parsedDai, parsedWeth, {gasPrice: gasPrice, gasLimit: gasLimit}).then((tx) => {
+          setIsAddLiquidityPending(true)
+          tx.wait().then(() => {
+            console.log("complete!")
+            setIsAddLiquidityPending(false)
+            setDaiValueFormatted('')
+            setWethValueFormatted('')
+            setDaiValueInput('')
+            setWethValueInput('')
+            window.location.href = '/remove-liquidity'
+          })
+        }).catch((error) => {
+          console.log("error adding liquidity!", error)
           setIsAddLiquidityPending(false)
-          setDaiValueFormatted('')
-          setWethValueFormatted('')
-          setDaiValueInput('')
-          setWethValueInput('')
-          window.location.href = '/remove-liquidity'
         })
       }).catch((error) => {
-        console.log("error adding liquidity!", error)
-        setIsAddLiquidityPending(false)
-      })
+        console.log("error estimating gas for add liquidity!", error)
+      });
     })
   }
 
@@ -356,12 +384,18 @@ export default function AddLiquidity() {
                 return
               }
               gelatoPool.getAmountsForLiquidity(result.sqrtPrice, sqrtPriceLower.toString(), sqrtPriceUpper.toString(), r2).then((r3) => {
-                const estimatedAmountDai = Number(ethers.utils.formatEther(r3.amount0))*.99;
-                const estimatedAmountWeth = Number(ethers.utils.formatEther(r3.amount1))*.99;
-                setDaiValueFormatted(estimatedAmountDai.toString())
-                setEstimatedAmountWeth(estimatedAmountWeth)
-                setEstimatedAmountDai(estimatedAmountDai)
-                setDaiValueInput(estimatedAmountDai.toString());
+                let estimatedAmountDai = r3.amount0;
+                if ((estimatedAmountDai.sub(daiBalance)).gt(ethers.constants.Zero)) {
+                  estimatedAmountDai = daiBalance;
+                }
+                let estimatedAmountWeth = r3.amount1;
+                if ((estimatedAmountWeth.sub(wethBalance)).gt(ethers.constants.Zero)) {
+                  estimatedAmountWeth = wethBalance;
+                }
+                setDaiValueFormatted(ethers.utils.formatEther(estimatedAmountDai));
+                setEstimatedAmountWeth(Number(ethers.utils.formatEther(estimatedAmountWeth)))
+                setEstimatedAmountDai(Number(ethers.utils.formatEther(estimatedAmountDai)))
+                setDaiValueInput(ethers.utils.formatEther(estimatedAmountDai));
                 getAllowance(wethContract, account, gelatoPool.address).then((allowance) => {
                   if (Number(ethers.utils.formatEther(allowance)) >= Number(wethValue)) {
                     setIsWethApproved(true);
@@ -370,7 +404,7 @@ export default function AddLiquidity() {
                   }
                 })
                 getAllowance(daiContract, account, gelatoPool.address).then((allowanceDai) => {
-                  if (Number(ethers.utils.formatEther(allowanceDai)) >= estimatedAmountDai) {
+                  if (Number(ethers.utils.formatEther(allowanceDai)) >= Number(ethers.utils.formatEther(estimatedAmountDai))) {
                     setIsDaiApproved(true);
                   } else {
                     setIsDaiApproved(false)
@@ -381,7 +415,7 @@ export default function AddLiquidity() {
                   setSupplyError('Insufficient Balance!')
                   return
                 }
-                if (estimatedAmountDai > Number(daiBalanceFormatted)) {
+                if (Number(ethers.utils.formatEther(estimatedAmountDai)) > Number(daiBalanceFormatted)) {
                   setInputErrorDai('Insufficient Balance!')
                   setSupplyError('Insufficient Balance!')
                   return
@@ -389,6 +423,9 @@ export default function AddLiquidity() {
               });
             });
           });
+        } else {
+          setWethValueFormatted('')
+          setDaiValueFormatted('')
         }
       } else {
         setDaiValueFormatted(daiValue)
@@ -424,12 +461,18 @@ export default function AddLiquidity() {
                 return
               }
               gelatoPool.getAmountsForLiquidity(result.sqrtPrice, sqrtPriceLower.toString(), sqrtPriceUpper.toString(), r2).then((r3) => {
-                const estimatedAmountDai = Number(ethers.utils.formatEther(r3.amount0))*.99;
-                const estimatedAmountWeth = Number(ethers.utils.formatEther(r3.amount1))*.99;
-                setWethValueFormatted(estimatedAmountWeth.toString())
-                setEstimatedAmountWeth(estimatedAmountWeth)
-                setEstimatedAmountDai(estimatedAmountDai)
-                setWethValueInput(estimatedAmountWeth.toString());
+                let estimatedAmountDai = r3.amount0;
+                if ((estimatedAmountDai.sub(daiBalance)).gt(ethers.constants.Zero)) {
+                  estimatedAmountDai = daiBalance;
+                }
+                let estimatedAmountWeth = r3.amount1;
+                if ((estimatedAmountWeth.sub(wethBalance)).gt(ethers.constants.Zero)) {
+                  estimatedAmountWeth = wethBalance;
+                }
+                setWethValueFormatted(ethers.utils.formatEther(estimatedAmountWeth))
+                setEstimatedAmountWeth(Number(ethers.utils.formatEther(estimatedAmountWeth)))
+                setEstimatedAmountDai(Number(ethers.utils.formatEther(estimatedAmountDai)))
+                setWethValueInput(ethers.utils.formatEther(estimatedAmountWeth));
                 getAllowance(wethContract, account, gelatoPool.address).then((allowance) => {
                   if (Number(ethers.utils.formatEther(allowance)) >= Number(wethValue)) {
                     setIsWethApproved(true);
@@ -444,7 +487,7 @@ export default function AddLiquidity() {
                     setIsDaiApproved(false)
                   }
                 })
-                if (estimatedAmountWeth > Number(wethBalanceFormatted)) {
+                if (Number(ethers.utils.formatEther(estimatedAmountWeth)) > Number(wethBalanceFormatted)) {
                   setInputErrorWeth('Insufficient Balance!')
                   setSupplyError('Insufficient Balance!')
                   return
@@ -457,6 +500,9 @@ export default function AddLiquidity() {
               });
             });
           });
+        } else {
+          setWethValueFormatted('')
+          setDaiValueFormatted('')
         }
       }
     }
@@ -610,7 +656,7 @@ export default function AddLiquidity() {
           />
           <OversizedPanel hideBottom>
             <SummaryPanel>
-              <CenteredHeader>You Owe: {(estimatedAmountDai && estimatedAmountWeth) ? `${estimatedAmountWeth.toFixed(3)} WETH + ${estimatedAmountDai.toFixed(3)} DAI` : '-'}</CenteredHeader>
+              <CenteredHeader>You Deposit (at most): {(estimatedAmountDai && estimatedAmountWeth) ? `${estimatedAmountWeth.toFixed(4)} WETH + ${estimatedAmountDai.toFixed(4)} DAI` : '-'}</CenteredHeader>
             </SummaryPanel>
             <SummaryPanel>
               <ExchangeRateWrapper>
