@@ -63,6 +63,10 @@ const CenteredHeader = styled.div`
   font-weight: 600;
 `
 
+const CenteredHeaderThin = styled(CenteredHeader)`
+  font-weight: 300;
+`
+
 const ExchangeRateWrapper = styled.div`
   ${({ theme }) => theme.flexRowNoWrap};
   align-items: center;
@@ -386,7 +390,7 @@ export default function AddLiquidity() {
                 return
               }
               gelatoPool.getAmountsForLiquidity(result.sqrtPrice, sqrtPriceLower.toString(), sqrtPriceUpper.toString(), r2).then((r3) => {
-                let estimatedAmountDai = r3.amount0;
+                let estimatedAmountDai = r3.amount0.mul(ethers.BigNumber.from("2"));
                 if ((estimatedAmountDai.sub(daiBalance)).gt(ethers.constants.Zero)) {
                   estimatedAmountDai = daiBalance;
                 }
@@ -467,7 +471,7 @@ export default function AddLiquidity() {
                 if ((estimatedAmountDai.sub(daiBalance)).gt(ethers.constants.Zero)) {
                   estimatedAmountDai = daiBalance;
                 }
-                let estimatedAmountWeth = r3.amount1;
+                let estimatedAmountWeth = r3.amount1.mul(ethers.BigNumber.from("2"));
                 if ((estimatedAmountWeth.sub(wethBalance)).gt(ethers.constants.Zero)) {
                   estimatedAmountWeth = wethBalance;
                 }
@@ -658,7 +662,8 @@ export default function AddLiquidity() {
           />
           <OversizedPanel hideBottom>
             <SummaryPanel>
-              <CenteredHeader>You Deposit (at most): {(estimatedAmountDai && estimatedAmountWeth) ? `${estimatedAmountWeth.toFixed(4)} WETH + ${estimatedAmountDai.toFixed(4)} DAI` : '-'}</CenteredHeader>
+              <CenteredHeader>{(estimatedAmountDai && estimatedAmountWeth) ? `You Deposit: ~ ${estimatedAmountWeth.toFixed(4)} WETH + ${estimatedAmountDai.toFixed(4)} DAI` : ''}</CenteredHeader>
+              <CenteredHeaderThin>{(daiValueInput && wethValueInput) ? `(Max Amounts: ${Number(wethValueInput).toFixed(4)} WETH + ${Number(daiValueInput).toFixed(4)} DAI)` : ''}</CenteredHeaderThin>
             </SummaryPanel>
             <SummaryPanel>
               <ExchangeRateWrapper>

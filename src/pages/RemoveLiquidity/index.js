@@ -367,7 +367,7 @@ export default function RemoveLiquidity() {
           />
           <OversizedPanel hideBottom>
             <SummaryPanel>
-              <CenteredHeader>You Receive: {(wethReturn && daiReturn && dollarValueReturn) ? `${wethReturn.toFixed(3)} WETH + ${daiReturn.toFixed(3)} DAI (~ $${dollarValueReturn.toFixed(2)})` : '-'}</CenteredHeader>
+              <CenteredHeader>{(wethReturn && daiReturn && dollarValueReturn) ? `You Receive: ${wethReturn.toFixed(3)} WETH + ${daiReturn.toFixed(3)} DAI (~ $${dollarValueReturn.toFixed(2)})` : ''}</CenteredHeader>
             </SummaryPanel>
             <ExchangeRateWrapper>
                 <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
