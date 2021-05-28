@@ -72,14 +72,14 @@ export const DEFAULT_TOKENS_EXTRA = [
   },
   {
     name: 'Gelato Uniswap LP',
-    symbol: 'gUNI',
+    symbol: 'G-UNI',
     address: '0xA49eD4E312aC5911C4fF391a20131F86Fc43845A',
     decimals: 18,
     chainId: 3,
   },
   {
     name: 'Gelato Uniswap LP',
-    symbol: 'gUNI',
+    symbol: 'G-UNI',
     address: '0x810F9C4613f466F02cC7Da671a3ba9a7e8c33c69',
     decimals: 18,
     chainId: 1,

@@ -349,11 +349,11 @@ export default function RemoveLiquidity() {
     return (
       <OversizedPanel hideBottom>
         <SummaryPanel>
-          <CenteredHeader>Your gUNI Position</CenteredHeader>
+          <CenteredHeader>Your G-UNI Position</CenteredHeader>
           <br></br>
           <ExchangeRateWrapper>
             <ExchangeRate>{'Balance'}</ExchangeRate>
-            {<span>{Number(gUniBalanceFormatted).toFixed(2)} gUNI</span>}
+            {<span>{Number(gUniBalanceFormatted).toFixed(2)} G-UNI</span>}
           </ExchangeRateWrapper>
           <ExchangeRateWrapper>
             <ExchangeRate>{'Percent of Pool'}</ExchangeRate>
@@ -376,13 +376,13 @@ export default function RemoveLiquidity() {
     return (
       <OversizedPanel hideBottom>
         <SummaryPanel>
-          <CenteredHeader>Total gUNI Position</CenteredHeader>
+          <CenteredHeader>Total G-UNI Position</CenteredHeader>
           <br></br>
           <ExchangeRateWrapper>
             <ExchangeRate>{'Token Supply'}</ExchangeRate>
             {<span>
               {metapoolSupply
-                ? `${Number(ethers.utils.formatEther(metapoolSupply)).toFixed(2)} gUNI`
+                ? `${Number(ethers.utils.formatEther(metapoolSupply)).toFixed(2)} G-UNI`
               : ' - '}
               </span>}
           </ExchangeRateWrapper>
@@ -442,7 +442,7 @@ export default function RemoveLiquidity() {
                 <span>{marketRate  ? `1 ${wethSymbol} = ${marketRate.toFixed(3)} ${daiSymbol}` : ' - '}</span>
               </ExchangeRateWrapper>
               <ExchangeRateWrapper>
-                <ExchangeRate>{'gUNI Position Range'}</ExchangeRate>
+                <ExchangeRate>{'G-UNI Position Range'}</ExchangeRate>
                 {<span>
                   {lowerBoundRate && upperBoundRate
                     ? `${lowerBoundRate.toFixed(3)} ${daiSymbol} <---> ${upperBoundRate.toFixed(3)} ${daiSymbol}`
@@ -483,7 +483,7 @@ export default function RemoveLiquidity() {
               <ExchangeRateWrapper>
                 <ExchangeRate>{`Token Supply After (${poolShareBurned ? '-'+poolShareBurned.toFixed(2) : '-'}%)`}</ExchangeRate>
                 {<span>
-                  {(metapoolSupply && gUniValue) ?  (Number(ethers.utils.formatEther(metapoolSupply))-Number(gUniValue)).toFixed(5) + ' gUNI': '-'}
+                  {(metapoolSupply && gUniValue) ?  (Number(ethers.utils.formatEther(metapoolSupply))-Number(gUniValue)).toFixed(5) + ' G-UNI': '-'}
                   </span>}
               </ExchangeRateWrapper>
           </OversizedPanel>

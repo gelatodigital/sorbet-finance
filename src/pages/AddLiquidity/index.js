@@ -605,11 +605,11 @@ export default function AddLiquidity() {
     return (
       <OversizedPanel hideBottom>
         <SummaryPanel>
-          <CenteredHeader>Your gUNI Position</CenteredHeader>
+          <CenteredHeader>Your G-UNI Position</CenteredHeader>
           <br></br>
           <ExchangeRateWrapper>
             <ExchangeRate>{'Balance'}</ExchangeRate>
-            {<span>{Number(gUniBalanceFormatted).toFixed(2)} gUNI</span>}
+            {<span>{Number(gUniBalanceFormatted).toFixed(2)} G-UNI</span>}
           </ExchangeRateWrapper>
           <ExchangeRateWrapper>
             <ExchangeRate>{'Percent of Pool'}</ExchangeRate>
@@ -632,13 +632,13 @@ export default function AddLiquidity() {
     return (
       <OversizedPanel hideBottom>
         <SummaryPanel>
-          <CenteredHeader>Total gUNI Position</CenteredHeader>
+          <CenteredHeader>Total G-UNI Position</CenteredHeader>
           <br></br>
           <ExchangeRateWrapper>
             <ExchangeRate>{'Token Supply'}</ExchangeRate>
             {<span>
               {metapoolSupply
-                ? `${Number(ethers.utils.formatEther(metapoolSupply)).toFixed(2)} gUNI`
+                ? `${Number(ethers.utils.formatEther(metapoolSupply)).toFixed(2)} G-UNI`
               : ' - '}
               </span>}
           </ExchangeRateWrapper>
@@ -708,7 +708,7 @@ export default function AddLiquidity() {
                 <span>{marketRate  ? `1 ${wethSymbol} = ${marketRate.toFixed(3)} ${daiSymbol}` : ' - '}</span>
               </ExchangeRateWrapper>
               <ExchangeRateWrapper>
-                <ExchangeRate>{'gUNI Position Range'}</ExchangeRate>
+                <ExchangeRate>{'G-UNI Position Range'}</ExchangeRate>
                 {<span>
                   {lowerBoundRate && upperBoundRate
                     ? `${lowerBoundRate.toFixed(3)} ${daiSymbol} <---> ${upperBoundRate.toFixed(3)} ${daiSymbol}`
@@ -782,19 +782,19 @@ export default function AddLiquidity() {
                 <ExchangeRate>
                   {'Tokens to Mint'} ({poolShare ? poolShare.toFixed(5) : '-'}%)
                 </ExchangeRate>
-                <span>{userEstimatedMint ? Number(ethers.utils.formatEther(userEstimatedMint)).toFixed(5)+' gUNI' : '-'}</span>
+                <span>{userEstimatedMint ? Number(ethers.utils.formatEther(userEstimatedMint)).toFixed(5)+' G-UNI' : '-'}</span>
               </ExchangeRateWrapper>
               <ExchangeRateWrapper>
                 <ExchangeRate>
                   {'Token Supply After'}
                 </ExchangeRate>
-                <span>{(userEstimatedMint && metapoolSupply) ? (Number(ethers.utils.formatEther(userEstimatedMint))+Number(ethers.utils.formatEther(metapoolSupply))).toFixed(5)+' gUNI' : '-'}</span>
+                <span>{(userEstimatedMint && metapoolSupply) ? (Number(ethers.utils.formatEther(userEstimatedMint))+Number(ethers.utils.formatEther(metapoolSupply))).toFixed(5)+' G-UNI' : '-'}</span>
               </ExchangeRateWrapper>
               <ExchangeRateWrapper>
                 <ExchangeRate>{'Token Supply Cap'}</ExchangeRate>
                 {<span>
                   {supplyCap
-                    ? `${Number(ethers.utils.formatEther(supplyCap)).toFixed(0)} gUNI`
+                    ? `${Number(ethers.utils.formatEther(supplyCap)).toFixed(0)} G-UNI`
                   : ' - '}
                   </span>}
               </ExchangeRateWrapper>
