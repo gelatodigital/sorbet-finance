@@ -75,6 +75,14 @@ const ExchangeRateWrapper = styled.div`
   padding: 0.5rem 1rem;
 `
 
+const SmallExchangeRateWrapper = styled.div`
+  ${({ theme }) => theme.flexRowNoWrap};
+  text-align: right;
+  color: ${({ theme }) => theme.doveGray};
+  font-size: 0.75rem;
+  padding: 0 1rem;
+`
+
 const ExchangeRate = styled.span`
   flex: 1 1 auto;
   width: 0;
@@ -99,6 +107,16 @@ const ColoredWrappedPlus = styled(WrappedPlus)`
   path {
     stroke: ${({ active, theme }) => (active ? theme.royalBlue : theme.chaliceGray)};
   }
+`
+
+const PositionsContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+`
+
+const PositionContainer = styled.div`
+  width:50%;
 `
 
 function initialAddLiquidityState(state) {
@@ -258,10 +276,11 @@ export default function AddLiquidity() {
   const [userEstimatedMint, setUserEstimatedMint] = useState(null)
   const [metapoolSupply, setMetapoolSupply] = useState(null)
   const [poolShare, setPoolShare] = useState(null)
-  const [unclaimedFeeDai, setUnclaimedFeeDai] = useState(null)
-  const [unclaimedFeeWeth, setUnclaimedFeeWeth] = useState(null)
-  const [unclaimedFeesDollarValue, setUnclaimedFeesDollarValue] = useState(null)
   const [apy, setApy] = useState(null)
+  const [userDaiHolding, setUserDaiHolding] = useState(null)
+  const [userWethHolding, setUserWethHolding] = useState(null)
+  const [userDollarValueHolding, setUserDollarValueHolding] = useState(null)
+  const [userPoolShare, setUserPoolShare] = useState(null)
 
   const [isAddLiquidityPending, setIsAddLiquidityPending] = useState(null)
   const [isApproveWethPending, setIsApproveWethPending] = useState(null)
@@ -291,6 +310,13 @@ export default function AddLiquidity() {
   const wethContract = useTokenContract(wethAddress)
   const daiContract = useTokenContract(daiAddress)
 
+  let gelatoPoolAddress = ethers.constants.AddressZero
+  if (gelatoPool) {
+    gelatoPoolAddress = gelatoPool.address
+  }
+  const gUniBalance = useAddressBalance(account, gelatoPoolAddress)
+  const gUniBalanceFormatted = !!(gUniBalance) ? 0.0001 > Number(ethers.utils.formatEther(gUniBalance)) > 0 ?  ethers.utils.formatEther(gUniBalance) : Number(ethers.utils.formatEther(gUniBalance)).toFixed(5) : '0'
+
   async function onAddLiquidity() {
     getPoolCurrentInfo(poolV3, gelatoPool, wethContract, daiContract).then((result) => {
       setMarketRate(result.price)
@@ -302,9 +328,6 @@ export default function AddLiquidity() {
       setMetapoolSupply(result.totalSupply)
       setTotalDollarValue(result.totalDollarValue)
       setSupplyCap(result.supplyCap)
-      setUnclaimedFeeDai(result.fee0)
-      setUnclaimedFeeWeth(result.fee1)
-      setUnclaimedFeesDollarValue(result.feesDollarValue)
       setApy(result.apy)
       console.log("values:", daiValueInput, wethValueInput)
       let parsedWeth = ethers.utils.parseUnits(wethValueInput, 18);
@@ -370,9 +393,6 @@ export default function AddLiquidity() {
             setMetapoolSupply(result.totalSupply)
             setTotalDollarValue(result.totalDollarValue)
             setSupplyCap(result.supplyCap)
-            setUnclaimedFeeDai(result.fee0)
-            setUnclaimedFeeWeth(result.fee1)
-            setUnclaimedFeesDollarValue(result.feesDollarValue)
             setApy(result.apy)
             let supply = result.totalSupply
             let currentLiquidity = result.liquidity
@@ -447,9 +467,6 @@ export default function AddLiquidity() {
             setMetapoolSupply(result.totalSupply)
             setTotalDollarValue(result.totalDollarValue)
             setSupplyCap(result.supplyCap)
-            setUnclaimedFeeDai(result.fee0)
-            setUnclaimedFeeWeth(result.fee1)
-            setUnclaimedFeesDollarValue(result.feesDollarValue)
             setApy(result.apy)
             let supply = result.totalSupply
             let currentLiquidity = result.liquidity
@@ -565,10 +582,15 @@ export default function AddLiquidity() {
         setMetapoolSupply(result.totalSupply)
         setTotalDollarValue(result.totalDollarValue)
         setSupplyCap(result.supplyCap)
-        setUnclaimedFeeDai(result.fee0)
-        setUnclaimedFeeWeth(result.fee1)
-        setUnclaimedFeesDollarValue(result.feesDollarValue)
         setApy(result.apy)
+        const percentSupply = Number(gUniBalanceFormatted)/Number(ethers.utils.formatEther(result.totalSupply))
+        const amountDai = (Number(ethers.utils.formatEther(result.amount0))*percentSupply)+(Number(ethers.utils.formatEther(result.leftover0))*percentSupply)
+        const amountWeth = (Number(ethers.utils.formatEther(result.amount1))*percentSupply)+(Number(ethers.utils.formatEther(result.leftover1))*percentSupply)
+        const dollarValue = amountDai+(amountWeth*result.price)
+        setUserDaiHolding(amountDai)
+        setUserWethHolding(amountWeth)
+        setUserDollarValueHolding(dollarValue)
+        setUserPoolShare(100*percentSupply)
       })
       if (!daiValueFormatted) {
         setIsDaiApproved(true);
@@ -577,7 +599,71 @@ export default function AddLiquidity() {
         setIsWethApproved(true);
       }
     }
-  }, [poolV3, gelatoPool]);
+  }, [poolV3, gelatoPool, gUniBalanceFormatted]);
+
+  const UserPosition = () => {
+    return (
+      <OversizedPanel hideBottom>
+        <SummaryPanel>
+          <CenteredHeader>Your gUNI Position</CenteredHeader>
+          <br></br>
+          <ExchangeRateWrapper>
+            <ExchangeRate>{'Balance'}</ExchangeRate>
+            {<span>{Number(gUniBalanceFormatted).toFixed(2)} gUNI</span>}
+          </ExchangeRateWrapper>
+          <ExchangeRateWrapper>
+            <ExchangeRate>{'Percent of Pool'}</ExchangeRate>
+            {<span>{userPoolShare ? userPoolShare.toFixed(2) : '-'} %</span>}
+          </ExchangeRateWrapper>
+          <ExchangeRateWrapper>
+            <ExchangeRate>{'Current Worth'}</ExchangeRate>
+          </ExchangeRateWrapper>
+          <SmallExchangeRateWrapper>
+            {(userDaiHolding && userWethHolding && userDollarValueHolding)
+                ? `${userWethHolding.toFixed(3)} ${wethSymbol} + ${userDaiHolding.toFixed(3)} ${daiSymbol} (~$${userDollarValueHolding.toFixed(2)})`
+              : ' - '}
+          </SmallExchangeRateWrapper>
+        </SummaryPanel>
+      </OversizedPanel>
+    )
+  }
+
+  const PoolPosition = () => {
+    return (
+      <OversizedPanel hideBottom>
+        <SummaryPanel>
+          <CenteredHeader>Total gUNI Position</CenteredHeader>
+          <br></br>
+          <ExchangeRateWrapper>
+            <ExchangeRate>{'Token Supply'}</ExchangeRate>
+            {<span>
+              {metapoolSupply
+                ? `${Number(ethers.utils.formatEther(metapoolSupply)).toFixed(2)} gUNI`
+              : ' - '}
+              </span>}
+          </ExchangeRateWrapper>
+          <ExchangeRateWrapper>
+            <ExchangeRate>{'Current APY'}</ExchangeRate>
+            {<span>
+              {(apy)
+                ? `~ ${apy.toFixed(2)}%`
+              : ' - '}
+              </span>}
+          </ExchangeRateWrapper>
+          <ExchangeRateWrapper>
+            <ExchangeRate>{'Capital Deployed'}</ExchangeRate>
+          </ExchangeRateWrapper>
+          <SmallExchangeRateWrapper>
+            <ExchangeRate>
+              {(metapoolBalanceWeth && metapoolBalanceDai && totalDollarValue)
+                ? `${Number(ethers.utils.formatEther(metapoolBalanceWeth)).toFixed(3)} ${wethSymbol} + ${Number(ethers.utils.formatEther(metapoolBalanceDai)).toFixed(3)} ${daiSymbol} (~$${totalDollarValue.toFixed(2)})`
+              : ' - '}
+            </ExchangeRate>
+          </SmallExchangeRateWrapper>
+        </SummaryPanel>
+      </OversizedPanel>
+    )
+  }
 
   return <>
       { (gelatoPool && metapoolSupply) ?
@@ -600,9 +686,35 @@ export default function AddLiquidity() {
                 <ExchangeRateWrapper><ExchangeRate>
                   An ERC20 aggregating V3 LPs to passively earn competitive yield
                   <br></br>
-                  <a href="https://gelato-1.gitbook.io/sorbet-finance/">Learn More</a>
+                  <a href="https://gelato-1.gitbook.io/sorbet-finance/#about-the-uniswap-v3-liquidity-provision-feature-and-guni">Learn More</a>
                 </ExchangeRate></ExchangeRateWrapper>
               </CenteredHeader>
+            </SummaryPanel>
+          </OversizedPanel>
+          <br></br>
+          <PositionsContainer>
+            <PositionContainer>
+              <UserPosition />
+            </PositionContainer>
+            <PositionContainer>
+              <PoolPosition />
+            </PositionContainer>
+          </PositionsContainer>
+          <br></br>
+          <OversizedPanel>
+            <SummaryPanel>
+              <ExchangeRateWrapper>
+                <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
+                <span>{marketRate  ? `1 ${wethSymbol} = ${marketRate.toFixed(3)} ${daiSymbol}` : ' - '}</span>
+              </ExchangeRateWrapper>
+              <ExchangeRateWrapper>
+                <ExchangeRate>{'gUNI Position Range'}</ExchangeRate>
+                {<span>
+                  {lowerBoundRate && upperBoundRate
+                    ? `${lowerBoundRate.toFixed(3)} ${daiSymbol} <---> ${upperBoundRate.toFixed(3)} ${daiSymbol}`
+                  : ' - '}
+                  </span>}
+              </ExchangeRateWrapper>
             </SummaryPanel>
           </OversizedPanel>
           <br></br>
@@ -666,50 +778,6 @@ export default function AddLiquidity() {
               <CenteredHeaderThin>{(daiValueInput && wethValueInput) ? `(Max Amounts: ${Number(wethValueInput).toFixed(4)} WETH + ${Number(daiValueInput).toFixed(4)} DAI)` : ''}</CenteredHeaderThin>
             </SummaryPanel>
             <SummaryPanel>
-              <ExchangeRateWrapper>
-                <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
-                {<span>{marketRate  ? `1 ${wethSymbol} = ${marketRate.toFixed(3)} ${daiSymbol}` : ' - '}</span>}
-              </ExchangeRateWrapper>
-              <ExchangeRateWrapper>
-                <ExchangeRate>{'Position Range'}</ExchangeRate>
-                {<span>
-                  {lowerBoundRate && upperBoundRate
-                    ? `${lowerBoundRate.toFixed(3)} ${daiSymbol} <---> ${upperBoundRate.toFixed(3)} ${daiSymbol}`
-                  : ' - '}
-                  </span>}
-              </ExchangeRateWrapper>
-              <ExchangeRateWrapper>
-                <ExchangeRate>{'Position Capital'}</ExchangeRate>
-                {<span>
-                  {(metapoolBalanceWeth && metapoolBalanceDai && totalDollarValue)
-                    ? `${Number(ethers.utils.formatEther(metapoolBalanceWeth)).toFixed(3)} ${wethSymbol} + ${Number(ethers.utils.formatEther(metapoolBalanceDai)).toFixed(3)} ${daiSymbol} (~ $${totalDollarValue.toFixed(2)})`
-                  : ' - '}
-                  </span>}
-              </ExchangeRateWrapper>
-              <ExchangeRateWrapper>
-                <ExchangeRate>{'Position Unclaimed Fees'}</ExchangeRate>
-                {<span>
-                  {(unclaimedFeeWeth && unclaimedFeeDai && unclaimedFeesDollarValue)
-                    ? `${Number(ethers.utils.formatEther(unclaimedFeeWeth)).toFixed(3)} ${wethSymbol} + ${Number(ethers.utils.formatEther(unclaimedFeeDai)).toFixed(3)} ${daiSymbol} (~ $${unclaimedFeesDollarValue.toFixed(2)})`
-                  : ' - '}
-                  </span>}
-              </ExchangeRateWrapper>
-              <ExchangeRateWrapper>
-                <ExchangeRate>{'Current APY'}</ExchangeRate>
-                {<span>
-                  {(apy)
-                    ? `~ ${apy.toFixed(2)}%`
-                  : ' - '}
-                  </span>}
-              </ExchangeRateWrapper>
-              <ExchangeRateWrapper>
-                <ExchangeRate>{'Token Supply'}</ExchangeRate>
-                {<span>
-                  {metapoolSupply
-                    ? `${Number(ethers.utils.formatEther(metapoolSupply)).toFixed(5)} gUNI`
-                  : ' - '}
-                  </span>}
-              </ExchangeRateWrapper>
               <ExchangeRateWrapper>
                 <ExchangeRate>
                   {'Tokens to Mint'} ({poolShare ? poolShare.toFixed(5) : '-'}%)
