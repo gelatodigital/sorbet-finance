@@ -94,12 +94,21 @@ const Flex = styled.div`
 
 const PositionsContainer = styled.div`
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
+  @media screen and (min-width: 700px) {
+    flex-direction: row;
+    justify-content: space-between;
+  }
 `
 
 const PositionContainer = styled.div`
-  width:50%;
+  width: 100%;
+  padding-bottom: 1rem;
+  @media screen and (min-width: 700px) {
+    width: 50%;
+    padding-bottom: 0;
+  }
 `
 
 function initialAddLiquidityState(state) {
@@ -189,6 +198,10 @@ const getPoolCurrentInfo = async (poolV3, gelatoPool, wethContract, daiContract)
   }
   const leftover0 = await daiContract.balanceOf(gelatoPool.address);
   const leftover1 = await wethContract.balanceOf(gelatoPool.address);
+  const hours = (timeDiff / (60*60)).toFixed(0);
+  const left = timeDiff - (Number(hours.toString())*3600);
+  const minutes = (left / 60).toFixed(0);
+  const timeSince = `${hours} hours and ${minutes} minutes`;
   return {
     price: price,
     sqrtPrice: sqrtPriceX96,
@@ -205,7 +218,8 @@ const getPoolCurrentInfo = async (poolV3, gelatoPool, wethContract, daiContract)
     feesDollarValue: feeTotalDollarValue,
     apy: apy,
     leftover0: leftover0,
-    leftover1: leftover1
+    leftover1: leftover1,
+    timeSinceRebalance: timeSince
   }
 };
 
@@ -235,6 +249,7 @@ export default function RemoveLiquidity() {
   const [userWethHolding, setUserWethHolding] = useState(null)
   const [userDollarValueHolding, setUserDollarValueHolding] = useState(null)
   const [userPoolShare, setUserPoolShare] = useState(null)
+  const [timeSinceRebalance, setTimeSinceRebalance] = useState(null)
 
   const addTransaction = useTransactionAdder()
   const gasPrice = useGasPrice()
@@ -301,6 +316,7 @@ export default function RemoveLiquidity() {
         setMetapoolSupply(result.totalSupply)
         setTotalDollarValue(result.totalDollarValue)
         setApy(result.apy)
+        setTimeSinceRebalance(result.timeSinceRebalance)
         const percentSupply = gUniValue/Number(ethers.utils.formatEther(result.totalSupply))
         const returnDai = (Number(ethers.utils.formatEther(result.amount0))*percentSupply)+(Number(ethers.utils.formatEther(result.leftover0))*percentSupply)
         const returnWeth = (Number(ethers.utils.formatEther(result.amount1))*percentSupply)+(Number(ethers.utils.formatEther(result.leftover1))*percentSupply)
@@ -334,6 +350,7 @@ export default function RemoveLiquidity() {
       setTotalDollarValue(result.totalDollarValue)
       setMetapoolSupply(result.totalSupply)
       setApy(result.apy)
+      setTimeSinceRebalance(result.timeSinceRebalance)
       const percentSupply = Number(gUniBalanceFormatted)/Number(ethers.utils.formatEther(result.totalSupply))
       const amountDai = (Number(ethers.utils.formatEther(result.amount0))*percentSupply)+(Number(ethers.utils.formatEther(result.leftover0))*percentSupply)
       const amountWeth = (Number(ethers.utils.formatEther(result.amount1))*percentSupply)+(Number(ethers.utils.formatEther(result.leftover1))*percentSupply)
@@ -363,9 +380,11 @@ export default function RemoveLiquidity() {
             <ExchangeRate>{'Current Worth'}</ExchangeRate>
           </ExchangeRateWrapper>
           <SmallExchangeRateWrapper>
-            {(userDaiHolding && userWethHolding && userDollarValueHolding)
-                ? `${userWethHolding.toFixed(3)} ${wethSymbol} + ${userDaiHolding.toFixed(3)} ${daiSymbol} (~$${userDollarValueHolding.toFixed(2)})`
-              : ' - '}
+            <ExchangeRate>
+              {(userDaiHolding && userWethHolding && userDollarValueHolding)
+                  ? `${userWethHolding.toFixed(3)} ${wethSymbol} + ${userDaiHolding.toFixed(3)} ${daiSymbol} (~$${userDollarValueHolding.toFixed(2)})`
+                : ' - '}
+            </ExchangeRate>
           </SmallExchangeRateWrapper>
         </SummaryPanel>
       </OversizedPanel>
@@ -376,10 +395,10 @@ export default function RemoveLiquidity() {
     return (
       <OversizedPanel hideBottom>
         <SummaryPanel>
-          <CenteredHeader>Total G-UNI Position</CenteredHeader>
+          <CenteredHeader>G-UNI Pool Stats</CenteredHeader>
           <br></br>
           <ExchangeRateWrapper>
-            <ExchangeRate>{'Token Supply'}</ExchangeRate>
+            <ExchangeRate>{'Supply'}</ExchangeRate>
             {<span>
               {metapoolSupply
                 ? `${Number(ethers.utils.formatEther(metapoolSupply)).toFixed(2)} G-UNI`
@@ -415,7 +434,7 @@ export default function RemoveLiquidity() {
           <OversizedPanel hideBottom>
             <SummaryPanel>
               <CenteredHeader>
-                Gelato's Uniswap V3 WETH/DAI Automated LP
+                Automated Uniswap V3 WETH/DAI LP
                 <br></br>
                 <ExchangeRateWrapper><ExchangeRate>
                   An ERC20 aggregating V3 LPs to passively earn competitive yield
@@ -435,17 +454,33 @@ export default function RemoveLiquidity() {
             </PositionContainer>
           </PositionsContainer>
           <br></br>
-          <OversizedPanel>
+          <OversizedPanel hideBottom>
             <SummaryPanel>
               <ExchangeRateWrapper>
                 <ExchangeRate>{t('exchangeRate')}</ExchangeRate>
                 <span>{marketRate  ? `1 ${wethSymbol} = ${marketRate.toFixed(3)} ${daiSymbol}` : ' - '}</span>
               </ExchangeRateWrapper>
               <ExchangeRateWrapper>
-                <ExchangeRate>{'G-UNI Position Range'}</ExchangeRate>
+                <ExchangeRate>{'G-UNI Lower Price'}</ExchangeRate>
                 {<span>
-                  {lowerBoundRate && upperBoundRate
-                    ? `${lowerBoundRate.toFixed(3)} ${daiSymbol} <---> ${upperBoundRate.toFixed(3)} ${daiSymbol}`
+                  {lowerBoundRate
+                    ? `${lowerBoundRate.toFixed(3)} ${daiSymbol}`
+                  : ' - '}
+                  </span>}
+              </ExchangeRateWrapper>
+              <ExchangeRateWrapper>
+                <ExchangeRate>{'G-UNI Upper Price'}</ExchangeRate>
+                {<span>
+                  {upperBoundRate
+                    ? `${upperBoundRate.toFixed(3)} ${daiSymbol}`
+                  : ' - '}
+                  </span>}
+              </ExchangeRateWrapper>
+              <ExchangeRateWrapper>
+                <ExchangeRate>{'Time Since Rebalance'}</ExchangeRate>
+                {<span>
+                  {timeSinceRebalance
+                    ? `${timeSinceRebalance}`
                   : ' - '}
                   </span>}
               </ExchangeRateWrapper>
