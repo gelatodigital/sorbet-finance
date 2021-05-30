@@ -421,6 +421,7 @@ export default function AddLiquidity() {
               const percentage = (estimatedMint*100)/(estimatedMint+Number(ethers.utils.formatEther(supply)));
               setPoolShare(percentage);
               if (estimatedMint + Number(ethers.utils.formatEther(supply)) > Number(ethers.utils.formatEther(supplyCapped))) {
+                console.log("hi there!")
                 setSupplyError('Cannot mint above supply cap!')
                 return
               }
@@ -435,7 +436,7 @@ export default function AddLiquidity() {
                 }
                 setDaiValueFormatted(ethers.utils.formatEther(estimatedAmountDai));
                 setEstimatedAmountWeth(Number(ethers.utils.formatEther(estimatedAmountWeth)))
-                setEstimatedAmountDai(Number(ethers.utils.formatEther(estimatedAmountDai)))
+                setEstimatedAmountDai(Number(ethers.utils.formatEther(r3.amount0)))
                 setDaiValueInput(ethers.utils.formatEther(estimatedAmountDai));
                 getAllowance(wethContract, account, gelatoPool.address).then((allowance) => {
                   if (Number(ethers.utils.formatEther(allowance)) >= Number(wethValue)) {
@@ -509,7 +510,7 @@ export default function AddLiquidity() {
                   estimatedAmountWeth = wethBalance;
                 }
                 setWethValueFormatted(ethers.utils.formatEther(estimatedAmountWeth))
-                setEstimatedAmountWeth(Number(ethers.utils.formatEther(estimatedAmountWeth)))
+                setEstimatedAmountWeth(Number(ethers.utils.formatEther(r3.amount1)))
                 setEstimatedAmountDai(Number(ethers.utils.formatEther(estimatedAmountDai)))
                 setWethValueInput(ethers.utils.formatEther(estimatedAmountWeth));
                 getAllowance(wethContract, account, gelatoPool.address).then((allowance) => {
