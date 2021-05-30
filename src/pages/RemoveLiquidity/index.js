@@ -198,7 +198,7 @@ const getPoolCurrentInfo = async (poolV3, gelatoPool, wethContract, daiContract)
   }
   const leftover0 = await daiContract.balanceOf(gelatoPool.address);
   const leftover1 = await wethContract.balanceOf(gelatoPool.address);
-  const hours = (timeDiff / (60*60)).toFixed(0);
+  const hours = Math.floor(timeDiff / (60*60)).toString();
   const left = timeDiff - (Number(hours.toString())*3600);
   const minutes = (left / 60).toFixed(0);
   const timeSince = `${hours} hours and ${minutes} minutes`;
