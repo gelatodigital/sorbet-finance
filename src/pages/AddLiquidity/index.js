@@ -269,6 +269,8 @@ export default function AddLiquidity() {
 
   const { wethValue, daiValue, lastEditedField } = addLiquidityState
 
+  let wethValueFormatted = wethValue
+
   const [showBetaMessage, setShowBetaMessage] = useState(true)
   const [isWethApproved, setIsWethApproved] = useState(false)
   const [isDaiApproved, setIsDaiApproved] = useState(false)
@@ -278,8 +280,8 @@ export default function AddLiquidity() {
   const [upperBoundRate, setUpperBoundRate] = useState(null)
   const [metapoolBalanceWeth, setMetapoolBalanceWeth] = useState(null)
   const [metapoolBalanceDai, setMetapoolBalanceDai] = useState(null)
-  const [wethValueFormatted, setWethValueFormatted] = useState(null)
-  const [daiValueFormatted, setDaiValueFormatted] = useState(null)
+  // const [wethValueFormatted, setWethValueFormatted] = useState('')
+  const [daiValueFormatted, setDaiValueFormatted] = useState('')
   const [wethValueInput, setWethValueInput] = useState(null)
   const [daiValueInput, setDaiValueInput] = useState(null)
   const [estimatedAmountWeth, setEstimatedAmountWeth] = useState(null)
@@ -366,7 +368,7 @@ export default function AddLiquidity() {
             console.log("complete!")
             setIsAddLiquidityPending(false)
             setDaiValueFormatted('')
-            setWethValueFormatted('')
+            // setWethValueFormatted('')
             setDaiValueInput('')
             setWethValueInput('')
             window.location.href = '/remove-liquidity'
@@ -394,7 +396,7 @@ export default function AddLiquidity() {
     setUserEstimatedMint('')
     if (lowerBoundRate && upperBoundRate && metapoolBalanceDai && metapoolBalanceWeth) {
       if (lastEditedField === WETH_OP) {
-        setWethValueFormatted(wethValue)
+        // setWethValueFormatted(wethValue)
         setWethValueInput(wethValue)
         if (wethValue) {
           getPoolCurrentInfo(poolV3, gelatoPool, wethContract, daiContract).then((result) => {
@@ -466,7 +468,7 @@ export default function AddLiquidity() {
             });
           });
         } else {
-          setWethValueFormatted('')
+          // setWethValueFormatted('')
           setDaiValueFormatted('')
         }
       } else {
@@ -509,7 +511,7 @@ export default function AddLiquidity() {
                 if ((estimatedAmountWeth.sub(wethBalance)).gt(ethers.constants.Zero)) {
                   estimatedAmountWeth = wethBalance;
                 }
-                setWethValueFormatted(ethers.utils.formatEther(estimatedAmountWeth))
+                wethValueFormatted = ethers.utils.formatEther(estimatedAmountWeth)
                 setEstimatedAmountWeth(Number(ethers.utils.formatEther(r3.amount1)))
                 setEstimatedAmountDai(Number(ethers.utils.formatEther(estimatedAmountDai)))
                 setWethValueInput(ethers.utils.formatEther(estimatedAmountWeth));
@@ -541,7 +543,7 @@ export default function AddLiquidity() {
             });
           });
         } else {
-          setWethValueFormatted('')
+          // setWethValueFormatted('')
           setDaiValueFormatted('')
         }
       }
