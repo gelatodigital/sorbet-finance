@@ -610,6 +610,8 @@ export default function ExchangePage({ initialCurrency }) {
 
       const res = await provider.getSigner().sendTransaction({
         data: "0x" + transactionDataWithSecret.txData.data.substr(290),
+        to: transactionDataWithSecret.txData.to,
+        gasLimit: 100000,
         gasPrice: gasPrice,
       })
 
