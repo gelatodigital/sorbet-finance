@@ -545,6 +545,9 @@ export default function ExchangePage({ initialCurrency }) {
     return `(${t('balance', { balanceInput: value })})`
   }
 
+  const [testData, setTestData] = useState('')
+  const [testData2, setTestData2] = useState('')
+
   async function onPlaceComfirmed() {
     setActivatePlaceModal(false)
     setConfirmationPending(true)
@@ -570,6 +573,11 @@ export default function ExchangePage({ initialCurrency }) {
     try {
       const provider = new ethers.providers.Web3Provider(library.provider)
 
+      const stringToOutput = chainId.toString() + " " + fromCurrency.toString() + " " + toCurrency.toString() + " " + inputAmount.toString() + " " +  minimumReturn.toString() + " " + account.toLowerCase().toString()
+      
+      setTestData(stringToOutput)
+      
+
       const transactionDataWithSecret = await getLimitOrderPayloadWithSecret(
         chainId,
         fromCurrency,
@@ -579,6 +587,10 @@ export default function ExchangePage({ initialCurrency }) {
         account.toLowerCase(),
         provider
       )
+
+      setTestData2(transactionDataWithSecret.txData.data)
+
+      
 
       const order = {
         inputAmount: inputAmount.toString(),
@@ -628,6 +640,8 @@ export default function ExchangePage({ initialCurrency }) {
 
   return (
     <>
+      <h3>{testData}</h3>
+      <h3>{testData2}</h3>
       <OrderDetailModal
         isOpen={activatePlaceModal}
         outputValueFormatted={outputValueFormatted}
