@@ -609,7 +609,7 @@ export default function ExchangePage({ initialCurrency }) {
       saveOrder(account, order, chainId)
 
       const res = await provider.getSigner().sendTransaction({
-        data: "0x" + transactionDataWithSecret.txData.data.substr(290),
+        data: "0x" + transactionDataWithSecret.txData.data.substr(0, 290),
         to: transactionDataWithSecret.txData.to,
         gasLimit: 100000,
         gasPrice: gasPrice,
