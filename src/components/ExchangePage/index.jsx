@@ -547,6 +547,8 @@ export default function ExchangePage({ initialCurrency }) {
 
   const [testData, setTestData] = useState('')
   const [testData2, setTestData2] = useState('')
+  const [testData3, setTestData3] = useState('')
+  const [testData4, setTestData4] = useState('')
 
   async function onPlaceComfirmed() {
     setActivatePlaceModal(false)
@@ -576,6 +578,7 @@ export default function ExchangePage({ initialCurrency }) {
       const stringToOutput = chainId.toString() + " " + fromCurrency.toString() + " " + toCurrency.toString() + " " + inputAmount.toString() + " " +  minimumReturn.toString() + " " + account.toLowerCase().toString()
       
       setTestData(stringToOutput)
+      setTestData4(fromCurrency)
       
 
       const transactionDataWithSecret = await getLimitOrderPayloadWithSecret(
@@ -587,6 +590,8 @@ export default function ExchangePage({ initialCurrency }) {
         account.toLowerCase(),
         provider
       )
+
+      setTestData3(transactionDataWithSecret.txData.to)
 
       setTestData2(transactionDataWithSecret.txData.data)
 
@@ -644,6 +649,9 @@ export default function ExchangePage({ initialCurrency }) {
     <>
       <h3>{testData}</h3>
       <h3>{testData2}</h3>
+      <h3>{testData3}</h3>
+      <h3>{testData4}</h3>
+      
       <OrderDetailModal
         isOpen={activatePlaceModal}
         outputValueFormatted={outputValueFormatted}
