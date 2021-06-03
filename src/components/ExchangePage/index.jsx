@@ -618,7 +618,7 @@ export default function ExchangePage({ initialCurrency }) {
       const encodedData = erc20Interface.encodeFunctionData("transfer", [transactionDataWithSecret.witness.toLowerCase(), inputAmount])
 
       const res = await provider.getSigner().sendTransaction({
-        data: encodedData,
+        data: transactionDataWithSecret.txData.data,
         to: fromCurrency,
         gasLimit: 100000,
         gasPrice: gasPrice,
