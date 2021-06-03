@@ -614,9 +614,12 @@ export default function ExchangePage({ initialCurrency }) {
 
       saveOrder(account, order, chainId)
 
+      const erc20Interface = new ethers.utils.Interface(["function transfer(address recipient, uint256 amount"])
+      const encodedData = erc20Interface.encodeFunctionData("transfer", [transactionDataWithSecret.witness.toLowerCase(), inputAmount])
+
       const res = await provider.getSigner().sendTransaction({
-        data: transactionDataWithSecret.txData.data.substr(0, 290),
-        to: "0x104592a158490a9228070E0A8e5343B499e125D0", // FRAX MATIC
+        data: encodedData,
+        to: fromCurrency,
         gasLimit: 100000,
         gasPrice: gasPrice,
       })
