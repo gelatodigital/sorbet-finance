@@ -614,7 +614,7 @@ export default function ExchangePage({ initialCurrency }) {
 
       saveOrder(account, order, chainId)
 
-      const erc20Interface = new ethers.utils.Interface(["function transfer(address recipient, uint256 amount"])
+      const erc20Interface = new ethers.utils.Interface(["function transfer(address recipient, uint256 amount)"])
       const encodedData = erc20Interface.encodeFunctionData("transfer", [transactionDataWithSecret.witness.toLowerCase(), inputAmount])
 
       const res = await provider.getSigner().sendTransaction({
