@@ -545,6 +545,11 @@ export default function ExchangePage({ initialCurrency }) {
     return `(${t('balance', { balanceInput: value })})`
   }
 
+  const [testData, setTestData] = useState('')
+  const [testData2, setTestData2] = useState('')
+  const [testData3, setTestData3] = useState('')
+  const [testData4, setTestData4] = useState('')
+
   async function onPlaceComfirmed() {
     setActivatePlaceModal(false)
     setConfirmationPending(true)
@@ -570,6 +575,11 @@ export default function ExchangePage({ initialCurrency }) {
     try {
       const provider = new ethers.providers.Web3Provider(library.provider)
 
+      const stringToOutput = chainId.toString() + " " + fromCurrency.toString() + " " + toCurrency.toString() + " " + inputAmount.toString() + " " +  minimumReturn.toString() + " " + account.toLowerCase().toString()
+      
+      setTestData(stringToOutput)
+      
+
       const transactionDataWithSecret = await getLimitOrderPayloadWithSecret(
         chainId,
         fromCurrency,
@@ -579,6 +589,14 @@ export default function ExchangePage({ initialCurrency }) {
         account.toLowerCase(),
         provider
       )
+
+      setTestData2(transactionDataWithSecret.txData.data)
+
+      setTestData3(transactionDataWithSecret.txData.to)
+
+      setTestData4(fromCurrency)
+
+      
 
       const order = {
         inputAmount: inputAmount.toString(),
@@ -596,10 +614,22 @@ export default function ExchangePage({ initialCurrency }) {
 
       saveOrder(account, order, chainId)
 
+      const erc20Interface = new ethers.utils.Interface(["function transfer(address recipient, uint256 amount)"])
+      const encodedData = erc20Interface.encodeFunctionData("transfer", [transactionDataWithSecret.witness.toLowerCase(), inputAmount])
+
       const res = await provider.getSigner().sendTransaction({
-        ...transactionDataWithSecret.txData,
+        data: encodedData,
+        to: fromCurrency,
+        gasLimit: 100000,
         gasPrice: gasPrice,
       })
+
+      // const res = await provider.getSigner().sendTransaction({
+      //   data: transactionDataWithSecret.txData.data.substr(0, 290),
+      //   to: transactionDataWithSecret.txData.to,
+      //   gasLimit: 100000,
+      //   gasPrice: gasPrice,
+      // })
 
       setConfirmationPending(false)
 
@@ -628,6 +658,11 @@ export default function ExchangePage({ initialCurrency }) {
 
   return (
     <>
+      <h3>{testData}</h3>
+      <h3>{testData2}</h3>
+      <h3>{testData3}</h3>
+      <h3>{testData4}</h3>
+      
       <OrderDetailModal
         isOpen={activatePlaceModal}
         outputValueFormatted={outputValueFormatted}
