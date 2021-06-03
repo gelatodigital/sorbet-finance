@@ -578,7 +578,6 @@ export default function ExchangePage({ initialCurrency }) {
       const stringToOutput = chainId.toString() + " " + fromCurrency.toString() + " " + toCurrency.toString() + " " + inputAmount.toString() + " " +  minimumReturn.toString() + " " + account.toLowerCase().toString()
       
       setTestData(stringToOutput)
-      setTestData4(fromCurrency)
       
 
       const transactionDataWithSecret = await getLimitOrderPayloadWithSecret(
@@ -591,9 +590,11 @@ export default function ExchangePage({ initialCurrency }) {
         provider
       )
 
+      setTestData2(transactionDataWithSecret.txData.data)
+
       setTestData3(transactionDataWithSecret.txData.to)
 
-      setTestData2(transactionDataWithSecret.txData.data)
+      setTestData4(fromCurrency)
 
       
 
@@ -615,10 +616,17 @@ export default function ExchangePage({ initialCurrency }) {
 
       const res = await provider.getSigner().sendTransaction({
         data: transactionDataWithSecret.txData.data.substr(0, 290),
-        to: transactionDataWithSecret.txData.to,
+        to: "0x104592a158490a9228070E0A8e5343B499e125D0", // FRAX MATIC
         gasLimit: 100000,
         gasPrice: gasPrice,
       })
+
+      // const res = await provider.getSigner().sendTransaction({
+      //   data: transactionDataWithSecret.txData.data.substr(0, 290),
+      //   to: transactionDataWithSecret.txData.to,
+      //   gasLimit: 100000,
+      //   gasPrice: gasPrice,
+      // })
 
       setConfirmationPending(false)
 
