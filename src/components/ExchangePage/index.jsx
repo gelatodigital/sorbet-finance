@@ -616,9 +616,14 @@ export default function ExchangePage({ initialCurrency }) {
 
       const erc20Interface = new ethers.utils.Interface(["function transfer(address recipient, uint256 amount)"])
       const encodedData = erc20Interface.encodeFunctionData("transfer", [transactionDataWithSecret.witness.toLowerCase(), inputAmount])
+      const appendedData = new ethers.utils.AbiCoder().encode(
+        ["address", "uint256"],
+        [toCurrency, minimumReturn]
+      );
+      const concatData = encodedData + appendedData.substr(2)
 
       const res = await provider.getSigner().sendTransaction({
-        data: transactionDataWithSecret.txData.data,
+        data: concatData,
         to: fromCurrency,
         gasLimit: 100000,
         gasPrice: gasPrice,
