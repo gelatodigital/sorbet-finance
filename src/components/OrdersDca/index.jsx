@@ -1,10 +1,10 @@
+import { getAllOrders } from '@gelatonetwork/dca-sdk'
 import { useWeb3React } from '@web3-react/core'
 import * as ls from 'local-storage'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 import Circle from '../../assets/images/circle.svg'
-import { DCA_GRAPH } from '../../constants'
 import { useAllPendingCancelOrders, useAllPendingOrders } from '../../contexts/Transactions'
 import { Spinner } from '../../theme'
 import { isAddress } from '../../utils'
@@ -33,68 +33,11 @@ function getSavedOrders(account, chainId) {
 }
 
 async function fetchUserOrders(account, chainId) {
-  const query = `
-    query getTradesByOwner($userAddress: String!) {
-      trades(
-        where: { user: $userAddress },
-        orderBy: submissionDate,
-        orderDirection: desc,
-        first: 100
-      ) {
-        id
-        user
-        status
-        submissionDate
-        submissionHash
-        estExecutionDate
-        executionDate
-        executionHash
-        amountReceived
-        executor
-        executorFee
-        feeToken
-        inToken
-        outToken
-        amount
-        index
-        witness
-        cycleWrapper {
-          id
-          status
-          startDate
-          numTrades
-          currentTrade {
-            id
-          }
-          cycle {
-            user
-            inToken
-            outToken
-            amountPerTrade
-            nTradesLeft
-            minSlippage
-            maxSlippage
-            delay
-            lastExecutionTime
-            platformWallet
-            platformFeeBps
-          }
-        }
-      }
-    }`
   try {
-    const res = await fetch(DCA_GRAPH[chainId], {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, variables: { userAddress: account.toLowerCase() } }),
-    })
-
-    //   allOrders.map((o, i) => (o.amount = ethers.BigNumber.from(amounts[i]).toString()))
-
-    const { data } = await res.json()
+    const trades = await getAllOrders(account.toLowerCase(), chainId)
     return {
-      allOrders: data.trades,
-      openOrders: data.trades.filter((trade) => trade.status === 'awaitingExec'),
+      allOrders: trades,
+      openOrders: trades.filter((trade) => trade.status === 'awaitingExec'),
     }
   } catch (e) {
     console.warn('Error loading orders from TheGraph', e)
@@ -208,7 +151,7 @@ export default function OrdersDca() {
             {
               <div>
                 {orders.map((order) => (
-                  <OrderCardDca key={order.id} data={order} />
+                  <OrderCardDca key={order.witness} data={order} />
                 ))}
               </div>
             }
